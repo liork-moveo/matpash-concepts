@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>מתפ״ש · קונספט 1 — המסלול האישי שלי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+  :root{
+    --teal:#559baa;
+    --teal-deep:#559baa;
+    --teal-light:#cae6ec;
+    --teal-dark:#213357;
+    --ink:#213357;
+    --on-dark:#f8f9fa;
+    --muted:#5c7480;
+    --line:#e2e9eb;
+    --bg:#f2f4f5;
+    --bg-soft:#f4f7f8;
+    --pin-teal:#45b0c4;
+    --pin-green:#1f7a5c;
+    --pin-yellow:#f5b21e;
+    --shadow:0 12px 34px rgba(20,51,61,.14);
+    --radius:20px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:'Assistant',system-ui,sans-serif;
+    background:#dfe4e6;
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+  /* phone shell */
+  .phone{
+    position:relative;width:100%;max-width:375px;min-height:100vh;margin:0 auto;
+    background:var(--bg);box-shadow:0 0 60px rgba(0,0,0,.18);
+  }
+  img{display:block;max-width:100%}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+  /* ---------- Header (fixed white bar, all screens) ---------- */
+  header{
+    position:sticky;top:0;z-index:60;width:100%;height:57px;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 19px;background:var(--bg);border-bottom:0.5px solid #e5e7e5;
+  }
+  .h-social{display:flex;gap:12px;align-items:center}
+  .h-social .ig{width:18.43px;height:18.43px}
+  .h-social .tt{width:17px;height:17px}
+  .logo-c{height:48.73px;width:48.73px;object-fit:contain}
+  .burger{width:19.9px;height:14px;display:flex;flex-direction:column;justify-content:space-between}
+  .burger span{height:2px;background:var(--ink);border-radius:2px}
+
+  /* ---------- generic section ---------- */
+  section{padding:0 20px}
+  .sec-title{font-size:36px;font-weight:700;text-align:center;color:var(--teal-dark);margin:34px 0 26px;line-height:0.92}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    height:calc(100vh - 57px);min-height:600px;position:relative;
+    display:flex;flex-direction:column;justify-content:flex-end;align-items:center;text-align:center;
+    padding:0 24px 58px;color:var(--on-dark);overflow:hidden;
+  }
+  .hero::before{content:"";position:absolute;inset:0;
+    background:url('../assets/hero.jpg') center 22%/cover;}
+  .hero::after{content:"";position:absolute;inset:0;z-index:1;
+    background:linear-gradient(180deg,rgba(18,51,61,.42) 0%,rgba(18,51,61,.22) 34%,rgba(18,51,61,.66) 78%,rgba(18,51,61,.88) 100%);}
+  .hero .hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+  .hero>*{position:relative;z-index:2}
+  .hero .eyebrow{font-size:14px;font-weight:600;letter-spacing:.56px;line-height:1.6;opacity:.95;margin-bottom:6px}
+  .hero h1{font-size:45px;font-weight:700;line-height:0.92;width:408px;max-width:none}
+  .hero p{font-size:18px;line-height:1.2;margin-top:17px;opacity:.95;max-width:294px}
+  .hero p b{font-weight:700}
+  .cta{
+    margin-top:40px;background:var(--teal);color:var(--on-dark);
+    font-size:18px;font-weight:700;padding:10px 25px;border-radius:9999px;
+    display:inline-flex;align-items:center;
+  }
+  .cta:active{transform:scale(.97)}
+
+  /* ---------- Video intro ---------- */
+  .video-card{position:relative;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);aspect-ratio:3/4;background:var(--teal)}
+  .video-card video,.video-card img{width:100%;height:100%;object-fit:cover}
+  .video-card .tag{position:absolute;top:17.7px;right:15px;background:rgba(255,255,255,.2);color:var(--on-dark);
+    font-size:14px;font-weight:400;letter-spacing:.56px;line-height:1.6;height:30px;display:inline-flex;align-items:center;
+    padding:0 15px;border-radius:30px}
+  .play-btn{position:absolute;inset:0;margin:auto;width:45.3px;height:45.3px;border-radius:50%;
+    background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center}
+  .play-btn svg{fill:var(--teal-deep);margin-inline-start:3px}
+  .menu-list{margin-top:15px;display:flex;flex-direction:column;gap:8px}
+  .menu-item{display:flex;align-items:center;gap:0}
+  .menu-item .bar{flex:1;background:var(--teal);color:var(--on-dark);font-size:17.68px;font-weight:700;line-height:1.2;
+    height:51.07px;display:flex;align-items:center;padding:0 24.55px;border-radius:9999px;margin-inline-end:-1px;position:relative;z-index:1}
+  .menu-item .ic{width:52px;height:52px;border-radius:26px;border:2px solid var(--teal);background:var(--bg);
+    display:flex;align-items:center;justify-content:center;flex:0 0 52px}
+  .menu-item .ic svg{width:33.12px;height:33.12px;stroke:var(--teal-deep)}
+  .down-chevron{display:flex;justify-content:center;margin:22px 0 6px;color:var(--teal)}
+
+  /* ---------- Carousel (roles / bases) ---------- */
+  .rail{display:flex;gap:21px;overflow-x:auto;scroll-snap-type:x mandatory;
+    padding:4px 0 6px;margin:0 -20px;padding-inline:43.5px;scrollbar-width:none}
+  .rail::-webkit-scrollbar{display:none}
+  .role-card{flex:0 0 288px;scroll-snap-align:center;position:relative;border-radius:var(--radius);
+    overflow:hidden;aspect-ratio:288/512;background:var(--teal);box-shadow:var(--shadow)}
+  .role-card .rc-face{position:absolute;inset:0}
+  .role-card video,.role-card .rc-face img{width:100%;height:100%;object-fit:cover}
+  .role-card .grad{position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(10,43,52,.9))}
+  .role-card .rc-play{position:absolute;inset:0;margin:auto;width:45.3px;height:45.3px;border-radius:50%;
+    background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center}
+  .role-card .rc-play svg{fill:var(--teal-deep);margin-inline-start:3px}
+  .role-card .rc-meta{position:absolute;bottom:0;inset-inline:0;padding:18px 20px;color:var(--on-dark);z-index:2}
+  .role-card .rc-meta h3{font-size:24px;font-weight:700;line-height:1.2}
+  .role-card .rc-meta span{font-size:14px;opacity:.85}
+  /* in-place expanded "back" of the card (no modal) */
+  .role-card .rc-back{position:absolute;inset:0;background:var(--teal);color:var(--on-dark);
+    padding:44px 20px 20px;display:none;flex-direction:column}
+  .role-card.flipped .rc-face{display:none}
+  .role-card.flipped .rc-back{display:flex}
+  .rc-close{position:absolute;top:12.8px;left:12.4px;width:31.6px;height:31.6px;z-index:3;
+    display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--on-dark)}
+  .rc-back h3{font-size:24px;font-weight:700;line-height:1.2;text-align:right;margin-bottom:12px}
+  .rc-back p{font-size:16px;line-height:1.2;text-align:right;overflow:hidden}
+  .dots{display:flex;gap:7px;justify-content:center;margin-top:16px}
+  .dots i{width:8.86px;height:8.86px;border-radius:50%;background:var(--line);transition:.3s}
+  .dots i.on{background:var(--teal);width:19.44px;border-radius:5px}
+
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+  .tags span{background:var(--on-dark);border-radius:100px;padding:3px 20px;font-size:14px;font-weight:400;
+    letter-spacing:.56px;line-height:1.6;color:var(--teal)}
+
+  /* ---------- Map ---------- */
+  .map-wrap{border-radius:var(--radius);overflow:hidden;position:relative;background:#eaf3f6;aspect-ratio:333/575}
+  .map-wrap .map-img{width:100%;height:100%;object-fit:cover;display:block}
+  .mapgl{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .mapgl .maplibregl-marker,.mapgl .maplibregl-ctrl-attrib,.mapgl .maplibregl-ctrl{pointer-events:auto}
+  .mapgl .maplibregl-ctrl-attrib{font-size:9px}
+  /* NOTE: do NOT set position/transform on .mpin — MapLibre owns those for marker placement (RTL-safe) */
+  .mpin{cursor:pointer}
+  .mpin-in{position:relative;width:34px;transform-origin:50% 100%;transition:transform .18s}
+  .mpin-in:active{transform:scale(1.12)}
+  .mpin svg{width:34px;height:auto;display:block;filter:drop-shadow(0 3px 4px rgba(0,0,0,.22))}
+  .mpin .dot{fill:var(--c)}
+  .mpin-label{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:1px;white-space:nowrap;
+    font-size:11.5px;font-weight:700;color:var(--teal-dark);text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 3px #fff}
+
+  .map-overview{animation:mfade .28s ease}
+  @keyframes mfade{from{opacity:0}to{opacity:1}}
+
+  /* ---------- Sector inner page (full-screen overlay, per Figma 1519-7859) ---------- */
+  .sector-page{position:fixed;top:0;bottom:0;left:50%;width:100%;max-width:375px;z-index:90;background:var(--bg);
+    transform:translate(-50%,100%);transition:transform .35s ease;display:flex;flex-direction:column;overflow:hidden}
+  .sector-page.open{transform:translate(-50%,0)}
+  .sector-head{flex:0 0 auto;height:57px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 19px;background:var(--bg);border-bottom:0.5px solid #e5e7e5}
+  .sector-head .logo-c{height:34px}
+  .sector-head .s-back{width:34px;height:34px;display:flex;align-items:center;justify-content:center}
+  .sector-head .s-back svg{width:22px;height:22px}
+  .sector-head .h-social{display:flex;gap:12px}
+  .sector-head .h-social svg{width:18px;height:18px}
+  .sector-body{flex:1;overflow-y:auto;padding:22px 22px 40px;display:flex;flex-direction:column;align-items:center}
+  .sector-title{font-size:36px;font-weight:700;color:var(--teal-dark);text-align:center;line-height:.95;margin-bottom:16px}
+  .sector-card{width:100%;max-width:331px;aspect-ratio:331/414;border-radius:23px;overflow:hidden;background:#f8f9fa;position:relative}
+  .sector-card img{width:100%;height:100%;object-fit:cover;display:block}
+  .sector-dots{display:flex;gap:8px;justify-content:center;margin:14px 0}
+  .sector-dots i{width:8.86px;height:8.86px;border-radius:50%;background:var(--line)}
+  .sector-dots i.on{background:var(--teal);width:19.44px;border-radius:5px}
+  .base-info{margin-top:8px;text-align:right;width:100%;max-width:331px}
+  .base-info h3{font-size:24px;font-weight:700;color:var(--teal-dark);line-height:1.2}
+  .base-info p{font-size:16px;color:var(--teal-dark);line-height:1.3;margin-top:8px}
+
+  /* ---------- Timeline ---------- */
+  .toggle{display:flex;gap:6px;justify-content:center;margin-bottom:26px}
+  .toggle button{background:var(--teal-light);color:var(--teal-deep);border-radius:9999px;padding:10px 25px;font-weight:700;font-size:18px;line-height:1.2}
+  .toggle button.on{background:var(--teal);color:var(--on-dark)}
+  .stepper{display:flex;justify-content:space-between;align-items:flex-start;position:relative;margin:0 6px 26px}
+  .stepper::before{content:"";position:absolute;top:14px;inset-inline:12%;height:2px;background:var(--line)}
+  .step{display:flex;flex-direction:column;align-items:center;gap:4px;width:24%;z-index:2}
+  .step .num{width:28.55px;height:28.55px;border-radius:50%;background:var(--teal-light);
+    display:flex;align-items:center;justify-content:center;font-size:0}
+  .step.on .num{background:var(--teal)}
+  .step small{font-size:14px;text-align:center;color:var(--teal-dark);font-weight:400;line-height:1.2}
+  .step.on small{font-weight:700}
+  .tl-card{background:#ffffff;color:var(--teal-dark);border-radius:var(--radius);padding:24px 22px;position:relative;overflow:hidden}
+  .tl-card .big{font-size:60px;font-weight:700;line-height:.92;text-align:right}
+  .tl-card h3{font-size:24px;font-weight:700;line-height:1.2;margin:6px 0 8px;text-align:right}
+  .tl-card p{font-size:16px;line-height:1.2;text-align:right}
+  .tl-card .ph{margin-top:16px;border-radius:11px;overflow:hidden;aspect-ratio:284.7/189.83}
+  .tl-card .ph img{width:100%;height:100%;object-fit:cover}
+
+  /* ---------- whatsapp float ---------- */
+  .wa{position:fixed;bottom:17px;left:max(17.8px,calc(50% - 169.7px));z-index:55;width:43px;height:43px;border-radius:50%;
+    background:#f8f9fa;border:1px solid #213357;
+    display:flex;align-items:center;justify-content:center}
+  .wa svg{width:26.81px;height:26.81px}
+
+  footer{padding:40px 20px 120px;text-align:center;color:var(--muted);font-size:13px}
+  .spacer{height:60px}
+  .back-strip{position:fixed;bottom:0;right:0;z-index:80;background:var(--teal-dark);color:var(--on-dark);font-size:12px;
+    padding:5px 12px;border-top-left-radius:10px;opacity:.8;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="phone">
+  <a href="../index.html" class="back-strip">‹ הקונספטים</a>
+
+  <header>
+    <button class="burger" aria-label="תפריט"><span></span><span></span><span></span></button>
+    <img class="logo-c" src="../assets/logo-color.png" alt="מתפ״ש">
+    <div class="h-social">
+      <svg class="ig" viewBox="0 0 18.4 19" fill="#213357"><path d="M9.17973 5.83685C6.32976 5.83673 4.54855 8.92183 5.97343 11.39C7.3983 13.8583 10.9608 13.8584 12.3859 11.3903C12.7109 10.8275 12.882 10.189 12.882 9.53907C12.8798 7.49528 11.2235 5.83898 9.17973 5.83685ZM9.17973 11.3902C7.75475 11.3902 6.86412 9.84759 7.57662 8.61352C8.28912 7.37944 10.0703 7.37944 10.7828 8.61352C10.9453 8.89492 11.0308 9.21414 11.0308 9.53907C11.0308 10.5614 10.2021 11.3902 9.17973 11.3902ZM12.882 1.20908H5.47751C2.92289 1.21205 0.852706 3.28224 0.849731 5.83685V13.2413C0.852706 15.7959 2.92289 17.8661 5.47751 17.8691H12.882C15.4366 17.8661 17.5068 15.7959 17.5097 13.2413V5.83685C17.5068 3.28224 15.4366 1.21205 12.882 1.20908ZM15.6586 13.2413C15.6586 14.7748 14.4155 16.018 12.882 16.018H5.47751C3.944 16.018 2.70085 14.7748 2.70085 13.2413V5.83685C2.70085 4.30334 3.944 3.06019 5.47751 3.06019H12.882C14.4155 3.06019 15.6586 4.30334 15.6586 5.83685V13.2413ZM14.4245 5.52834C14.4245 6.47832 13.3961 7.07207 12.5734 6.59707C11.7507 6.12208 11.7507 4.93459 12.5734 4.45959C12.761 4.35128 12.9738 4.29426 13.1905 4.29426C13.872 4.29429 14.4245 4.8468 14.4245 5.52834Z"/></svg>
+      <svg class="tt" viewBox="0 0 17 17" fill="#213357"><path d="M8.87212 0.0141667C9.80004 0 10.7209 0.00708333 11.6417 0C11.6984 1.08375 12.088 2.18875 12.8813 2.95375C13.6746 3.74 14.7938 4.10125 15.8846 4.22167V7.07625C14.8646 7.04083 13.8375 6.82833 12.9096 6.38917C12.5059 6.205 12.1305 5.97125 11.7621 5.73042C11.755 7.79875 11.7692 9.86708 11.748 11.9283C11.6913 12.92 11.3655 13.9046 10.7917 14.7192C9.86379 16.0792 8.25587 16.9646 6.60546 16.9929C5.59254 17.0496 4.57962 16.7733 3.71546 16.2633C2.28462 15.4204 1.27879 13.8763 1.13004 12.2188C1.11587 11.8646 1.10879 11.5104 1.12296 11.1633C1.25046 9.8175 1.91629 8.52833 2.95046 7.65C4.12629 6.63 5.76962 6.14125 7.30671 6.43167C7.32087 7.48 7.27837 8.52833 7.27837 9.57667C6.57712 9.35 5.75546 9.41375 5.13921 9.83875C4.69296 10.1292 4.35296 10.5754 4.17587 11.0783C4.02712 11.4396 4.06962 11.8363 4.07671 12.2188C4.24671 13.3804 5.36587 14.3579 6.55587 14.2517C7.34921 14.2446 8.10712 13.7842 8.51796 13.1112C8.65254 12.8775 8.80129 12.6367 8.80837 12.3604C8.87921 11.0925 8.85087 9.83167 8.85796 8.56375C8.86504 5.70917 8.85087 2.86167 8.87212 0.0141667Z"/></svg>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <video class="hero-bg" autoplay muted loop playsinline poster="../assets/hero.jpg" src="../assets/hero-loop.mp4"></video>
+    <div class="eyebrow">מתאם פעולות הממשלה בשטחים</div>
+    <h1>מתפ״ש יחידה אחת,<br>המון הזדמנויות.</h1>
+    <p>קיבלתם שיבוץ למתפ״ש? מחפשים שירות משמעותי ומגוון? <b>הגעתם למקום הנכון.</b></p>
+    <button class="cta" onclick="document.getElementById('intro').scrollIntoView({behavior:'smooth'})">גללו מטה וגלו עוד</button>
+  </section>
+
+  <!-- VIDEO INTRO + MENU -->
+  <section id="intro" style="padding-top:26px">
+    <div class="video-card" data-video="../assets/sde_teyman.mp4">
+      <img src="../assets/role-pikud.jpg" alt="">
+      <div class="tag">על האתר ב-30 שניות</div>
+      <div class="play-btn"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+    </div>
+    <div class="menu-list">
+      <div class="menu-item" onclick="document.getElementById('roles').scrollIntoView({behavior:'smooth'})">
+        <div class="bar">האופציות של התפקידים</div>
+        <div class="ic"><svg viewBox="0 0 34 34" fill="none" stroke-width="1.81" stroke-linecap="round" stroke-linejoin="round"><path d="M25.3975 27.6642L23.3186 20.388L16.5622 18.8289L9.80572 20.388L7.72681 27.6642H25.3975Z"/><path d="M13.054 9.27881L16.5621 11.0334H21.2397"/><path d="M21.24 15.9701L16.5624 17.7891L11.8849 15.9701V9.73335L16.5624 7.91431L21.24 9.73335V15.9701Z"/><path d="M19.1119 19.4178L16.5621 23.5071L14.0123 19.4178"/></svg></div>
+      </div>
+      <div class="menu-item" onclick="document.getElementById('map').scrollIntoView({behavior:'smooth'})">
+        <div class="bar">מיקומי בסיסים</div>
+        <div class="ic"><svg viewBox="0 0 34 34" fill="none" stroke-width="1.81" stroke-linecap="round" stroke-linejoin="round"><path d="M14.959 26.4452V18.1657H6.67957L23.9912 9.13354L14.959 26.4452Z"/></svg></div>
+      </div>
+      <div class="menu-item" onclick="document.getElementById('timeline').scrollIntoView({behavior:'smooth'})">
+        <div class="bar">גיוס, הכשרה ומסלולי שירות</div>
+        <div class="ic"><svg viewBox="0 0 34 34" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5621 22.6577V25.9085"/><path d="M25.5018 16.9689H22.251"/><path d="M10.8731 16.9689H7.62231"/><path d="M16.5621 7.2168V10.4676"/><path d="M10.0603 12.4983L16.562 9.24744L23.0636 12.4983V20.6254L16.562 23.8762L10.0603 20.6254V12.4983Z"/></svg></div>
+      </div>
+    </div>
+    <div class="down-chevron"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10l6 6 6-6" transform="translate(-1,0)"/></svg></div>
+  </section>
+
+  <!-- ROLES CAROUSEL -->
+  <section id="roles">
+    <h2 class="sec-title">אופציות השיבוץ<br>למש״ק תיאום וקישור</h2>
+    <div class="rail" id="rolesRail"></div>
+    <div class="dots" id="rolesDots"></div>
+  </section>
+
+  <div class="spacer"></div>
+
+  <!-- MAP: one overview map. Clicking a pin opens the base detail in place. -->
+  <section id="map">
+    <div class="map-overview" id="mapOverview">
+      <h2 class="sec-title">איפה אנחנו נמצאים?</h2>
+      <div class="map-wrap" id="mapWrap">
+        <div id="mapC1" class="mapgl"></div>
+      </div>
+      <p style="text-align:center;color:var(--muted);font-size:13.5px;margin-top:14px">3 גזרות פעילות · לחצו על סימון כדי לצפות בבסיס</p>
+    </div>
+
+  </section>
+
+  <!-- SECTOR INNER PAGE (full-screen overlay; opens on pin click — per Figma 1519-7859) -->
+  <div class="sector-page" id="mapDetail">
+    <header class="sector-head">
+      <button class="s-back" id="mapBack" aria-label="חזרה למפה"><svg viewBox="0 0 24 24" fill="none" stroke="#213357" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+      <img class="logo-c" src="../assets/logo-color.png" alt="מתפ״ש">
+      <div class="h-social">
+        <svg class="ig" viewBox="0 0 18.4 19" fill="#213357"><path d="M9.17973 5.83685C6.32976 5.83673 4.54855 8.92183 5.97343 11.39C7.3983 13.8583 10.9608 13.8584 12.3859 11.3903C12.7109 10.8275 12.882 10.189 12.882 9.53907C12.8798 7.49528 11.2235 5.83898 9.17973 5.83685ZM9.17973 11.3902C7.75475 11.3902 6.86412 9.84759 7.57662 8.61352C8.28912 7.37944 10.0703 7.37944 10.7828 8.61352C10.9453 8.89492 11.0308 9.21414 11.0308 9.53907C11.0308 10.5614 10.2021 11.3902 9.17973 11.3902ZM12.882 1.20908H5.47751C2.92289 1.21205 0.852706 3.28224 0.849731 5.83685V13.2413C0.852706 15.7959 2.92289 17.8661 5.47751 17.8691H12.882C15.4366 17.8661 17.5068 15.7959 17.5097 13.2413V5.83685C17.5068 3.28224 15.4366 1.21205 12.882 1.20908ZM15.6586 13.2413C15.6586 14.7748 14.4155 16.018 12.882 16.018H5.47751C3.944 16.018 2.70085 14.7748 2.70085 13.2413V5.83685C2.70085 4.30334 3.944 3.06019 5.47751 3.06019H12.882C14.4155 3.06019 15.6586 4.30334 15.6586 5.83685V13.2413ZM14.4245 5.52834C14.4245 6.47832 13.3961 7.07207 12.5734 6.59707C11.7507 6.12208 11.7507 4.93459 12.5734 4.45959C12.761 4.35128 12.9738 4.29426 13.1905 4.29426C13.872 4.29429 14.4245 4.8468 14.4245 5.52834Z"/></svg>
+        <svg class="tt" viewBox="0 0 17 17" fill="#213357"><path d="M8.87212 0.0141667C9.80004 0 10.7209 0.00708333 11.6417 0C11.6984 1.08375 12.088 2.18875 12.8813 2.95375C13.6746 3.74 14.7938 4.10125 15.8846 4.22167V7.07625C14.8646 7.04083 13.8375 6.82833 12.9096 6.38917C12.5059 6.205 12.1305 5.97125 11.7621 5.73042C11.755 7.79875 11.7692 9.86708 11.748 11.9283C11.6913 12.92 11.3655 13.9046 10.7917 14.7192C9.86379 16.0792 8.25587 16.9646 6.60546 16.9929C5.59254 17.0496 4.57962 16.7733 3.71546 16.2633C2.28462 15.4204 1.27879 13.8763 1.13004 12.2188C1.11587 11.8646 1.10879 11.5104 1.12296 11.1633C1.25046 9.8175 1.91629 8.52833 2.95046 7.65C4.12629 6.63 5.76962 6.14125 7.30671 6.43167C7.32087 7.48 7.27837 8.52833 7.27837 9.57667C6.57712 9.35 5.75546 9.41375 5.13921 9.83875C4.69296 10.1292 4.35296 10.5754 4.17587 11.0783C4.02712 11.4396 4.06962 11.8363 4.07671 12.2188C4.24671 13.3804 5.36587 14.3579 6.55587 14.2517C7.34921 14.2446 8.10712 13.7842 8.51796 13.1112C8.65254 12.8775 8.80129 12.6367 8.80837 12.3604C8.87921 11.0925 8.85087 9.83167 8.85796 8.56375C8.86504 5.70917 8.85087 2.86167 8.87212 0.0141667Z"/></svg>
+      </div>
+    </header>
+    <div class="sector-body">
+      <h2 class="sector-title" id="baseSector">גזרת עזה</h2>
+      <div class="sector-card"><img id="baseMapImg" src="../assets/map-sde-teiman.svg" alt="מפת בסיס"></div>
+      <div class="sector-dots"><i class="on"></i><i></i></div>
+      <div class="base-info">
+        <h3 id="baseName">בסיס: שדה תימן</h3>
+        <p id="baseDesc">מתפ״ש שדה תימן פועלים בגזרת רצועת עזה. שדה תימן הינו בסיס סגור, ממוקם רבע שעה מבאר שבע.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+
+  <!-- TIMELINE -->
+  <section id="timeline">
+    <h2 class="sec-title">מסלול והכשרה</h2>
+    <div class="toggle">
+      <button>מסלולים נוספים</button>
+      <button class="on">גיוס ושירות</button>
+    </div>
+    <div class="stepper" id="stepper"></div>
+    <div class="rail" id="tlRail"></div>
+    <div class="dots" id="tlDots"></div>
+  </section>
+
+  <footer>
+    מתפ״ש · מתאם פעולות הממשלה בשטחים<br>
+    <span style="opacity:.6">קונספט 1 — המסלול האישי שלי · פרוטוטייפ להדגמה</span>
+  </footer>
+
+  <a class="wa" href="#" onclick="return false" aria-label="צרו קשר בוואטסאפ"><svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg"><path fill="#25D366" d="M0.8956 13.2902C0.894938 15.5031 1.47318 17.6639 2.57263 19.5683L0.790405 26.0756L7.44969 24.3295C9.28432 25.3294 11.3501 25.8573 13.4524 25.8578H13.458C20.381 25.8578 26.0165 20.2243 26.0194 13.3001C26.0207 9.94471 24.7152 6.78967 22.3434 4.41597C19.9719 2.0424 16.818 0.734551 13.4574 0.733093C6.53363 0.733093 0.89851 6.36624 0.8956 13.2902Z"/><path fill="#fff" d="M10.2079 7.84785C9.96428 7.30638 9.708 7.29554 9.47629 7.28602C9.28669 7.27795 9.06981 7.27845 8.85321 7.27845C8.63633 7.27845 8.28409 7.35997 7.98625 7.6852C7.68813 8.01058 6.84814 8.79711 6.84814 10.3967C6.84814 11.9965 8.01337 13.5422 8.17573 13.7594C8.33835 13.9761 10.425 17.3638 13.7297 18.667C16.4763 19.75 17.0352 19.5346 17.6313 19.4804C18.2274 19.4263 19.555 18.6941 19.8259 17.9349C20.0969 17.1758 20.0969 16.525 20.0156 16.3891C19.9344 16.2536 19.7175 16.1722 19.3924 16.0097C19.0671 15.8471 17.4687 15.0605 17.1707 14.952C16.8726 14.8436 16.6559 14.7895 16.439 15.115C16.2223 15.4401 15.5995 16.1722 15.4098 16.3891C15.2202 16.6064 15.0304 16.6335 14.7053 16.4709C14.3801 16.3077 13.3329 15.9648 12.0907 14.8572C11.1241 13.9954 10.4716 12.9312 10.2819 12.6057C10.0922 12.2806 10.2616 12.1044 10.4246 11.9424C10.5707 11.7967 10.7499 11.5627 10.9125 11.373C11.0747 11.1831 11.1288 11.0476 11.2372 10.8307C11.3457 10.6137 11.2915 10.4239 11.2102 10.2612C11.1288 10.0986 10.497 8.49078 10.2079 7.84785Z"/></svg></a>
+</div>
+
+<script>
+/* ---------- data ---------- */
+const roles=[
+ {name:'פיקוד והדרכה', short:'עוסקים בהכשרת דור העתיד…', poster:'../assets/role-pikud.jpg', video:'../assets/dovrut.mp4',
+  tags:['מטה','רצועת עזה','איו״ש'],
+  text:'עוסקים בהכשרת דור העתיד של חיילי וקציני יחידת המתפ״ש, ובהקניית הידע המקצועי והיכולות הנדרשים לשירותם ביחידה. בתפקידי הפיקוד מובילים את תהליך ההכשרה של החניכים, מלווים אותם לאורך הקורס והטירונות, ובתפקידי ההדרכה אחראים על לימוד השפה הערבית או האנגלית ומקנים לחניכים את הידע הנדרש לקראת תפקידם.'},
+ {name:'תיאום אזרחי', short:'הגשר בין הצבא לאוכלוסייה…', poster:'../assets/role-ezrahi.jpg', video:'../assets/ezrahi.mp4',
+  tags:['רצועת עזה','איו״ש'],
+  text:'תפקידי התיאום האזרחי מהווים את הגשר בין המערכת הצבאית לבין האוכלוסייה האזרחית. עוסקים בתיאום מעברים, סיוע הומניטרי ותשתיות, תוך שמירה על האינטרסים הביטחוניים והאזרחיים כאחד.'},
+ {name:'מבצעים', short:'לב הפעילות המבצעית…', poster:'../assets/role-mivtzaim.jpg', video:'../assets/ayosh.mp4',
+  tags:['מטה','רצועת עזה'],
+  text:'תפקידי המבצעים נמצאים בלב הפעילות המבצעית של היחידה — ריכוז מידע, תיאום כוחות ובקרה שוטפת על המתרחש בשטח בזמן אמת, בממשק ישיר עם גורמי הפיקוד.'},
+ {name:'תיאום ביטחוני', short:'ממשק מול הגורמים בשטח…', poster:'../assets/role-bithoni.jpg', video:'../assets/kria.mp4',
+  tags:['רצועת עזה','איו״ש'],
+  text:'תפקידי התיאום הביטחוני אחראים על הממשק מול הגורמים הביטחוניים השונים בשטח, ניהול תיאומים מורכבים והבטחת רצף פעילות בטוח ומדויק.'},
+ {name:'דוברות והסברה', short:'הקול של היחידה…', poster:'../assets/role-teum.jpg', video:'../assets/dovrut.mp4',
+  tags:['מטה'],
+  text:'תפקידי הדוברות וההסברה מהווים את הקול של היחידה — יצירת תוכן, ניהול ממשקי תקשורת והנגשת הפעילות של המתפ״ש לקהלים מגוונים בארץ ובעולם.'},
+];
+const bases=[
+ {sector:'גזרת עזה', name:'בסיס: שדה תימן', map:'../assets/map-sde-teiman.svg', lng:34.7600, lat:31.2830, color:'#f5b21e',
+  desc:'מתפ״ש שדה תימן פועלים בגזרת רצועת עזה. שדה תימן הינו בסיס סגור, ממוקם רבע שעה מבאר שבע.'},
+ {sector:'גזרת איו״ש', name:'בסיס: בית אל', map:'../assets/map-yosh.svg', lng:35.2200, lat:31.9400, color:'#1f7a5c',
+  desc:'המתפ״ש באיו״ש פועלים לאורך הגזרה. הבסיס משמש כמרכז תיאום אזורי ומאפשר קרבה לזירת הפעילות.'},
+ {sector:'המטה', name:'בסיס: הקריה', map:'../assets/map-kirya.svg', lng:34.7900, lat:32.0740, color:'#45b0c4',
+  desc:'מטה היחידה ממוקם בקריה בתל אביב — מרכז הפיקוד, התכנון והבקרה של פעילות המתפ״ש בכלל הגזרות.'},
+];
+const steps=[
+ {n:1,label:'שיבוץ למתפ״ש'},{n:2,label:'טירונות יחידה'},{n:3,label:'קורס'},{n:4,label:'שיבוץ לתפקיד'}
+];
+const tlCards=[
+ {no:'01',title:'קבלת השיבוץ ליחידה',text:'קבלת השיבוץ ליחידה, ביום השיבוץ או בקבלת הודעה מראש. מכאן מתחיל המסלול שלכם במתפ״ש.',img:'../assets/role-pikud.jpg'},
+ {no:'02',title:'טירונות יחידה',text:'הכשרה בת כ-3 שבועות במחנה גדעונים. במהלך הטירונות תהפכו מאזרחים לחיילים, תלמדו את ערכי צה״ל ומיומנויות בסיסיות, ותכירו את היחידה.',img:'../assets/role-mivtzaim.jpg'},
+ {no:'03',title:'קורס מקצועי',text:'הכשרה מקצועית ייעודית לתפקיד — לימוד השפה, הכלים והידע הנדרשים כדי להשתלב במערך התיאום והקישור של היחידה.',img:'../assets/role-ezrahi.jpg'},
+ {no:'04',title:'שיבוץ לתפקיד',text:'סיום ההכשרה ושיבוץ לתפקיד ולבסיס. מכאן מתחיל השירות המשמעותי שלכם כחלק ממערך המתפ״ש.',img:'../assets/role-bithoni.jpg'},
+];
+
+/* ---------- render roles (in-place expand, no modal) ---------- */
+const rail=document.getElementById('rolesRail');
+roles.forEach((r,i)=>{
+  const c=document.createElement('div');c.className='role-card';
+  const tagsHtml=r.tags.map(t=>`<span>${t}</span>`).join('');
+  c.innerHTML=`<div class="rc-face">
+       <img src="${r.poster}" alt="">
+       <div class="grad"></div>
+       <div class="rc-play"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+       <div class="rc-meta"><h3>${r.name}</h3><span>${r.short} קרא עוד</span></div>
+     </div>
+     <div class="rc-back">
+       <button class="rc-close">✕</button>
+       <h3>${r.name}</h3>
+       <p>${r.text}</p>
+       <div class="tags">${tagsHtml}</div>
+     </div>`;
+  c.querySelector('.rc-face').onclick=()=>c.classList.add('flipped');
+  c.querySelector('.rc-close').onclick=e=>{e.stopPropagation();c.classList.remove('flipped');};
+  rail.appendChild(c);
+});
+buildDots('rolesDots',roles.length,'rolesRail');
+
+/* ---------- map: overview → click pin → full-screen sector inner page (Figma 1519-7859) ---------- */
+function setBase(i){
+  const b=bases[i];
+  document.getElementById('baseSector').textContent=b.sector;
+  document.getElementById('baseName').textContent=b.name;
+  document.getElementById('baseDesc').textContent=b.desc;
+  document.getElementById('baseMapImg').src=b.map;
+}
+function openSector(i){
+  setBase(i);
+  document.getElementById('mapDetail').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeSector(){
+  document.getElementById('mapDetail').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSector(); });
+document.getElementById('mapBack').onclick=closeSector;
+
+/* real vector map (MapLibre + OpenFreeMap, no token) — non-interactive backdrop, pins clickable */
+let map1=null;
+const IL_BOUNDS1=[[34.05,30.85],[35.95,33.35]];
+/* correct Hebrew (RTL) rendering — locally hosted so the worker can importScripts it same-origin */
+try{ maplibregl.setRTLTextPlugin('../assets/mapbox-gl-rtl-text.min.js', ()=>{}, true); }catch(e){}
+/* polygon of the Israel area (incl. יו״ש/עזה/גולן), excl. neighboring countries */
+const ISRAEL_POLY={type:'Polygon',coordinates:[[
+ [35.10,33.12],[35.60,33.30],[35.78,33.05],[35.75,32.70],
+ [35.57,32.20],[35.50,31.75],[35.45,31.35],[35.42,31.00],
+ [35.15,30.75],[34.90,30.80],[34.50,31.10],[34.22,31.35],
+ [34.42,31.55],[34.75,32.30],[34.92,32.82],[35.10,33.12]
+]]};
+/* clean map: only land + borders + sea. Remove roads/relief/POIs; only big Israeli cities in Hebrew. */
+const HIDE_PLACE=['label_other','label_village','label_town','label_state']; // keep only label_city + label_city_capital
+function localizeHe(map){
+  if(!map.isStyleLoaded||!map.isStyleLoaded()) return;
+  if(map._heDone) return; map._heDone=true;
+  const heName=['coalesce',['get','name:he'],['get','name:hebrew']];
+  (map.getStyle().layers||[]).forEach(l=>{
+    const id=l.id, sl=l['source-layer'], src=l.source, ty=l.type;
+    // strip roads, relief, POIs, buildings and the yellow sand/landuse — keep green landcover + park + borders + sea
+    if(sl==='transportation'||sl==='transportation_name'||sl==='poi'||sl==='aeroway'||sl==='building'||sl==='landuse'
+       ||id==='landcover_sand'||id==='landcover_ice'
+       ||src==='ne2_shaded'||ty==='raster'||ty==='hillshade'||ty==='fill-extrusion'){
+      try{map.setLayoutProperty(id,'visibility','none');}catch(e){} return;
+    }
+    if(ty!=='symbol') return;
+    // hide country/state/continent and minor place labels (villages/towns) — keep only big cities
+    if(/country|state|continent/i.test(id) || HIDE_PLACE.includes(id)){ try{map.setLayoutProperty(id,'visibility','none');}catch(e){} return; }
+    if(l.layout && l.layout['text-field']!==undefined){ try{ map.setLayoutProperty(id,'text-field',heName); }catch(e){} }
+    if(sl==='place'){
+      try{ const ex=map.getFilter(id); const wf=['within',ISRAEL_POLY];
+        map.setFilter(id, ex ? ['all',ex,wf] : wf); }catch(e){}
+    }
+  });
+}
+function mpinEl(color,name){
+  const el=document.createElement('div');el.className='mpin';el.style.setProperty('--c',color);
+  el.innerHTML=`<div class="mpin-in"><svg viewBox="0 0 77 86" xmlns="http://www.w3.org/2000/svg"><path fill="#F8F9FA" d="M38.0654 8.714C54.671 8.714 65.418 21.91 65.418 38.385C65.418 47.767 61.62 54.216 56.694 59.233C54.223 61.751 51.466 63.909 48.751 65.897C46.056 67.87 43.358 69.704 41.099 71.521L41.02 71.594C39.402 73.349 36.729 73.349 35.11 71.594L35.033 71.522L34.13 70.809C31.983 69.147 29.581 67.493 27.203 65.751C24.468 63.747 21.725 61.6 19.28 59.105C14.41 54.134 10.714 47.771 10.714 38.385C10.714 21.91 21.46 8.714 38.0654 8.714Z"/><circle class="dot" cx="38" cy="38" r="20"/></svg>${name?`<span class="mpin-label">${name}</span>`:''}</div>`;
+  return el;
+}
+function initMap1(){
+  if(map1 || typeof maplibregl==='undefined') return;
+  // fully interactive internally (keeps render loop alive → full render); CSS pointer-events:none on
+  // the canvas lets page-scroll pass through, while markers/controls keep pointer-events:auto.
+  map1=new maplibregl.Map({container:'mapC1', style:'https://tiles.openfreemap.org/styles/liberty',
+    bounds:IL_BOUNDS1, fitBoundsOptions:{padding:24}, dragRotate:false, pitchWithRotate:false, attributionControl:true});
+  window.__m1=map1;
+  map1.on('load',()=>{try{map1.resize();}catch(x){}localizeHe(map1);});
+  map1.on('styledata',()=>localizeHe(map1));
+  map1.on('idle',()=>localizeHe(map1));
+  bases.forEach((b,i)=>{
+    const el=mpinEl(b.color, (b.name||'').replace('בסיס: ',''));
+    el.addEventListener('click',e=>{e.stopPropagation();openSector(i);});
+    new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat([b.lng,b.lat]).addTo(map1);
+  });
+}
+// MapLibre v3 pauses rendering while the container is off-screen; the map inits below the fold,
+// so nudge it with resize() once it scrolls into view to resume a full render. Stop once tiles load.
+let map1Resumed=false;
+function resumeMap1(){
+  if(!map1||map1Resumed) return;
+  const r=document.getElementById('mapWrap').getBoundingClientRect();
+  if(r.top < window.innerHeight*1.2 && r.bottom > 0){
+    try{ map1.resize(); localizeHe(map1); }catch(x){}
+    if(map1.areTilesLoaded && map1.areTilesLoaded()){ map1Resumed=true; window.removeEventListener('scroll',resumeMap1); }
+  }
+}
+window.addEventListener('scroll',resumeMap1,{passive:true});
+function bootMap1(){ initMap1(); [120,500,1200,2500].forEach(t=>setTimeout(resumeMap1,t)); }
+if(document.readyState==='complete') bootMap1();
+else window.addEventListener('load',()=>setTimeout(bootMap1,60));
+
+/* ---------- timeline ---------- */
+const stp=document.getElementById('stepper');
+[...steps].reverse().forEach((s,idx)=>{
+  const el=document.createElement('div');el.className='step'+(s.n===1?' on':'');
+  el.innerHTML=`<div class="num">${s.n}</div><small>${s.label}</small>`;
+  el.onclick=()=>goTL(s.n-1);
+  stp.appendChild(el);
+});
+const tlRail=document.getElementById('tlRail');
+tlCards.forEach(c=>{
+  const el=document.createElement('div');el.className='role-card';el.style.cssText='aspect-ratio:auto;background:none;box-shadow:none;flex:0 0 300px;overflow:visible';
+  el.innerHTML=`<div class="tl-card"><div class="big">${c.no}</div><h3>${c.title}</h3><p>${c.text}</p><div class="ph"><img src="${c.img}"></div></div>`;
+  tlRail.appendChild(el);
+});
+buildDots('tlDots',tlCards.length,'tlRail',null,updateStepper);
+function goTL(i){const r=tlRail;r.scrollTo({left:-(i*r.children[0].offsetWidth+i*16),behavior:'smooth'})}
+function updateStepper(i){[...stp.children].forEach((el,idx)=>{
+  const stepNum=steps.length-idx; el.classList.toggle('on',stepNum===i+1);});}
+
+/* ---------- dots helper ---------- */
+function buildDots(dotsId,n,railId,onClick,onScroll){
+  const d=document.getElementById(dotsId);d.innerHTML='';
+  for(let i=0;i<n;i++){const b=document.createElement('i');if(i===0)b.className='on';
+    b.onclick=()=>{if(onClick)onClick(i);
+      if(railId){const r=document.getElementById(railId);r.scrollTo({left:-(i*r.children[0].offsetWidth+i*16),behavior:'smooth'});}};
+    d.appendChild(b);}
+  if(railId){const r=document.getElementById(railId);
+    r.addEventListener('scroll',()=>{const w=r.children[0].offsetWidth+16;
+      const idx=Math.round(Math.abs(r.scrollLeft)/w);markDots(dotsId,idx);if(onScroll)onScroll(idx);});}
+}
+function markDots(id,idx){[...document.getElementById(id).children].forEach((x,i)=>x.classList.toggle('on',i===idx));}
+
+/* ---------- video cards play ---------- */
+document.querySelectorAll('.video-card').forEach(card=>{
+  card.onclick=()=>{const src=card.dataset.video;if(!src)return;
+    card.innerHTML=`<video src="${src}" autoplay controls playsinline style="width:100%;height:100%;object-fit:cover"></video>`;};
+});
+</script>
+</body>
+</html>

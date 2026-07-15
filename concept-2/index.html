@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>מתפ״ש · קונספט 2 — חלק מהשלם</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+  :root{
+    --navy:#213357;
+    --navy-deep:#213357;
+    --sand:#f8f9fa;
+    --cream:rgba(248,249,250,0.2);
+    --ink:#213357;
+    --muted:#213357;
+    --line:#213357;
+    --accent:#213357;
+    --teal-light:#c2e5ee;
+    --on-dark:#f8f9fa;
+    --pin-teal:#45b0c4;--pin-green:#1f7a5c;--pin-yellow:#f5b21e;
+    --shadow:0 14px 34px rgba(27,53,87,.16);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{scroll-padding-top:57px}
+  html,body{height:100%}
+  body{font-family:'Assistant',system-ui,sans-serif;background:#e5e7e9;color:var(--ink);overflow-x:hidden}
+  .phone{position:relative;width:100%;max-width:375px;height:100dvh;margin:0 auto;background:var(--sand);box-shadow:0 0 60px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden}
+  /* nested scroll: hero + content are two snap "pages"; the grid scrolls inside .panels,
+     so scrolling the images never moves the pager (no bounce back to the tabs). */
+  .pager{flex:1;min-height:0;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .pager::-webkit-scrollbar{display:none}
+  .page{height:100%;scroll-snap-align:start;scroll-snap-stop:always}
+  .content{display:flex;flex-direction:column;background:var(--sand)}
+  .panels{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  img{display:block;max-width:100%}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+  header{position:sticky;top:0;z-index:60;width:100%;height:57px;
+    display:flex;align-items:center;justify-content:space-between;padding:0 19px;
+    background:var(--sand);box-shadow:0 1px 0 rgba(0,0,0,0.06)}
+  .h-social{display:flex;gap:12px;align-items:center}
+  .h-social .ig{width:18.43px;height:18.43px}
+  .h-social .tt{width:17px;height:17px}
+  .logo-c{height:48.73px;width:48.73px;object-fit:contain}
+  .burger{width:19.9px;height:14px;display:flex;flex-direction:column;justify-content:space-between}
+  .burger span{height:2px;background:var(--ink);border-radius:2px}
+
+  /* HERO */
+  .hero{height:100%;position:relative;display:flex;flex-direction:column;justify-content:flex-end;
+    align-items:center;text-align:center;padding:0 24px 150px;color:var(--on-dark);overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:0;background:url('../assets/hero.jpg') center 22%/cover}
+  .hero::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(18,39,64,.5),rgba(18,39,64,.32) 45%,rgba(18,39,64,.75))}
+  .hero .hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+  .hero>*{position:relative;z-index:2}
+  .hero .eyebrow{background:var(--cream);color:#ffffff;font-size:14px;font-weight:400;letter-spacing:0.56px;line-height:1.6;
+    height:30px;display:inline-flex;align-items:center;padding:0 15px;border-radius:9999px;margin-bottom:8px}
+  .hero h1{font-size:42px;font-weight:700;line-height:0.92;width:331px;max-width:none}
+  .hero p{font-size:18px;line-height:1.2;margin-top:20px;opacity:.95;max-width:294px}
+  .hero p b{font-weight:700}
+  .scroll-hint{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:3;color:var(--on-dark);opacity:.85;animation:bob 1.8s infinite}
+  @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
+
+  /* TABS */
+  .tabs{flex:0 0 auto;z-index:55;background:var(--sand);display:flex;justify-content:center;gap:25px;
+    padding:20px 12px 12px}
+  .tab{flex:0 0 auto;padding:6px 4px 12px;font-size:14px;font-weight:700;letter-spacing:-0.28px;color:var(--navy);position:relative}
+  .tab.on::after{content:"";position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:60px;height:1.8px;border-radius:3px;background:var(--navy)}
+
+  .panel{display:none;padding:22px 20px 120px;animation:fade .35s}
+  .panel.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* ROLES GRID */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .g-card{position:relative;border-radius:20px;overflow:hidden;aspect-ratio:159/242}
+  .g-card img{width:100%;height:100%;object-fit:cover;transition:.4s}
+  .g-card:active img{transform:scale(1.05)}
+  .g-card::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8),rgba(0,0,0,0) 55%)}
+  .g-card span{position:absolute;bottom:16.4px;inset-inline:14px;z-index:2;color:var(--on-dark);font-size:18px;font-weight:700;line-height:1.2}
+
+  /* ROLE DETAIL MODAL */
+  .sheet{position:fixed;top:0;bottom:0;left:50%;transform:translate(-50%,100%);width:100%;max-width:375px;z-index:100;
+    background:#f8f9fa;overflow-y:auto;visibility:hidden;transition:transform .35s ease,visibility .35s}
+  .sheet.open{transform:translate(-50%,0);visibility:visible}
+  .sheet-card{width:100%;background:#f8f9fa;position:relative;padding:0 0 30px;min-height:100%}
+  .sheet-top{display:flex;justify-content:space-between;align-items:flex-start;padding:20px 20px 0}
+  .sheet-top .x{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--navy)}
+  .sheet-top .flag svg{width:25px;height:25px;stroke:var(--navy)}
+  .sheet-body{padding:6px 22px 0;text-align:right}
+  .sheet-body h2{font-size:28px;font-weight:700;color:var(--navy);line-height:1.2;margin-bottom:6px}
+  .sheet-body .desc{font-size:18px;line-height:1.35;color:var(--navy)}
+  .sheet-body .desc .more{color:var(--navy);cursor:pointer;font-weight:700;text-decoration:underline;white-space:nowrap}
+  .sheet-body .desc-more{font-size:16px;line-height:1.5;color:var(--navy);margin-top:10px}
+  .sheet-body .desc-more b{font-weight:700}
+  .chips{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin:16px 0}
+  .chips span{background:#fff;border-radius:100px;padding:0 16px;height:34px;font-size:14px;font-weight:300;letter-spacing:.56px;
+    line-height:1.6;display:inline-flex;gap:6px;align-items:center;color:var(--navy)}
+  .chips svg{width:12px;height:13px;stroke:var(--navy)}
+  .role-video{position:relative;border-radius:20px;overflow:hidden;aspect-ratio:331/456;box-shadow:var(--shadow);background:#000;margin:0 22px}
+  .role-video video,.role-video img{width:100%;height:100%;object-fit:cover}
+  .role-video .cap{position:absolute;bottom:16px;inset-inline:0;text-align:center;color:var(--on-dark);font-size:18px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+  .role-video .rc-play{position:absolute;inset:0;margin:auto;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center}
+  .role-video .rc-play svg{fill:var(--navy);margin-inline-start:3px}
+  .nav-arrows{display:flex;justify-content:center;gap:2px;margin:18px auto 0;background:#fff;border-radius:30px;
+    width:96px;height:30px;box-shadow:0 3px 10px rgba(0,0,0,.06);overflow:hidden}
+  .nav-arrows button{flex:1;color:var(--navy);font-size:16px}
+  .nav-arrows .sep{width:1px;background:var(--line);margin:6px 0}
+
+  /* BASES MAP */
+  #p-bases{padding:0}
+  #p-bases.on{display:flex;flex-direction:column;height:100%}
+  .map-full{position:relative;flex:1;min-height:0;overflow:hidden;background:#eef3e8}
+  .mapgl{position:absolute;inset:0;width:100%;height:100%}
+  .mpin{width:36px;cursor:pointer;filter:drop-shadow(0 3px 5px rgba(0,0,0,.3));line-height:0;transition:transform .15s}
+  .mpin svg{display:block;width:100%;height:auto}
+  .mpin .dot{fill:var(--c)}
+  .mpin.sel{transform:scale(1.18)}
+  .map-hint{flex:0 0 auto;text-align:center;color:var(--muted);font-size:13.5px;padding:12px 20px;margin:0}
+
+  /* base bottom sheet */
+  .base-sheet{position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);width:100%;max-width:375px;z-index:90;
+    background:var(--sand);border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding:10px 22px 34px;
+    transition:transform .4s;max-height:82vh;overflow-y:auto;cursor:pointer}
+  .base-sheet.open{transform:translate(-50%,calc(100% - 128px))}   /* peek — handle + name; tap to expand */
+  .base-sheet.open.full{transform:translate(-50%,0)}
+  .handle{width:44px;height:5px;border-radius:3px;background:#d8dbde;margin:6px auto 14px}
+  .base-sheet h3{font-size:24px;font-weight:700;color:var(--navy);line-height:1.2}
+  .base-sheet p{font-size:16px;color:var(--navy);line-height:1.3;margin-top:8px}
+  .base-sheet p b{color:var(--navy);font-weight:700}
+  .base-sheet .render{margin-top:16px;border-radius:20px;overflow:hidden;aspect-ratio:16/10}
+  .base-sheet .render img{width:100%;height:100%;object-fit:cover}
+  .base-close{position:absolute;top:14px;left:18px;width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
+
+  /* SERVICE TIMELINE */
+  .segmented{display:flex;gap:8px;justify-content:center;margin-bottom:24px}
+  .segmented button{height:30px;border-radius:10px;font-size:14px;font-weight:700;letter-spacing:.56px;padding:0 18px;background:var(--teal-light);color:var(--navy)}
+  .segmented button.on{background:var(--navy);color:var(--on-dark)}
+  /* service accordion (one open) + decorative vertical progress line on the inline-start (RTL: right) */
+  .acc{position:relative}
+  .acc.has-line::before{content:"";position:absolute;top:29px;bottom:29px;inset-inline-start:18.5px;width:1px;background:var(--navy);opacity:.5;z-index:0}
+  .acc-row{position:relative;margin-bottom:10px}
+  .acc.has-line .acc-row{padding-inline-start:56px}
+  /* node column (right in RTL) — OUTSIDE the box. Closed dots all identical; open = big circle + icon. */
+  .acc-node{position:absolute;inset-inline-start:0;top:0;height:58px;width:38px;display:flex;align-items:center;justify-content:center;z-index:2}
+  .acc:not(.has-line) .acc-node{display:none}
+  .acc-node .dot{width:12px;height:12px;border-radius:50%;background:var(--sand);border:1.5px solid var(--navy);flex-shrink:0}
+  .acc-node .big{width:43px;height:43px;border-radius:50%;background:var(--sand);border:1px solid var(--navy);
+    display:none;align-items:center;justify-content:center;flex-shrink:0}
+  .acc-node .big svg{width:22px;height:22px;stroke:var(--navy)}
+  .acc-row.open .acc-node .dot{display:none}
+  .acc-row.open .acc-node .big{display:flex}
+  /* the box: closed = white + border (title only); open = ONE navy rectangle holding title + text */
+  .acc-box{border-radius:12px;overflow:hidden;background:#fff;border:1px solid rgba(33,51,87,.14);transition:background .2s,border-color .2s}
+  .acc-row.open .acc-box{background:var(--navy);border-color:var(--navy)}
+  .acc-head{width:100%;display:flex;align-items:center;min-height:58px;padding:0 20px;text-align:right;
+    font-size:22px;font-weight:700;color:var(--navy);line-height:1.15;transition:color .2s}
+  .acc-row.open .acc-head{color:var(--on-dark)}
+  .acc-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s ease}
+  .acc-row.open .acc-body{grid-template-rows:1fr}
+  .acc-body>div{overflow:hidden}
+  .acc-body p{font-size:16px;line-height:1.5;color:var(--on-dark);padding:0 20px 18px;text-align:right}
+  /* image — separate element BELOW the box, shown only when the stage is open. Multi-image steps
+     auto-rotate (crossfade) while open — behaviour matches the demo-1-v3 stepper. */
+  .acc-media{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
+  .acc-row.open .acc-media{grid-template-rows:1fr;margin-top:6px}
+  .acc-media>div{overflow:hidden}
+  .acc-slides{position:relative;aspect-ratio:300/158;border-radius:12px;overflow:hidden}
+  .acc-slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .8s ease}
+  .acc-slide.on{opacity:1}
+  @media (prefers-reduced-motion: reduce){ .acc-body,.acc-media,.acc-slide{transition:none} }
+
+  .wa{position:fixed;bottom:16.52px;left:max(17.8px,calc(50% - 169.7px));z-index:55;width:43px;height:43px;border-radius:50%;
+    background:#fff;filter:drop-shadow(0 0 6px rgba(0,0,0,.08));display:flex;align-items:center;justify-content:center}
+  .wa svg{width:26.81px;height:26.81px}
+  .back-strip{position:fixed;bottom:0;right:0;z-index:80;background:var(--navy-deep);color:var(--on-dark);font-size:12px;
+    padding:5px 12px;border-top-left-radius:10px;opacity:.8;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="phone">
+  <a href="../index.html" class="back-strip">‹ הקונספטים</a>
+
+  <header>
+    <button class="burger" aria-label="תפריט"><span></span><span></span><span></span></button>
+    <img class="logo-c" src="../assets/logo-color.png" alt="מתפ״ש">
+    <div class="h-social">
+      <svg class="ig" viewBox="0 0 18.4 19" fill="#213357"><path d="M9.17973 5.83685C6.32976 5.83673 4.54855 8.92183 5.97343 11.39C7.3983 13.8583 10.9608 13.8584 12.3859 11.3903C12.7109 10.8275 12.882 10.189 12.882 9.53907C12.8798 7.49528 11.2235 5.83898 9.17973 5.83685ZM9.17973 11.3902C7.75475 11.3902 6.86412 9.84759 7.57662 8.61352C8.28912 7.37944 10.0703 7.37944 10.7828 8.61352C10.9453 8.89492 11.0308 9.21414 11.0308 9.53907C11.0308 10.5614 10.2021 11.3902 9.17973 11.3902ZM12.882 1.20908H5.47751C2.92289 1.21205 0.852706 3.28224 0.849731 5.83685V13.2413C0.852706 15.7959 2.92289 17.8661 5.47751 17.8691H12.882C15.4366 17.8661 17.5068 15.7959 17.5097 13.2413V5.83685C17.5068 3.28224 15.4366 1.21205 12.882 1.20908ZM15.6586 13.2413C15.6586 14.7748 14.4155 16.018 12.882 16.018H5.47751C3.944 16.018 2.70085 14.7748 2.70085 13.2413V5.83685C2.70085 4.30334 3.944 3.06019 5.47751 3.06019H12.882C14.4155 3.06019 15.6586 4.30334 15.6586 5.83685V13.2413ZM14.4245 5.52834C14.4245 6.47832 13.3961 7.07207 12.5734 6.59707C11.7507 6.12208 11.7507 4.93459 12.5734 4.45959C12.761 4.35128 12.9738 4.29426 13.1905 4.29426C13.872 4.29429 14.4245 4.8468 14.4245 5.52834Z"/></svg>
+      <svg class="tt" viewBox="0 0 17 17" fill="#213357"><path d="M8.87212 0.0141667C9.80004 0 10.7209 0.00708333 11.6417 0C11.6984 1.08375 12.088 2.18875 12.8813 2.95375C13.6746 3.74 14.7938 4.10125 15.8846 4.22167V7.07625C14.8646 7.04083 13.8375 6.82833 12.9096 6.38917C12.5059 6.205 12.1305 5.97125 11.7621 5.73042C11.755 7.79875 11.7692 9.86708 11.748 11.9283C11.6913 12.92 11.3655 13.9046 10.7917 14.7192C9.86379 16.0792 8.25587 16.9646 6.60546 16.9929C5.59254 17.0496 4.57962 16.7733 3.71546 16.2633C2.28462 15.4204 1.27879 13.8763 1.13004 12.2188C1.11587 11.8646 1.10879 11.5104 1.12296 11.1633C1.25046 9.8175 1.91629 8.52833 2.95046 7.65C4.12629 6.63 5.76962 6.14125 7.30671 6.43167C7.32087 7.48 7.27837 8.52833 7.27837 9.57667C6.57712 9.35 5.75546 9.41375 5.13921 9.83875C4.69296 10.1292 4.35296 10.5754 4.17587 11.0783C4.02712 11.4396 4.06962 11.8363 4.07671 12.2188C4.24671 13.3804 5.36587 14.3579 6.55587 14.2517C7.34921 14.2446 8.10712 13.7842 8.51796 13.1112C8.65254 12.8775 8.80129 12.6367 8.80837 12.3604C8.87921 11.0925 8.85087 9.83167 8.85796 8.56375C8.86504 5.70917 8.85087 2.86167 8.87212 0.0141667Z"/></svg>
+    </div>
+  </header>
+
+  <div class="pager" id="pager">
+  <!-- HERO (page 1) -->
+  <section class="page hero">
+    <video class="hero-bg" autoplay muted loop playsinline poster="../assets/hero.jpg" src="../assets/hero-loop.mp4"></video>
+    <div class="eyebrow">מתאם פעולות הממשלה בשטחים</div>
+    <h1>מתפ״ש יחידה אחת,<br>המון הזדמנויות.</h1>
+    <p>קיבלתם שיבוץ למתפ״ש? מחפשים שירות משמעותי ומגוון? <b>הגעתם למקום הנכון.</b></p>
+    <div class="scroll-hint" onclick="document.querySelector('.content').scrollIntoView({behavior:'smooth'})"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+  </section>
+
+  <!-- CONTENT (page 2): sticky tabs + internally-scrolling panels -->
+  <section class="page content">
+  <!-- TABS -->
+  <div class="tabs" id="tabs">
+    <button class="tab" data-tab="service">השירות</button>
+    <button class="tab" data-tab="bases">בסיסים</button>
+    <button class="tab on" data-tab="roles">תפקידים</button>
+  </div>
+
+  <div class="panels" id="panels">
+  <!-- ROLES PANEL -->
+  <div class="panel on" id="p-roles">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <!-- BASES PANEL -->
+  <div class="panel" id="p-bases">
+    <div class="map-full"><div id="mapC2" class="mapgl"></div></div>
+    <p class="map-hint">לחצו על סימון בסיס כדי לצפות בפרטים</p>
+  </div>
+
+  <!-- SERVICE PANEL -->
+  <div class="panel" id="p-service">
+    <div class="segmented" id="svcToggle">
+      <button class="on" data-track="main">גיוס ושירות</button>
+      <button data-track="alt">מסלולים נוספים</button>
+    </div>
+    <div class="acc" id="accordion"></div>
+  </div>
+  </div><!-- /panels -->
+  </section><!-- /content page -->
+  </div><!-- /pager -->
+
+  <a class="wa" href="#" onclick="return false" aria-label="צרו קשר בוואטסאפ"><svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg"><path fill="#25D366" d="M0.8956 13.2902C0.894938 15.5031 1.47318 17.6639 2.57263 19.5683L0.790405 26.0756L7.44969 24.3295C9.28432 25.3294 11.3501 25.8573 13.4524 25.8578H13.458C20.381 25.8578 26.0165 20.2243 26.0194 13.3001C26.0207 9.94471 24.7152 6.78967 22.3434 4.41597C19.9719 2.0424 16.818 0.734551 13.4574 0.733093C6.53363 0.733093 0.89851 6.36624 0.8956 13.2902Z"/><path fill="#fff" d="M10.2079 7.84785C9.96428 7.30638 9.708 7.29554 9.47629 7.28602C9.28669 7.27795 9.06981 7.27845 8.85321 7.27845C8.63633 7.27845 8.28409 7.35997 7.98625 7.6852C7.68813 8.01058 6.84814 8.79711 6.84814 10.3967C6.84814 11.9965 8.01337 13.5422 8.17573 13.7594C8.33835 13.9761 10.425 17.3638 13.7297 18.667C16.4763 19.75 17.0352 19.5346 17.6313 19.4804C18.2274 19.4263 19.555 18.6941 19.8259 17.9349C20.0969 17.1758 20.0969 16.525 20.0156 16.3891C19.9344 16.2536 19.7175 16.1722 19.3924 16.0097C19.0671 15.8471 17.4687 15.0605 17.1707 14.952C16.8726 14.8436 16.6559 14.7895 16.439 15.115C16.2223 15.4401 15.5995 16.1722 15.4098 16.3891C15.2202 16.6064 15.0304 16.6335 14.7053 16.4709C14.3801 16.3077 13.3329 15.9648 12.0907 14.8572C11.1241 13.9954 10.4716 12.9312 10.2819 12.6057C10.0922 12.2806 10.2616 12.1044 10.4246 11.9424C10.5707 11.7967 10.7499 11.5627 10.9125 11.373C11.0747 11.1831 11.1288 11.0476 11.2372 10.8307C11.3457 10.6137 11.2915 10.4239 11.2102 10.2612C11.1288 10.0986 10.497 8.49078 10.2079 7.84785Z"/></svg></a>
+
+  <!-- ROLE DETAIL SHEET -->
+  <div class="sheet" id="roleSheet" onclick="if(event.target===this)closeRole()">
+    <div class="sheet-card">
+      <div class="sheet-top">
+        <button class="x" onclick="closeRole()">✕</button>
+        <span class="flag" id="rsIcon"></span>
+      </div>
+      <div class="sheet-body">
+        <h2 id="rsName"></h2>
+        <p class="desc"><span id="rsDesc"></span> <b class="more" id="rsMore" onclick="toggleMore()">קרא עוד</b></p>
+        <div class="desc-more" id="rsMoreBody" hidden></div>
+        <div class="chips" id="rsChips"></div>
+        <div class="role-video" id="rsVideo"></div>
+        <div class="nav-arrows">
+          <button onclick="stepRole(1)">‹</button><div class="sep"></div><button onclick="stepRole(-1)">›</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BASE BOTTOM SHEET -->
+  <div class="base-sheet" id="baseSheet">
+    <button class="base-close" onclick="closeBase()">✕</button>
+    <div class="handle"></div>
+    <h3 id="bsName"></h3>
+    <p id="bsDesc"></p>
+    <div class="render"><img id="bsImg" src="" alt=""></div>
+  </div>
+</div>
+
+<script>
+/* role icons — extracted from Figma (Streamline-Cyber, node 1063-5787); stroke via CSS .flag svg */
+const ICONS={
+ meyda:'<svg viewBox="0 0 25.08 25.08" fill="none"><path d="M19.3337 3.65755H0.522741V18.2883H19.3337V3.65755Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M0.522741 7.83883H19.3337" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.61284 5.74814H3.65789" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.748 5.74814H6.79305" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.88315 5.74814H9.9282" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.3337 5.74814H21.4238V20.3789H2.61284V18.2888" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M21.4238 7.83883H23.5139V22.4695H4.70295V20.3794" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ kishrei:'<svg viewBox="0 0 25.08 25.08" fill="none"><path d="M12.48 9.0384L11.9805 7.17403L18.117 1.0354L22.779 2.28528L24.0289 6.94726L17.8923 13.0838L16.0269 12.5832" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5868 16.0258L13.0863 17.8912L6.9498 24.0278L2.28783 22.7789L1.03795 18.1159L7.17448 11.9794L9.0399 12.48" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.32393 7.32172L4.1731 4.17298" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.39835 5.21725V1.03705" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.21815 9.39785H1.03795" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.7586 17.7586L20.9084 20.9095" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.8634 15.685H24.0436" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.6832 19.8645V24.0447" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ ezrahi:'<svg viewBox="0 0 25.34 25.34" fill="none"><path d="M13.6836 2.64062H18.4783V6.86412" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.4772 18.4787V24.814H0.527344V2.64062H5.23548" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.69531 18.4785H10.0305" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.69531 14.2559H10.0305" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.69531 10.0312H14.254" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.7814 0.527344L13.1321 3.69496H5.741L4.22266 0.527344H14.7814Z" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.1992 16.3669V18.4786H15.311L23.7579 10.0317L21.6462 7.91992L13.1992 16.3669Z" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ dovrut:'<svg viewBox="0 0 25.34 25.34" fill="none"><path d="M17.4215 16.893L12.1423 19.5326L6.86318 16.893V4.6886L12.1423 1.58339L17.4215 4.6886V16.893Z" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.86318 8.97427H10.0307" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.69556 14.2534H20.5889" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.86318 6.86259H10.0307" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.4215 6.86259H14.254" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.4215 8.97427H14.254" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.86318 11.0859H10.0307" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.4215 11.0859H14.254" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.69556 11.0859V17.8866L12.1422 22.7001L20.5889 17.9489V11.0859" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.1423 22.7001V24.8118" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ tashtiot:'<svg viewBox="0 0 25.08 25.08" fill="none"><path d="M23.5138 7.83873H0.522711V15.1541H23.5138V7.83873Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.70292 15.1542V24.5596" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.61281 24.5595H6.79302" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.3336 15.1542V24.5596" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M21.4237 24.5595H17.2435" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M0.522711 15.1541L7.83807 7.83873" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.74797 15.1541L13.0633 7.83873" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.9732 15.1541L18.2886 7.83873" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M16.1985 15.1541L23.5138 7.83873" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.79302 5.22552L4.70292 6.79309L2.61281 5.22552V3.13542L4.70292 1.56784L6.79302 3.13542V5.22552Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M21.4237 5.22552L19.3336 6.79309L17.2435 5.22552V3.13542L19.3336 1.56784L21.4237 3.13542V5.22552Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ bithoni:'<svg viewBox="0 0 25.08 25.08" fill="none"><path d="M14.1083 1.56784H2.6127V13.0634H14.1083V1.56784Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.1083 4.7027H21.4236V17.2433H9.92806L14.1083 13.0631" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.6127 0.522886V24.5591" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.92806 17.2435V13.0633" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ pikud:'<svg viewBox="0 0 25.08 25.08" fill="none"><path d="M8.88313 5.74775V0.522497H24.5589V12.0181H12.0183" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M1.56778 5.74795L3.65788 6.793L5.74798 5.74795V2.61279L3.65788 1.56774L1.56778 2.61279V5.74795Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.74798 3.13619L1.56778 4.18124" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.65788 9.92854V13.0637" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.79303 16.1987H0.522726" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M0.522726 8.62261L3.65788 7.83883L12.5408 8.88388L6.79303 12.019V24.5596L3.65788 18.2893L0.522726 24.5596V12.019" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ mivtzaim:'<svg viewBox="0 0 25.08 25.08" fill="none"><path d="M19.3335 5.74765H21.4237L23.5138 24.5586H0.522628L2.61273 5.74765H4.70283" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M1.20417 18.2881H22.8325" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.2885 10.9734H22.0047" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.03169 10.9734H5.74789" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.27041 24.5594L6.99672 13.5916" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.7658 24.5594L17.0395 13.5916" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.0182 16.1987L17.2434 8.36077V3.88168L12.0182 0.522886L6.79293 3.88168V8.36077L12.0182 16.1987Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.1083 7.57653L12.0182 8.88284L9.92805 7.57653V5.48643L12.0182 4.18011L14.1083 5.48643V7.57653Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+
+// 8 roles — canonical order & exact copy from matpash-copy.md (A=name, B=cut sentence, C=expansion).
+// PLACEHOLDER TAGS (tagsVerified:false) except תשתיות + תיאום ביטחוני which are derived from the text.
+const roles=[
+ {name:'מידע ומחקר', icon:'meyda', poster:'../assets/role-teum.jpg', video:'../assets/dovrut.mp4', cap:'מוקד הידע של היחידה', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+  B:'אוספים מידע ומנתחים ארועים ותהליכים בזירה הפלסטינית.',
+  C:'ביום יום מאתרים מידע ברשתות החברתיות, אתרי חדשות ופלטפורמות דיגיטליות בערבית ובמקורות נוספים או חוקרים נושאים הקשורים לחברה, כלכלה וההנהגה הפלסטינית. את המידע הזה מנתחים, מעבדים ומייצרים ממנו דוחות שעוזרים למפקדים לקבל החלטות. העבודה מתבצעת בשיתוף פעולה עם השב"כ ומשרד הביטחון.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ. ידע קודם בערבית מהווה יתרון.'},
+ {name:'קשרי חוץ', icon:'kishrei', poster:'../assets/role-sadot.jpg', video:'../assets/ezrahi.mp4', cap:'הפנים הבינלאומיות', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+  B:'עוסקים בתיאום וקישור ישירות מול מול מגוון רחב של ארגונים בינלאומיים, נציגי ממשלות זרות, שגרירויות וגורמים נוספים בקהילה הבינלאומית הפועלים באזור.',
+  C:'ביום יום מקיימים פגישות עבודה, מובילים תיאומים, משתפים בהערכות מצב משותפות ולוקחים חלק בקידום פרויקטים ותהליכים המתבצעים בשטח. העבודה מאפשרת היכרות עם עולם קשרי החוץ והעבודה הבינלאומית של מדינת ישראל, ותורמת לחיזוק מעמדה וללגיטימציה שלה מול הקהילה הבינלאומית. אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ. ידע קודם באנגלית ברמה גבוהה מהווה יתרון.'},
+ {name:'תיאום אזרחי', icon:'ezrahi', poster:'../assets/role-ezrahi.jpg', video:'../assets/ezrahi.mp4', cap:'הגשר לאוכלוסייה', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+  B:'עוסקים במגוון רחב של נושאים אזרחיים בזירה הפלסטינית, ובהם תיעוד ומרשם, מעברים, כלכלה, קידום פרויקטים אזרחיים ותחומים נוספים הנמצאים בליבת העשייה של מתפ"ש.',
+  C:'ביום יום מטפלים בסוגיות אזרחיות שונות, עוקבים אחר ההתפתחויות בשטח, מסייעים בקידום פרויקטים ותהליכים אזרחיים ומקיימים קשר שוטף עם גורמים מקצועיים במערכת הביטחון ומחוצה לה. העבודה מאפשרת היכרות מעמיקה עם העשייה האזרחית של מתפ"ש, ומהווה חלק בלתי נפרד מהמאמץ הביטחוני הרחב של מדינת ישראל.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
+ {name:'דוברות', icon:'dovrut', poster:'../assets/role-teum.jpg', video:'../assets/dovrut.mp4', cap:'הקול של היחידה', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+  B:'עוסקים בהצגת פעילות היחידה לקהלים שונים בארץ ובעולם, ובהובלת מאמצי ההסברה והדוברות בזירה הישראלית, הפלסטינית והבינלאומית.',
+  C:'ביום יום עובדים מול עיתונאים וכלי תקשורת, מנסחים הודעות לתקשורת ומענים לשאילתות של כתבים, מלווים אירועים ופעילויות בשטח ולוקחים חלק בקמפיינים הסברתיים. העבודה מאפשרת היכרות עם עולם התקשורת, הדיגיטל וההסברה, ומהווה חלק מרכזי במאמצי היחידה לחיזוק הלגיטימציה של מדינת ישראל. מדובר באחד ממסלולי השירות הייחודיים במתפ"ש, אליו נבחרים מספר מצומצם של חיילים לאחר ההכשרה.'},
+ {name:'תשתיות', icon:'tashtiot', poster:'../assets/role-sadot.jpg', video:'../assets/sde_teyman.mp4', cap:'בונים את המרחב', tags:['איו״ש','רצועת עזה'], tagsVerified:true,
+  B:'עוסקים במגוון תחומים הקשורים לפיתוח המרחב, ובהם בנייה, תחבורה, מים, אנרגיה ותחומים נוספים המהווים חלק משמעותי מפעילות היחידה ביהודה ושומרון וברצועת עזה.',
+  C:'ביום יום מלווים ומקדמים פרויקטים תשתיתיים בעבודה מול משרדי ממשלה וגורמי מקצוע, מתאמים תהליכים מול גורמים שונים ולוקחים חלק בפעילויות פיקוח ואכיפה לצד כוחות צה״ל ומשטרת ישראל. העבודה מאפשרת היכרות עם אחד מתחומי הליבה של פעילות מתפ"ש ביהודה ושומרון, ותורמת לשמירה על שגרת הפעילות המבצעית של צה"ל במרחב. אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
+ {name:'תיאום ביטחוני', icon:'bithoni', poster:'../assets/role-bithoni.jpg', video:'../assets/kria.mp4', cap:'ממשק מול השטח', tags:['איו״ש'], tagsVerified:true,
+  B:'עוסקים בקיום התיאום והקישור בין צה"ל לבין מנגנוני הביטחון הפלסטיניים ביהודה ושומרון.',
+  C:'ביום יום מקיימים תיאומים שוטפים מול גורמי הביטחון בזירה, מסייעים בקישור בין כוחות צה"ל לבין הגורמים הפלסטיניים ולוקחים חלק בעבודות מטה שונות. העבודה מאפשרת היכרות עם אחד מתחומי הליבה של פעילות מתפ"ש ביהודה ושומרון, ותורמת לשמירה על שגרת הפעילות המבצעית של צה"ל במרחב.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
+ {name:'פיקוד והדרכה', icon:'pikud', poster:'../assets/role-pikud.jpg', video:'../assets/dovrut.mp4', cap:'מכשירים את הדור הבא', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+  B:'עוסקים בהכשרת דור העתיד של חיילי וקציני יחידת המתפ"ש, ובהקניית הידע המקצועי והיכולות הנדרשים לשירותם ביחידה.',
+  C:'ביום יום, <b>בתפקידי הפיקוד</b> מובילים את תהליך ההכשרה של החניכים, מלווים אותם לאורך הקורס והטירונות ומסייעים בפיתוח הידע, המיומנויות והערכים הנדרשים לשירות ביחידה, <b>ובתפקידי ההדרכה</b> אחראים על לימוד השפה הערבית או האנגלית ומקנים לחניכים את הידע הנדרש לקראת תפקידם. העבודה מעניקה הזדמנות להוביל, לחנוך ולהדריך חיילים, וללוות אותם בצעדיהם הראשונים ביחידה. מדובר במסלול שירות ייחודי במתפ"ש, אליו נבחרים מספר מצומצם של חיילים בסוף ההכשרה.'},
+ {name:'מבצעים', icon:'mivtzaim', poster:'../assets/role-mivtzaim.jpg', video:'../assets/ayosh.mp4', cap:'לב הפעילות בזמן אמת', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+  B:'עוסקים בריכוז וניהול כל האירועים והמידע בחדר המבצעים (החמ"ל) וניהול הפעילות בגזרה בזמן אמת.',
+  C:'ביום יום קולטים ומעבירים דיווחים בזמן אמת, עוקבים אחר אירועים והתפתחויות בשטח ומסייעים בתיאום בין גורמים שונים ביחידה ובמערכת הביטחון. העבודה מאפשרת היכרות עם מגוון תחומי הפעילות של מתפ"ש ועם המתרחש בזירה בזמן אמת, ומהווה חלק מרכזי בניהול הפעילות השוטפת של היחידה.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
+];
+// DEMO CONTENT — קואורדינטות מקורבות + תיאורים להדגמה, לא לפרודקשן
+const bases=[
+ {name:'בסיס: שדה תימן', sector:'גזרת רצועת עזה', lng:34.7600, lat:31.2830, color:'#f5b21e', render:'../assets/inner-sde-teiman.png',
+  desc:'מתפ״ש שדה תימן פועלים ב<b>גזרת רצועת עזה</b>. שדה תימן הינו בסיס סגור, ממוקם רבע שעה מבאר שבע.'},
+ {name:'מטה היחידה — הקריה', sector:'המטה', lng:34.7900, lat:32.0740, color:'#45b0c4', render:'../assets/inner-kirya.png',
+  desc:'<b>מטה היחידה</b> ממוקם בקריה בתל אביב — מרכז הפיקוד, התכנון והבקרה של פעילות המתפ״ש.'},
+ {name:'בסיסי איו״ש', sector:'יהודה ושומרון', lng:35.2000, lat:31.8500, color:'#1f7a5c', render:'../assets/inner-yosh.png',
+  desc:'המתפ״ש ב<b>גזרת יהודה ושומרון</b> פועלים לאורך הגזרה, ומשמשים כמרכז תיאום אזורי בקרבת זירת הפעילות.'},
+ {name:'מחנה גדעונים', sector:'בסיס ההכשרות', lng:34.8420, lat:31.9500, color:'#8b5cf6', render:'../assets/inner-sde-teiman.png',
+  desc:'<b>בסיס ההכשרות של היחידה</b> — כאן מתקיימים הטירונות וקורס תיאום וקישור. <i>[הדגמה]</i>'},
+ {name:'הגזרה הצפונית', sector:'גזרת סוריה', lng:35.5000, lat:32.9600, color:'#ef4444', render:'../assets/inner-yosh.png',
+  desc:'בגזרה הצפונית פועלים בתיאום וקישור במרחבים נוספים בצפון הארץ. <i>[הדגמה]</i>'},
+];
+
+/* roles grid */
+const grid=document.getElementById('grid');
+roles.forEach((r,i)=>{const c=document.createElement('div');c.className='g-card';
+  c.innerHTML=`<img src="${r.poster}" alt=""><span>${r.name}</span>`;
+  c.onclick=()=>openRole(i);grid.appendChild(c);});
+
+/* role detail */
+let rIdx=0;
+function openRole(i){rIdx=i;renderRole();document.getElementById('roleSheet').classList.add('open');}
+function renderRole(){const r=roles[rIdx];
+  document.getElementById('rsName').textContent=r.name;
+  document.getElementById('rsIcon').innerHTML=ICONS[r.icon]||'';
+  document.getElementById('rsDesc').textContent=r.B;
+  const mb=document.getElementById('rsMoreBody');mb.innerHTML=r.C;mb.hidden=true;
+  const mBtn=document.getElementById('rsMore');mBtn.textContent='קרא עוד';mBtn.style.display='';
+  const ch=document.getElementById('rsChips');ch.innerHTML='';
+  r.tags.forEach(t=>{const s=document.createElement('span');
+    s.innerHTML=`${t}<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.3"/></svg>`;ch.appendChild(s);});
+  document.getElementById('rsVideo').innerHTML=
+    `<img src="${r.poster}" alt=""><div class="rc-play" onclick="playRole()"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><div class="cap">${r.cap}</div>`;
+}
+function playRole(){const r=roles[rIdx];
+  document.getElementById('rsVideo').innerHTML=`<video src="${r.video}" autoplay controls playsinline></video>`;}
+function stepRole(d){rIdx=(rIdx+d+roles.length)%roles.length;renderRole();}
+function toggleMore(){const mb=document.getElementById('rsMoreBody');const b=document.getElementById('rsMore');
+  if(mb.hidden){mb.hidden=false;b.style.display='none';}else{mb.hidden=true;b.textContent='קרא עוד';b.style.display='';}}
+function closeRole(){document.getElementById('roleSheet').classList.remove('open');}
+
+/* bases — real vector map (MapLibre + OpenFreeMap, no token needed) */
+let map2=null, markers2=[];
+const IL_BOUNDS=[[34.05,30.85],[35.95,33.35]];
+/* correct Hebrew (RTL) label rendering — locally hosted so the worker can importScripts it same-origin */
+try{ maplibregl.setRTLTextPlugin('../assets/mapbox-gl-rtl-text.min.js', ()=>{}, true); }catch(e){}
+/* rough polygon of the Israel area (incl. יו״ש/עזה/גולן), excl. Lebanon/Jordan/Syria/Egypt/… */
+const ISRAEL_POLY={type:'Polygon',coordinates:[[
+ [35.10,33.12],[35.60,33.30],[35.78,33.05],[35.75,32.70],
+ [35.57,32.20],[35.50,31.75],[35.45,31.35],[35.42,31.00],
+ [35.15,30.75],[34.90,30.80],[34.50,31.10],[34.22,31.35],
+ [34.42,31.55],[34.75,32.30],[34.92,32.82],[35.10,33.12]
+]]};
+/* Hebrew-only place names, restricted to the Israel polygon (drops all neighboring-country labels);
+   hide country/state/continent labels entirely. */
+function localizeHe(map){
+  if(!map.isStyleLoaded||!map.isStyleLoaded()) return;
+  if(map._heDone) return; map._heDone=true;
+  const heName=['coalesce',['get','name:he'],['get','name:hebrew']];
+  (map.getStyle().layers||[]).forEach(l=>{
+    if(l.type!=='symbol') return;
+    if(/country|state|continent/i.test(l.id)){ try{map.setLayoutProperty(l.id,'visibility','none');}catch(e){} return; }
+    if(l.layout && l.layout['text-field']!==undefined){
+      try{ map.setLayoutProperty(l.id,'text-field',heName); }catch(e){}
+    }
+    if(l['source-layer']==='place'){
+      try{ const ex=map.getFilter(l.id); const wf=['within',ISRAEL_POLY];
+        map.setFilter(l.id, ex ? ['all',ex,wf] : wf); }catch(e){}
+    }
+  });
+}
+function pinEl(color){
+  const el=document.createElement('div');el.className='mpin';el.style.setProperty('--c',color);
+  el.innerHTML=`<svg viewBox="0 0 77 86" xmlns="http://www.w3.org/2000/svg"><path class="balloon" fill="#F8F9FA" d="M38.0654 8.714C54.671 8.714 65.418 21.91 65.418 38.385C65.418 47.767 61.62 54.216 56.694 59.233C54.223 61.751 51.466 63.909 48.751 65.897C46.056 67.87 43.358 69.704 41.099 71.521L41.02 71.594C39.402 73.349 36.729 73.349 35.11 71.594L35.033 71.522L34.13 70.809C31.983 69.147 29.581 67.493 27.203 65.751C24.468 63.747 21.725 61.6 19.28 59.105C14.41 54.134 10.714 47.771 10.714 38.385C10.714 21.91 21.46 8.714 38.0654 8.714Z"/><circle class="dot" cx="38" cy="38" r="20"/></svg>`;
+  return el;
+}
+function initMap2(){
+  if(map2 || typeof maplibregl==='undefined') return;
+  map2=new maplibregl.Map({container:'mapC2', style:'https://tiles.openfreemap.org/styles/liberty',
+    bounds:IL_BOUNDS, fitBoundsOptions:{padding:50}, minZoom:6.5, maxZoom:14,
+    dragRotate:false, pitchWithRotate:false, touchZoomRotate:true, attributionControl:true});
+  map2.touchZoomRotate.disableRotation();
+  map2.addControl(new maplibregl.NavigationControl({showCompass:false}), 'top-left');
+  bases.forEach((b,i)=>{
+    const el=pinEl(b.color);
+    el.addEventListener('click',e=>{e.stopPropagation();openBase(i);
+      map2.easeTo({center:[b.lng,b.lat],zoom:12,padding:{bottom:128},duration:750,essential:true});});
+    markers2.push(new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat([b.lng,b.lat]).addTo(map2));
+  });
+  map2.on('click',()=>closeBase());
+  map2.on('styledata',()=>localizeHe(map2));
+  map2.on('load',()=>localizeHe(map2));
+  map2.on('idle',()=>localizeHe(map2));
+  window.__m2=map2;
+  pumpMap(map2);
+}
+/* Apply Hebrew labels once the style is ready, and nudge a repaint (some webviews stall the first paint). */
+function pumpMap(map){
+  [150,500,1100,2000,3200,4800,6500].forEach(ms=>setTimeout(()=>{
+    try{ localizeHe(map); map.resize(); }catch(e){}
+  },ms));
+}
+function openBase(i){const b=bases[i];
+  document.getElementById('bsName').textContent=b.name;
+  document.getElementById('bsDesc').innerHTML=b.desc;
+  document.getElementById('bsImg').src=b.render;
+  const sh=document.getElementById('baseSheet'); sh.classList.remove('full'); sh.classList.add('open');
+  markers2.forEach((m,j)=>m.getElement().classList.toggle('sel',j===i));}
+function closeBase(){document.getElementById('baseSheet').classList.remove('open','full');
+  markers2.forEach(m=>m.getElement().classList.remove('sel'));}
+/* tap the peeking sheet to expand it to full (details) */
+document.getElementById('baseSheet').addEventListener('click',e=>{
+  if(e.target.closest('.base-close')) return;
+  document.getElementById('baseSheet').classList.add('full');});
+
+/* tabs */
+const tabs=document.querySelectorAll('.tab');
+tabs.forEach(t=>t.onclick=()=>{
+  tabs.forEach(x=>x.classList.remove('on'));t.classList.add('on');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('p-'+t.dataset.tab).classList.add('on');
+  closeBase();
+  const ps=document.getElementById('panels'); if(ps) ps.scrollTop=0;
+  if(t.dataset.tab==='bases'){ initMap2(); setTimeout(()=>{try{map2&&map2.resize();}catch(e){}},60); setTimeout(()=>{try{map2&&map2.resize();}catch(e){}},350); }
+});
+
+/* ---------- service accordion (one open; toggle גיוס ושירות / מסלולים נוספים) ---------- */
+const STAGE_ICONS={
+ envelope:'<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+ tent:'<svg viewBox="0 0 26 20" fill="none" stroke-width="1.1" stroke-linecap="round"><path d="M0.5 19.4639H25.2518"/><path d="M2.24854 19.3423L14.2673 0.5"/><path d="M23.5337 19.3423L11.5149 0.5"/><path d="M12.9492 2.55078V19.4546"/><path d="M9.57617 19.4937L12.9492 11.2744"/><path d="M16.3223 19.4937L12.9493 11.2744"/></svg>',
+ book:'<svg viewBox="0 0 20 20" fill="none" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14.3789 2.56788V7.80587L15.6114 6.16258L16.8438 7.39505V2.25977"/><path d="M18.4868 16.8433L11.9137 17.665L9.44874 19.3083L6.98381 17.665L0.410645 16.8433V2.05371L6.98381 2.87536L9.44874 4.92947L11.9137 2.87536L18.4868 2.05371V16.8433Z"/><path d="M9.44922 4.92969V19.3085"/><path d="M7.39489 6.57376L2.0542 5.93945"/><path d="M7.39489 8.40387L2.0542 7.76953"/><path d="M7.39489 10.2351L2.0542 9.60156"/><path d="M4.72455 11.7498L2.0542 11.4326"/><path d="M11.5029 10.2351L16.8436 9.60156"/><path d="M11.5029 12.324L14.1733 12.0068"/><path d="M11.5029 6.57399L12.7354 6.42773"/><path d="M11.5029 8.40992L12.7354 8.26367"/></svg>',
+ flag:'<svg viewBox="0 0 23 23" fill="none" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M7.54356 19.3315L8.95794 18.3885V15.5598L12.7296 14.6169V11.7881L4.24333 13.2025L3.79639 17.4456L4.71479 22.1602"/><path d="M13.6724 22.1608V21.2179L16.5011 19.8035L17.4441 15.0889"/><path d="M11.7863 11.9452L12.2577 1.41558L9.90043 0.472656L8.48604 10.8448L7.07166 0.472656L4.71436 1.88704L5.20656 13.0418"/><path d="M11.7866 14.8517V18.3877L15.5583 16.9733V9.90137H11.8875"/><path d="M15.5581 10.8438H18.3869V14.6154L15.5581 16.0298"/></svg>'
+};
+/* PLACEHOLDER IMAGES — לא לפרודקשן. אין נכסים ייעודיים לשלבים; role-*.jpg כפלייסהולדר.
+   שלב עם מערך תמונות = סבב אוטומטי (crossfade) כל 2.8ש׳ בזמן שהשלב פתוח — התנהגות זהה ל-demo-1-v3. */
+const SERVICE_TRACKS={
+ main:{ line:true, stages:[
+   {title:'שיבוץ למתפ"ש', icon:'envelope', body:'קבלת השיבוץ ליחידה. ביום השיבוץ או קבלת הודעה מראש.',
+     media:['../assets/role-pikud.jpg']},
+   {title:'טירונות', icon:'tent', body:'הכשרה בת כ-3 שבועות במחנה גדעונים. במהלך הטירונות תהפכו מאזרחים לחיילים, תלמדו את ערכי צה"ל ומיומנויות צבאיות בסיסיות, ותעברו היכרות ראשונית עם היחידה.',
+     media:['../assets/role-teum.jpg','../assets/role-mivtzaim.jpg','../assets/role-bithoni.jpg']},
+   {title:'קורס תיאום וקישור', icon:'book', body:'הכשרה בת כ-6 שבועות במחנה גדעונים. במהלך הקורס תכירו את פעילות היחידה ואת הזירה הפלסטינית, תרכשו בסיס בערבית מדוברת ותיחשפו לאפשרויות השיבוץ השונות שלכם בסיומו.',
+     media:['../assets/role-sadot.jpg','../assets/role-ezrahi.jpg','../assets/role-teum.jpg']},
+   {title:'שיבוץ לתפקיד', icon:'flag', body:'שיבוץ לאחד מתחומי הפעילות של היחידה ובהם תיאום אזרחי, תיאום ביטחוני, תשתיות, מידע ומחקר, קשרי חוץ, דוברות והסברה ועוד.',
+     media:['../assets/role-ezrahi.jpg','../assets/role-bithoni.jpg','../assets/role-mivtzaim.jpg','../assets/role-sadot.jpg']}
+ ]},
+ alt:{ line:false, stages:[
+   {title:'מסלול עמית', body:'מיועד למועמדים בעלי רקע מתקדם בשפה הערבית (5 יח"ל). המסלול כולל הכשרה מועצמת בערבית מדוברת וספרותית, ומיועד למשרתים שישתלבו בתפקידים שבהם השפה הערבית מהווה חלק מרכזי מהעשייה.'},
+   {title:'מסלול ייעודי לקצונה', body:'מסלול ייחודי המיועד למועמדים שאותרו עוד לפני גיוסם כבעלי פוטנציאל פיקודי גבוה, וקיבלו שיבוץ למסלול זה. החניכים במסלול עוברים הכשרה מקצועית בבית הספר לתיאום וקישור, משתבצים בשטח לתקופת התנסות ביחידה ולאחר מכן יוצאים לקורס קצינים, ומשתבצים בתפקידי קצונה כבר במהלך השנה הראשונה לשירות. המסלול מהווה את הדרך המהירה ביותר להפוך לקצין תיאום וקישור במתפ"ש.'},
+   {title:'יציאה לקצונה', body:'במתפ"ש קיימת אפשרות לצאת לקצונה במהלך השירות, במסלול המיועד לחיילים וחיילות המעוניינים להמשיך לשירות קבע. המסלול כולל מיונים, קורס קצינים בבה"ד 1 והשלמה חיילית ייעודית למתפ"ש שמתקיימת גם היא בבית הספר לתיאום וקישור במחנה גדעונים.'}
+ ]}
+};
+let svcTrack='main', svcOpen=0, svcRotTimer=0;
+/* rotating media — crossfade through the open step's image set, ONLY while it's the active step (like demo-1-v3) */
+function stopSvcRotation(){ if(svcRotTimer){clearInterval(svcRotTimer);svcRotTimer=0;} }
+function startSvcRotation(row){
+  stopSvcRotation();
+  const slides=row?[...row.querySelectorAll('.acc-slide')]:[];
+  if(slides.length<2) return;
+  let idx=slides.findIndex(s=>s.classList.contains('on')); if(idx<0)idx=0;
+  svcRotTimer=setInterval(()=>{ slides[idx].classList.remove('on'); idx=(idx+1)%slides.length; slides[idx].classList.add('on'); },2800);
+}
+/* build the DOM once per track (main⇄alt). Opening a step just toggles classes — so the height animation runs
+   and images don't reload. */
+function renderAccordion(){
+  const track=SERVICE_TRACKS[svcTrack], acc=document.getElementById('accordion');
+  acc.classList.toggle('has-line', track.line);
+  svcOpen=0; stopSvcRotation();
+  acc.innerHTML=track.stages.map((s,i)=>{
+    const node=track.line?`<span class="acc-node" aria-hidden="true"><span class="dot"></span><span class="big">${STAGE_ICONS[s.icon]||''}</span></span>`:'';
+    const imgs=Array.isArray(s.media)?s.media:(s.media?[s.media]:[]);
+    const media=imgs.length?`<div class="acc-media"><div><div class="acc-slides">${imgs.map((src,j)=>`<img class="acc-slide${j===0?' on':''}" src="${src}" alt="" loading="lazy">`).join('')}</div></div></div>`:'';
+    return `<div class="acc-row ${i===0?'open':'closed'}">
+      ${node}
+      <div class="acc-box">
+        <button class="acc-head" id="acch${i}" aria-expanded="${i===0}" aria-controls="accb${i}" onclick="openStage(${i})">${s.title}</button>
+        <div class="acc-body" id="accb${i}" role="region" aria-labelledby="acch${i}"><div><p>${s.body}</p></div></div>
+      </div>
+      ${media}
+    </div>`;
+  }).join('');
+  const first=acc.querySelector('.acc-row.open'); if(first) startSvcRotation(first);
+}
+function openStage(i){
+  svcOpen=i;
+  const rows=[...document.querySelectorAll('#accordion .acc-row')];
+  rows.forEach((row,idx)=>{ const on=idx===i; row.classList.toggle('open',on); row.classList.toggle('closed',!on);
+    const h=row.querySelector('.acc-head'); if(h) h.setAttribute('aria-expanded',on); });
+  startSvcRotation(rows[i]);
+  if(rows[i]) rows[i].querySelector('.acc-head').scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+document.querySelectorAll('#svcToggle button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#svcToggle button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  svcTrack=b.dataset.track; renderAccordion();
+});
+renderAccordion();
+
+</script>
+</body>
+</html>
