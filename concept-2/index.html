@@ -7,8 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 <style>
   :root{
     --navy:#213357;
@@ -30,6 +30,8 @@
   html,body{height:100%}
   body{font-family:'Assistant',system-ui,sans-serif;background:#e5e7e9;color:var(--ink);overflow-x:hidden}
   .phone{position:relative;width:100%;max-width:375px;height:100dvh;margin:0 auto;background:var(--sand);box-shadow:0 0 60px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden}
+  /* on a real phone the shell fills the screen edge-to-edge (mockup frame only on wider screens) */
+  @media (max-width:480px){ body{background:var(--sand)} .phone,.sheet,.base-sheet{max-width:none} .phone{box-shadow:none} }
   /* nested scroll: hero + content are two snap "pages"; the grid scrolls inside .panels,
      so scrolling the images never moves the pager (no bounce back to the tabs). */
   .pager{flex:1;min-height:0;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
@@ -142,7 +144,10 @@
   .segmented button.on{background:var(--navy);color:var(--on-dark)}
   /* service accordion (one open) + decorative vertical progress line on the inline-start (RTL: right) */
   .acc{position:relative}
-  .acc.has-line::before{content:"";position:absolute;top:29px;bottom:29px;inset-inline-start:18.5px;width:1px;background:var(--navy);opacity:.5;z-index:0}
+  /* connector per row: from this node's centre down to the NEXT node's centre. Last row has none →
+     the line is always between two nodes, never trailing below the last one. Follows animated heights. */
+  .acc.has-line .acc-row:not(:last-child)::before{content:"";position:absolute;inset-inline-start:18.5px;top:29px;
+    height:calc(100% + 10px);width:1px;background:var(--navy);opacity:.5;z-index:0}
   .acc-row{position:relative;margin-bottom:10px}
   .acc.has-line .acc-row{padding-inline-start:56px}
   /* node column (right in RTL) — OUTSIDE the box. Closed dots all identical; open = big circle + icon. */
@@ -243,8 +248,8 @@
   <div class="sheet" id="roleSheet" onclick="if(event.target===this)closeRole()">
     <div class="sheet-card">
       <div class="sheet-top">
-        <button class="x" onclick="closeRole()">✕</button>
         <span class="flag" id="rsIcon"></span>
+        <button class="x" onclick="closeRole()">✕</button>
       </div>
       <div class="sheet-body">
         <h2 id="rsName"></h2>
@@ -352,11 +357,34 @@ function toggleMore(){const mb=document.getElementById('rsMoreBody');const b=doc
   if(mb.hidden){mb.hidden=false;b.style.display='none';}else{mb.hidden=true;b.textContent='קרא עוד';b.style.display='';}}
 function closeRole(){document.getElementById('roleSheet').classList.remove('open');}
 
-/* bases — real vector map (MapLibre + OpenFreeMap, no token needed) */
+/* bases — real vector map (Mapbox GL JS + the client token). Glyphs are self-hosted so RTL/Hebrew
+   labels render even inside constrained in-app webviews (Instagram/WhatsApp), where Mapbox's own
+   worker-side font fetch from api.mapbox.com can be blocked. */
 let map2=null, markers2=[];
 const IL_BOUNDS=[[34.05,30.85],[35.95,33.35]];
-/* correct Hebrew (RTL) label rendering — locally hosted so the worker can importScripts it same-origin */
-try{ maplibregl.setRTLTextPlugin('../assets/mapbox-gl-rtl-text.min.js', ()=>{}, true); }catch(e){}
+mapboxgl.accessToken='pk.eyJ1IjoibGlvcmttb3ZlbzEyMzQiLCJhIjoiY21xcWd0djQ4MDQ0ZTJzcXZsNnBveHZydSJ9.-ANesy8sOPNF6TYeBlam5w';
+/* correct Hebrew (RTL) label rendering — locally hosted plugin so the worker can load it same-origin */
+try{ mapboxgl.setRTLTextPlugin('../assets/mapbox-gl-rtl-text.min.js', ()=>{}, true); }catch(e){}
+/* redirect Mapbox glyph (font) requests to our own origin for the exact stacks streets-v11 uses,
+   for the ranges we ship (Latin + Hebrew). Keeps RTL/Hebrew labels working inside webviews that
+   block the worker's cross-origin font fetch. */
+const LOCAL_RANGES=new Set(['0-255','256-511','1280-1535','8192-8447']);
+const GLYPH_STACKS={
+  'DIN Offc Pro Regular,Arial Unicode MS Regular':'reg',
+  'DIN Offc Pro Medium,Arial Unicode MS Regular':'med',
+  'DIN Offc Pro Bold,Arial Unicode MS Bold':'bold',
+  'DIN Offc Pro Italic,Arial Unicode MS Regular':'italic'
+};
+/* absolute base — the map worker (a blob: script) resolves relative URLs against itself, not the page */
+const GLYPH_ORIGIN=new URL('../assets/glyphs/',location.href).href;
+function glyphTransform(url,type){
+  if(type==='Glyphs'){
+    const mm=url.match(/([^/]+)\/(\d+-\d+)\.pbf/);
+    if(mm){ const folder=GLYPH_STACKS[decodeURIComponent(mm[1])];
+      if(folder && LOCAL_RANGES.has(mm[2])) return {url:GLYPH_ORIGIN+folder+'/'+mm[2]+'.pbf'}; }
+  }
+  return {url};
+}
 /* rough polygon of the Israel area (incl. יו״ש/עזה/גולן), excl. Lebanon/Jordan/Syria/Egypt/… */
 const ISRAEL_POLY={type:'Polygon',coordinates:[[
  [35.10,33.12],[35.60,33.30],[35.78,33.05],[35.75,32.70],
@@ -369,14 +397,17 @@ const ISRAEL_POLY={type:'Polygon',coordinates:[[
 function localizeHe(map){
   if(!map.isStyleLoaded||!map.isStyleLoaded()) return;
   if(map._heDone) return; map._heDone=true;
-  const heName=['coalesce',['get','name:he'],['get','name:hebrew']];
+  /* Mapbox Streets stores the native name in `name` — inside Israel that is Hebrew */
+  const heName=['coalesce',['get','name_he'],['get','name']];
   (map.getStyle().layers||[]).forEach(l=>{
     if(l.type!=='symbol') return;
     if(/country|state|continent/i.test(l.id)){ try{map.setLayoutProperty(l.id,'visibility','none');}catch(e){} return; }
+    /* hide the white road-number / exit shields + motorway-junction boxes */
+    if(/shield|junction|motorway-junction/i.test(l.id)){ try{map.setLayoutProperty(l.id,'visibility','none');}catch(e){} return; }
     if(l.layout && l.layout['text-field']!==undefined){
       try{ map.setLayoutProperty(l.id,'text-field',heName); }catch(e){}
     }
-    if(l['source-layer']==='place'){
+    if(l['source-layer']==='place_label' || /settlement|natural-point|water-point/i.test(l.id)){
       try{ const ex=map.getFilter(l.id); const wf=['within',ISRAEL_POLY];
         map.setFilter(l.id, ex ? ['all',ex,wf] : wf); }catch(e){}
     }
@@ -388,17 +419,18 @@ function pinEl(color){
   return el;
 }
 function initMap2(){
-  if(map2 || typeof maplibregl==='undefined') return;
-  map2=new maplibregl.Map({container:'mapC2', style:'https://tiles.openfreemap.org/styles/liberty',
-    bounds:IL_BOUNDS, fitBoundsOptions:{padding:50}, minZoom:6.5, maxZoom:14,
-    dragRotate:false, pitchWithRotate:false, touchZoomRotate:true, attributionControl:true});
+  if(map2 || typeof mapboxgl==='undefined') return;
+  map2=new mapboxgl.Map({container:'mapC2', style:'mapbox://styles/mapbox/streets-v11',
+    bounds:IL_BOUNDS, fitBoundsOptions:{padding:50}, minZoom:6.5, maxZoom:15,
+    dragRotate:false, pitchWithRotate:false, projection:'mercator', attributionControl:true,
+    transformRequest:glyphTransform});
   map2.touchZoomRotate.disableRotation();
-  map2.addControl(new maplibregl.NavigationControl({showCompass:false}), 'top-left');
+  map2.addControl(new mapboxgl.NavigationControl({showCompass:false}), 'top-left');
   bases.forEach((b,i)=>{
     const el=pinEl(b.color);
     el.addEventListener('click',e=>{e.stopPropagation();openBase(i);
       map2.easeTo({center:[b.lng,b.lat],zoom:12,padding:{bottom:128},duration:750,essential:true});});
-    markers2.push(new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat([b.lng,b.lat]).addTo(map2));
+    markers2.push(new mapboxgl.Marker({element:el,anchor:'bottom'}).setLngLat([b.lng,b.lat]).addTo(map2));
   });
   map2.on('click',()=>closeBase());
   map2.on('styledata',()=>localizeHe(map2));

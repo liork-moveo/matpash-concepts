@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>דיוקי עיצוב — קונספטים 1 ו-2 מול הפיגמה</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#213357;--teal:#559baa;--muted:#5c7480;--line:#e2e9eb;--bg:#f2f4f5;--red:#c0392b;--green:#1f7a5c;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Assistant',system-ui,sans-serif;color:var(--ink);background:#eef1f2;line-height:1.5;padding:32px 16px 80px}
+  .wrap{max-width:920px;margin:0 auto}
+  header.top{background:#fff;border-radius:18px;padding:28px 30px;box-shadow:0 10px 30px rgba(20,51,61,.08);margin-bottom:24px}
+  h1{font-size:30px;font-weight:700;line-height:1.15;margin-bottom:10px}
+  .lead{color:var(--muted);font-size:16px}
+  .lead b{color:var(--ink)}
+  .note{margin-top:16px;background:#fff7ec;border:1px solid #f0d9a8;border-radius:12px;padding:12px 16px;font-size:15px}
+  .legend{display:flex;gap:18px;margin-top:16px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .finding{background:#fff;border-radius:18px;padding:26px 30px;box-shadow:0 10px 30px rgba(20,51,61,.08);margin-bottom:22px}
+  .fh{display:flex;align-items:flex-start;gap:12px;margin-bottom:6px}
+  .num{flex:0 0 34px;height:34px;border-radius:50%;background:var(--teal);color:#fff;font-weight:700;
+       display:flex;align-items:center;justify-content:center;font-size:17px}
+  .fh h2{font-size:22px;font-weight:700;line-height:1.25}
+  .sec{color:var(--muted);font-size:14px;margin:2px 0 18px 0;padding-inline-start:46px}
+  .sec code{background:var(--bg);border-radius:5px;padding:1px 7px;font-size:12px;color:var(--ink);direction:ltr;display:inline-block}
+  .compare{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-bottom:18px}
+  .col{flex:1;min-width:240px;max-width:330px;text-align:center}
+  .col .cap{font-weight:700;font-size:15px;margin-bottom:8px;display:inline-flex;align-items:center;gap:7px}
+  .col.fig .cap{color:var(--green)}
+  .col.code .cap{color:var(--red)}
+  .col img{width:100%;border-radius:14px;border:1px solid var(--line);box-shadow:0 6px 16px rgba(20,51,61,.10);display:block}
+  .fix{background:var(--bg);border-radius:12px;padding:16px 18px;font-size:15px}
+  .fix p{margin:5px 0}
+  .fix .k{font-weight:700}
+  .fix .todo{color:var(--red);font-weight:700}
+  .arrow{align-self:center;font-size:26px;color:var(--muted);flex:0 0 auto}
+  .ok{background:#fff;border-radius:18px;padding:24px 30px;box-shadow:0 10px 30px rgba(20,51,61,.08)}
+  .ok h2{font-size:20px;margin-bottom:12px}
+  .ok ul{padding-inline-start:20px}
+  .ok li{margin:6px 0;font-size:15px;color:#31506a}
+  .tag{font-size:12px;font-weight:700;padding:2px 10px;border-radius:20px;vertical-align:middle}
+  .tag.flip{background:#fdecea;color:var(--red)}
+  .tag.count{background:#eaf3f6;color:var(--teal)}
+  @media (max-width:560px){.compare{gap:14px}.arrow{display:none}h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>דיוקי עיצוב — קונספטים 1 ו-2 מול הפיגמה</h1>
+    <p class="lead">בדיקת QA להשוואה בין הפרוטוטייפים (HTML) לעיצוב בפיגמה. נבדק ברוחב מובייל, סקשן-אחרי-סקשן.
+      לכל ממצא: <b>צילום פיגמה מול צילום מהקוד</b>, ואז «מה בפיגמה / מה בקוד / מה לתקן».</p>
+    <div class="note"><b>לא נכלל בבדיקה:</b> כל מה שקשור למפות ולמסכי הבסיסים (מפה, סיכות, מסך פרטי בסיס) — לפי בקשה, זה כבר טופל בנפרד.</div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--green)"></span> ירוק = פיגמה (המקור הנכון)</span>
+      <span><span class="dot" style="background:var(--red)"></span> אדום = הקוד כרגע (לתיקון)</span>
+    </div>
+  </header>
+
+  <!-- 1 -->
+  <section class="finding">
+    <div class="fh"><div class="num">1</div><h2>תפריט הווידאו — האייקונים העגולים הפוכים <span class="tag flip">היפוך ימין↔שמאל</span></h2></div>
+    <div class="sec">קונספט 1 · התפריט מתחת לכרטיס הווידאו &nbsp;·&nbsp; <code>Figma 1519-7612</code></div>
+    <div class="compare">
+      <div class="col fig"><div class="cap">✔ פיגמה</div><img src="qa-shots/fig-1-menu.png" alt="פיגמה תפריט"></div>
+      <div class="arrow">‹</div>
+      <div class="col code"><div class="cap">✕ הקוד כרגע</div><img src="qa-shots/code-1-menu.png" alt="קוד תפריט"></div>
+    </div>
+    <div class="fix">
+      <p><span class="k">בפיגמה:</span> העיגול עם האייקון ב<b>צד ימין</b> של השורה, הבָּר משמאלו, והטקסט בבָּר <b>ממורכז</b>.</p>
+      <p><span class="k">בקוד כרגע:</span> העיגול עבר ל<b>צד שמאל</b>, הבָּר מימין, והטקסט <b>מיושר לימין</b>.</p>
+      <p><span class="todo">לתקן:</span> להפוך את סדר האלמנטים בשורה — אייקון בימין, בָּר משמאלו; וליישר את הטקסט בבָּר ל<b>מרכז</b>.</p>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="finding">
+    <div class="fh"><div class="num">2</div><h2>קרוסלת התפקידים — חסרים תפקידים <span class="tag count">מספר לא תואם</span></h2></div>
+    <div class="sec">קונספט 1 · «אופציות השיבוץ למש״ק תיאום וקישור» &nbsp;·&nbsp; <code>Figma 1519-7672</code></div>
+    <div class="compare">
+      <div class="col fig"><div class="cap">✔ פיגמה — 8 עיגולים</div><img src="qa-shots/fig-2-roles.png" alt="פיגמה תפקידים"></div>
+      <div class="arrow">‹</div>
+      <div class="col code"><div class="cap">✕ הקוד — 5 עיגולים</div><img src="qa-shots/code-2-roles.png" alt="קוד תפקידים"></div>
+    </div>
+    <div class="fix">
+      <p><span class="k">בפיגמה:</span> הקרוסלה כוללת <b>8 תפקידים</b> (8 עיגולי ניווט מתחת).</p>
+      <p><span class="k">בקוד כרגע:</span> רק <b>5 תפקידים</b> (פיקוד והדרכה, תיאום אזרחי, מבצעים, תיאום ביטחוני, דוברות).</p>
+      <p><span class="todo">לתקן:</span> להשלים ל-8 כמו בקונספט 2. חסרים: <b>מידע ומחקר, קשרי חוץ, תשתיות</b>.</p>
+      <p style="color:var(--muted);font-size:13.5px">מיקום העיגול הפעיל (המוארך מימין) — תקין. רק הכמות חסרה.</p>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="finding">
+    <div class="fh"><div class="num">3</div><h2>טיימליין — מיקום ה-stepper + שורת נקודות מיותרת</h2></div>
+    <div class="sec">קונספט 1 · «מסלול והכשרה» &nbsp;·&nbsp; <code>Figma 1733-12301</code></div>
+    <div class="compare">
+      <div class="col fig"><div class="cap">✔ פיגמה — stepper מתחת</div><img src="qa-shots/fig-3-timeline.png" alt="פיגמה טיימליין"></div>
+      <div class="arrow">‹</div>
+      <div class="col code"><div class="cap">✕ הקוד — stepper מעל + נקודות מתחת</div><img src="qa-shots/code-3-timeline.png" alt="קוד טיימליין"></div>
+    </div>
+    <div class="fix">
+      <p><span class="k">בפיגמה:</span> סרגל השלבים (stepper) נמצא <b>מתחת</b> לכרטיס, ו<b>אין</b> שורת נקודות נפרדת.</p>
+      <p><span class="k">בקוד כרגע:</span> ה-stepper נמצא <b>מעל</b> הכרטיס, ובנוסף יש <b>שורת נקודות מתחת</b> (כפילות שאין בפיגמה).</p>
+      <p><span class="todo">לתקן:</span> להעביר את ה-stepper ל<b>מתחת</b> לכרטיס, ולהסיר את שורת הנקודות הנוספת.</p>
+      <p style="color:var(--muted);font-size:13.5px">סדר הכפתורים (גיוס ושירות פעיל מימין) וסדר שלבי ה-stepper (שיבוץ למתפ״ש מימין) — תקינים.</p>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="finding">
+    <div class="fh"><div class="num">4</div><h2>כרטיס פרטי תפקיד — כפתור הסגירה (✕) והאייקון הפוכים <span class="tag flip">היפוך ימין↔שמאל</span></h2></div>
+    <div class="sec">קונספט 2 · ה-overlay שנפתח בלחיצה על כרטיס תפקיד &nbsp;·&nbsp; <code>Figma 1671-11825</code></div>
+    <div class="compare">
+      <div class="col fig"><div class="cap">✔ פיגמה — ✕ שמאל / אייקון ימין</div><img src="qa-shots/fig-4-roledetail.png" alt="פיגמה כרטיס תפקיד"></div>
+      <div class="arrow">‹</div>
+      <div class="col code"><div class="cap">✕ הקוד — ✕ ימין / אייקון שמאל</div><img src="qa-shots/code-4-roledetail.png" alt="קוד כרטיס תפקיד"></div>
+    </div>
+    <div class="fix">
+      <p><span class="k">בפיגמה:</span> כפתור הסגירה <b>✕ בצד שמאל</b> למעלה, ואייקון התפקיד <b>בצד ימין</b> למעלה.</p>
+      <p><span class="k">בקוד כרגע:</span> הפוך — ה-<b>✕ בצד ימין</b> והאייקון <b>בצד שמאל</b>.</p>
+      <p><span class="todo">לתקן:</span> להחליף צדדים — ✕ בשמאל למעלה, אייקון התפקיד בימין למעלה.</p>
+      <p style="color:var(--muted);font-size:13.5px">משני: בפיגמה האייקון הוא סמל דגל/מצגת; בקוד סמל פנקס/עיפרון — כדאי להתאים.</p>
+    </div>
+  </section>
+
+  <!-- OK -->
+  <section class="ok">
+    <h2>✓ מה שנבדק ונמצא תקין (אין צורך לגעת)</h2>
+    <ul>
+      <li><b>קונספט 1:</b> מסך הירו, הכותרת «אופציות השיבוץ», מיקום העיגול הפעיל בקרוסלה, כפתורי המעבר וה-stepper בטיימליין (הסדר תקין).</li>
+      <li><b>קונספט 2:</b> מסך הירו (כולל ה-chip העליון), <b>סדר הטאבים</b> (תפקידים פעיל מימין → בסיסים → השירות משמאל), ואקורדיון «השירות» (כפתורי המעבר, קו ההתקדמות והנקודות בצד ימין) — הכל תקין.</li>
+      <li style="color:var(--muted)"><b>אופציונלי:</b> באקורדיון השירות הכותרות בקוד ארוכות מעט מהפיגמה («שיבוץ למתפ״ש» מול «שיבוץ») — לא באג, רק לוודא שזה הניסוח הרצוי.</li>
+    </ul>
+  </section>
+
+</div>
+</body>
+</html>

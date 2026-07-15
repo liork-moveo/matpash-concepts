@@ -7,8 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 <style>
   :root{
     --teal:#559baa;
@@ -39,6 +39,12 @@
   .phone{
     position:relative;width:100%;max-width:375px;min-height:100vh;margin:0 auto;
     background:var(--bg);box-shadow:0 0 60px rgba(0,0,0,.18);
+  }
+  /* on a real phone the shell fills the screen edge-to-edge (mockup frame only on wider screens) */
+  @media (max-width:480px){
+    body{background:var(--bg)}
+    .phone,.sector-page{max-width:none}
+    .phone{box-shadow:none}
   }
   img{display:block;max-width:100%}
   button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
@@ -95,7 +101,7 @@
   .menu-list{margin-top:15px;display:flex;flex-direction:column;gap:8px}
   .menu-item{display:flex;align-items:center;gap:0}
   .menu-item .bar{flex:1;background:var(--teal);color:var(--on-dark);font-size:17.68px;font-weight:700;line-height:1.2;
-    height:51.07px;display:flex;align-items:center;padding:0 24.55px;border-radius:9999px;margin-inline-end:-1px;position:relative;z-index:1}
+    height:51.07px;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 24.55px;border-radius:9999px;margin-inline-start:-1px;position:relative;z-index:1}
   .menu-item .ic{width:52px;height:52px;border-radius:26px;border:2px solid var(--teal);background:var(--bg);
     display:flex;align-items:center;justify-content:center;flex:0 0 52px}
   .menu-item .ic svg{width:33.12px;height:33.12px;stroke:var(--teal-deep)}
@@ -137,8 +143,8 @@
   .map-wrap{border-radius:var(--radius);overflow:hidden;position:relative;background:#eaf3f6;aspect-ratio:333/575}
   .map-wrap .map-img{width:100%;height:100%;object-fit:cover;display:block}
   .mapgl{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-  .mapgl .maplibregl-marker,.mapgl .maplibregl-ctrl-attrib,.mapgl .maplibregl-ctrl{pointer-events:auto}
-  .mapgl .maplibregl-ctrl-attrib{font-size:9px}
+  .mapgl .mapboxgl-marker,.mapgl .mapboxgl-ctrl-attrib,.mapgl .mapboxgl-ctrl{pointer-events:auto}
+  .mapgl .mapboxgl-ctrl-attrib{font-size:9px}
   /* NOTE: do NOT set position/transform on .mpin — MapLibre owns those for marker placement (RTL-safe) */
   .mpin{cursor:pointer}
   .mpin-in{position:relative;width:34px;transform-origin:50% 100%;transition:transform .18s}
@@ -177,7 +183,7 @@
   .toggle{display:flex;gap:6px;justify-content:center;margin-bottom:26px}
   .toggle button{background:var(--teal-light);color:var(--teal-deep);border-radius:9999px;padding:10px 25px;font-weight:700;font-size:18px;line-height:1.2}
   .toggle button.on{background:var(--teal);color:var(--on-dark)}
-  .stepper{display:flex;justify-content:space-between;align-items:flex-start;position:relative;margin:0 6px 26px}
+  .stepper{display:flex;justify-content:space-between;align-items:flex-start;position:relative;margin:24px 6px 6px}
   .stepper::before{content:"";position:absolute;top:14px;inset-inline:12%;height:2px;background:var(--line)}
   .step{display:flex;flex-direction:column;align-items:center;gap:4px;width:24%;z-index:2}
   .step .num{width:28.55px;height:28.55px;border-radius:50%;background:var(--teal-light);
@@ -235,16 +241,16 @@
     </div>
     <div class="menu-list">
       <div class="menu-item" onclick="document.getElementById('roles').scrollIntoView({behavior:'smooth'})">
-        <div class="bar">האופציות של התפקידים</div>
         <div class="ic"><svg viewBox="0 0 34 34" fill="none" stroke-width="1.81" stroke-linecap="round" stroke-linejoin="round"><path d="M25.3975 27.6642L23.3186 20.388L16.5622 18.8289L9.80572 20.388L7.72681 27.6642H25.3975Z"/><path d="M13.054 9.27881L16.5621 11.0334H21.2397"/><path d="M21.24 15.9701L16.5624 17.7891L11.8849 15.9701V9.73335L16.5624 7.91431L21.24 9.73335V15.9701Z"/><path d="M19.1119 19.4178L16.5621 23.5071L14.0123 19.4178"/></svg></div>
+        <div class="bar">האופציות של התפקידים</div>
       </div>
       <div class="menu-item" onclick="document.getElementById('map').scrollIntoView({behavior:'smooth'})">
-        <div class="bar">מיקומי בסיסים</div>
         <div class="ic"><svg viewBox="0 0 34 34" fill="none" stroke-width="1.81" stroke-linecap="round" stroke-linejoin="round"><path d="M14.959 26.4452V18.1657H6.67957L23.9912 9.13354L14.959 26.4452Z"/></svg></div>
+        <div class="bar">מיקומי בסיסים</div>
       </div>
       <div class="menu-item" onclick="document.getElementById('timeline').scrollIntoView({behavior:'smooth'})">
-        <div class="bar">גיוס, הכשרה ומסלולי שירות</div>
         <div class="ic"><svg viewBox="0 0 34 34" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5621 22.6577V25.9085"/><path d="M25.5018 16.9689H22.251"/><path d="M10.8731 16.9689H7.62231"/><path d="M16.5621 7.2168V10.4676"/><path d="M10.0603 12.4983L16.562 9.24744L23.0636 12.4983V20.6254L16.562 23.8762L10.0603 20.6254V12.4983Z"/></svg></div>
+        <div class="bar">גיוס, הכשרה ומסלולי שירות</div>
       </div>
     </div>
     <div class="down-chevron"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10l6 6 6-6" transform="translate(-1,0)"/></svg></div>
@@ -283,7 +289,7 @@
     </header>
     <div class="sector-body">
       <h2 class="sector-title" id="baseSector">גזרת עזה</h2>
-      <div class="sector-card"><img id="baseMapImg" src="../assets/map-sde-teiman.svg" alt="מפת בסיס"></div>
+      <div class="sector-card" id="baseMapCard"></div>
       <div class="sector-dots"><i class="on"></i><i></i></div>
       <div class="base-info">
         <h3 id="baseName">בסיס: שדה תימן</h3>
@@ -301,9 +307,8 @@
       <button>מסלולים נוספים</button>
       <button class="on">גיוס ושירות</button>
     </div>
-    <div class="stepper" id="stepper"></div>
     <div class="rail" id="tlRail"></div>
-    <div class="dots" id="tlDots"></div>
+    <div class="stepper" id="stepper"></div>
   </section>
 
   <footer>
@@ -332,6 +337,15 @@ const roles=[
  {name:'דוברות והסברה', short:'הקול של היחידה…', poster:'../assets/role-teum.jpg', video:'../assets/dovrut.mp4',
   tags:['מטה'],
   text:'תפקידי הדוברות וההסברה מהווים את הקול של היחידה — יצירת תוכן, ניהול ממשקי תקשורת והנגשת הפעילות של המתפ״ש לקהלים מגוונים בארץ ובעולם.'},
+ {name:'מידע ומחקר', short:'מוקד הידע של היחידה…', poster:'../assets/role-teum.jpg', video:'../assets/dovrut.mp4',
+  tags:['מטה','רצועת עזה','איו״ש'],
+  text:'אוספים מידע ומנתחים ארועים ותהליכים בזירה הפלסטינית. ביום יום מאתרים מידע ברשתות החברתיות, אתרי חדשות ופלטפורמות דיגיטליות בערבית ובמקורות נוספים, מעבדים ומייצרים ממנו דוחות שעוזרים למפקדים לקבל החלטות. העבודה מתבצעת בשיתוף פעולה עם השב״כ ומשרד הביטחון. ידע קודם בערבית מהווה יתרון.'},
+ {name:'קשרי חוץ', short:'הפנים הבינלאומיות…', poster:'../assets/role-sadot.jpg', video:'../assets/ezrahi.mp4',
+  tags:['מטה','רצועת עזה','איו״ש'],
+  text:'עוסקים בתיאום וקישור ישירות מול מגוון רחב של ארגונים בינלאומיים, נציגי ממשלות זרות, שגרירויות וגורמים נוספים בקהילה הבינלאומית הפועלים באזור. ביום יום מקיימים פגישות עבודה, מובילים תיאומים ולוקחים חלק בקידום פרויקטים ותהליכים בשטח. ידע קודם באנגלית ברמה גבוהה מהווה יתרון.'},
+ {name:'תשתיות', short:'בונים את המרחב…', poster:'../assets/role-sadot.jpg', video:'../assets/sde_teyman.mp4',
+  tags:['איו״ש','רצועת עזה'],
+  text:'עוסקים במגוון תחומים הקשורים לפיתוח המרחב, ובהם בנייה, תחבורה, מים, אנרגיה ותחומים נוספים המהווים חלק משמעותי מפעילות היחידה ביהודה ושומרון וברצועת עזה. ביום יום מלווים ומקדמים פרויקטים תשתיתיים בעבודה מול משרדי ממשלה וגורמי מקצוע, ולוקחים חלק בפעילויות פיקוח ואכיפה לצד כוחות צה״ל ומשטרת ישראל.'},
 ];
 const bases=[
  {sector:'גזרת עזה', name:'בסיס: שדה תימן', map:'../assets/map-sde-teiman.svg', lng:34.7600, lat:31.2830, color:'#f5b21e',
@@ -380,10 +394,41 @@ function setBase(i){
   document.getElementById('baseSector').textContent=b.sector;
   document.getElementById('baseName').textContent=b.name;
   document.getElementById('baseDesc').textContent=b.desc;
-  document.getElementById('baseMapImg').src=b.map;
+}
+/* inner-page detail map: a real static (non-interactive) Mapbox map zoomed to the base, pin centered */
+let mapD=null, mapDMarker=null;
+function localizeHeDetail(map){
+  if(!map.isStyleLoaded||!map.isStyleLoaded()) return;
+  if(map._heDone) return; map._heDone=true;
+  const heName=['coalesce',['get','name_he'],['get','name']];
+  (map.getStyle().layers||[]).forEach(l=>{
+    if(l.type!=='symbol') return;
+    if(/country|continent|shield|junction/i.test(l.id)){ try{map.setLayoutProperty(l.id,'visibility','none');}catch(e){} return; }
+    if(l.layout && l.layout['text-field']!==undefined){ try{ map.setLayoutProperty(l.id,'text-field',heName); }catch(e){} }
+    if(l['source-layer']==='place_label' || /settlement/i.test(l.id)){
+      try{ const ex=map.getFilter(l.id); map.setFilter(l.id, ex?['all',ex,['within',ISRAEL_POLY]]:['within',ISRAEL_POLY]); }catch(e){}
+    }
+  });
+}
+function ensureMapD(){
+  if(mapD || typeof mapboxgl==='undefined') return;
+  mapD=new mapboxgl.Map({container:'baseMapCard', style:'mapbox://styles/mapbox/streets-v11',
+    center:[34.76,31.283], zoom:12.5, interactive:false, attributionControl:false,
+    projection:'mercator', transformRequest:glyphTransform});
+  mapD.on('styledata',()=>localizeHeDetail(mapD));
+  mapD.on('load',()=>localizeHeDetail(mapD));
+  mapD.on('idle',()=>localizeHeDetail(mapD));
 }
 function openSector(i){
+  const b=bases[i];
   setBase(i);
+  ensureMapD();
+  if(mapD){
+    mapD.jumpTo({center:[b.lng,b.lat],zoom:12.5});
+    if(mapDMarker) mapDMarker.remove();
+    mapDMarker=new mapboxgl.Marker({element:mpinEl(b.color,''),anchor:'bottom'}).setLngLat([b.lng,b.lat]).addTo(mapD);
+    [40,250,700].forEach(t=>setTimeout(()=>{try{mapD.resize();}catch(e){}},t));
+  }
   document.getElementById('mapDetail').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -394,11 +439,33 @@ function closeSector(){
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSector(); });
 document.getElementById('mapBack').onclick=closeSector;
 
-/* real vector map (MapLibre + OpenFreeMap, no token) — non-interactive backdrop, pins clickable */
+/* real vector map (Mapbox GL JS + the client token) — non-interactive backdrop, pins clickable.
+   Glyphs are self-hosted so RTL/Hebrew labels render even in constrained in-app webviews. */
 let map1=null;
 const IL_BOUNDS1=[[34.05,30.85],[35.95,33.35]];
-/* correct Hebrew (RTL) rendering — locally hosted so the worker can importScripts it same-origin */
-try{ maplibregl.setRTLTextPlugin('../assets/mapbox-gl-rtl-text.min.js', ()=>{}, true); }catch(e){}
+mapboxgl.accessToken='pk.eyJ1IjoibGlvcmttb3ZlbzEyMzQiLCJhIjoiY21xcWd0djQ4MDQ0ZTJzcXZsNnBveHZydSJ9.-ANesy8sOPNF6TYeBlam5w';
+/* correct Hebrew (RTL) rendering — locally hosted plugin so the worker can load it same-origin */
+try{ mapboxgl.setRTLTextPlugin('../assets/mapbox-gl-rtl-text.min.js', ()=>{}, true); }catch(e){}
+/* redirect Mapbox glyph (font) requests to our own origin for the exact stacks streets-v11 uses,
+   for the ranges we ship (Latin + Hebrew). Keeps RTL/Hebrew labels working inside webviews that
+   block the worker's cross-origin font fetch. */
+const LOCAL_RANGES=new Set(['0-255','256-511','1280-1535','8192-8447']);
+const GLYPH_STACKS={
+  'DIN Offc Pro Regular,Arial Unicode MS Regular':'reg',
+  'DIN Offc Pro Medium,Arial Unicode MS Regular':'med',
+  'DIN Offc Pro Bold,Arial Unicode MS Bold':'bold',
+  'DIN Offc Pro Italic,Arial Unicode MS Regular':'italic'
+};
+/* absolute base — the map worker (a blob: script) resolves relative URLs against itself, not the page */
+const GLYPH_ORIGIN=new URL('../assets/glyphs/',location.href).href;
+function glyphTransform(url,type){
+  if(type==='Glyphs'){
+    const mm=url.match(/([^/]+)\/(\d+-\d+)\.pbf/);
+    if(mm){ const folder=GLYPH_STACKS[decodeURIComponent(mm[1])];
+      if(folder && LOCAL_RANGES.has(mm[2])) return {url:GLYPH_ORIGIN+folder+'/'+mm[2]+'.pbf'}; }
+  }
+  return {url};
+}
 /* polygon of the Israel area (incl. יו״ש/עזה/גולן), excl. neighboring countries */
 const ISRAEL_POLY={type:'Polygon',coordinates:[[
  [35.10,33.12],[35.60,33.30],[35.78,33.05],[35.75,32.70],
@@ -406,25 +473,24 @@ const ISRAEL_POLY={type:'Polygon',coordinates:[[
  [35.15,30.75],[34.90,30.80],[34.50,31.10],[34.22,31.35],
  [34.42,31.55],[34.75,32.30],[34.92,32.82],[35.10,33.12]
 ]]};
-/* clean map: only land + borders + sea. Remove roads/relief/POIs; only big Israeli cities in Hebrew. */
-const HIDE_PLACE=['label_other','label_village','label_town','label_state']; // keep only label_city + label_city_capital
+/* clean map: only land + borders + sea + parks. Remove roads/POIs/buildings; only big Israeli cities in Hebrew. */
+const HIDE_SRC=['road','poi_label','transit_stop_label','aeroway','airport_label','building','motorway_junction','housenum_label','structure','waterway'];
 function localizeHe(map){
   if(!map.isStyleLoaded||!map.isStyleLoaded()) return;
   if(map._heDone) return; map._heDone=true;
-  const heName=['coalesce',['get','name:he'],['get','name:hebrew']];
+  /* Mapbox Streets stores the native name in `name` — inside Israel that is Hebrew */
+  const heName=['coalesce',['get','name_he'],['get','name']];
   (map.getStyle().layers||[]).forEach(l=>{
-    const id=l.id, sl=l['source-layer'], src=l.source, ty=l.type;
-    // strip roads, relief, POIs, buildings and the yellow sand/landuse — keep green landcover + park + borders + sea
-    if(sl==='transportation'||sl==='transportation_name'||sl==='poi'||sl==='aeroway'||sl==='building'||sl==='landuse'
-       ||id==='landcover_sand'||id==='landcover_ice'
-       ||src==='ne2_shaded'||ty==='raster'||ty==='hillshade'||ty==='fill-extrusion'){
+    const id=l.id, sl=l['source-layer'], ty=l.type;
+    // strip roads, POIs, buildings, transit, relief — keep land + water + parks + borders
+    if((sl && HIDE_SRC.includes(sl)) || ty==='hillshade' || ty==='raster' || ty==='fill-extrusion'){
       try{map.setLayoutProperty(id,'visibility','none');}catch(e){} return;
     }
     if(ty!=='symbol') return;
-    // hide country/state/continent and minor place labels (villages/towns) — keep only big cities
-    if(/country|state|continent/i.test(id) || HIDE_PLACE.includes(id)){ try{map.setLayoutProperty(id,'visibility','none');}catch(e){} return; }
+    // hide country/state/continent, neighborhoods, and natural/water point labels — keep only city labels
+    if(/country|state|continent|subdivision|natural|water-|poi|airport|transit/i.test(id)){ try{map.setLayoutProperty(id,'visibility','none');}catch(e){} return; }
     if(l.layout && l.layout['text-field']!==undefined){ try{ map.setLayoutProperty(id,'text-field',heName); }catch(e){} }
-    if(sl==='place'){
+    if(sl==='place_label' || /settlement/i.test(id)){
       try{ const ex=map.getFilter(id); const wf=['within',ISRAEL_POLY];
         map.setFilter(id, ex ? ['all',ex,wf] : wf); }catch(e){}
     }
@@ -436,11 +502,12 @@ function mpinEl(color,name){
   return el;
 }
 function initMap1(){
-  if(map1 || typeof maplibregl==='undefined') return;
+  if(map1 || typeof mapboxgl==='undefined') return;
   // fully interactive internally (keeps render loop alive → full render); CSS pointer-events:none on
   // the canvas lets page-scroll pass through, while markers/controls keep pointer-events:auto.
-  map1=new maplibregl.Map({container:'mapC1', style:'https://tiles.openfreemap.org/styles/liberty',
-    bounds:IL_BOUNDS1, fitBoundsOptions:{padding:24}, dragRotate:false, pitchWithRotate:false, attributionControl:true});
+  map1=new mapboxgl.Map({container:'mapC1', style:'mapbox://styles/mapbox/streets-v11',
+    bounds:IL_BOUNDS1, fitBoundsOptions:{padding:24}, dragRotate:false, pitchWithRotate:false,
+    projection:'mercator', attributionControl:true, transformRequest:glyphTransform});
   window.__m1=map1;
   map1.on('load',()=>{try{map1.resize();}catch(x){}localizeHe(map1);});
   map1.on('styledata',()=>localizeHe(map1));
@@ -448,11 +515,11 @@ function initMap1(){
   bases.forEach((b,i)=>{
     const el=mpinEl(b.color, (b.name||'').replace('בסיס: ',''));
     el.addEventListener('click',e=>{e.stopPropagation();openSector(i);});
-    new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat([b.lng,b.lat]).addTo(map1);
+    new mapboxgl.Marker({element:el,anchor:'bottom'}).setLngLat([b.lng,b.lat]).addTo(map1);
   });
 }
-// MapLibre v3 pauses rendering while the container is off-screen; the map inits below the fold,
-// so nudge it with resize() once it scrolls into view to resume a full render. Stop once tiles load.
+// The map inits below the fold; nudge it with resize() once it scrolls into view to resume a full
+// render (rendering can pause while the container is off-screen). Stop once tiles load.
 let map1Resumed=false;
 function resumeMap1(){
   if(!map1||map1Resumed) return;
@@ -469,7 +536,8 @@ else window.addEventListener('load',()=>setTimeout(bootMap1,60));
 
 /* ---------- timeline ---------- */
 const stp=document.getElementById('stepper');
-[...steps].reverse().forEach((s,idx)=>{
+// natural order — in RTL, DOM[0] renders on the RIGHT, so step 1 (שיבוץ למתפ״ש) sits right and it progresses left
+steps.forEach((s,idx)=>{
   const el=document.createElement('div');el.className='step'+(s.n===1?' on':'');
   el.innerHTML=`<div class="num">${s.n}</div><small>${s.label}</small>`;
   el.onclick=()=>goTL(s.n-1);
@@ -481,10 +549,11 @@ tlCards.forEach(c=>{
   el.innerHTML=`<div class="tl-card"><div class="big">${c.no}</div><h3>${c.title}</h3><p>${c.text}</p><div class="ph"><img src="${c.img}"></div></div>`;
   tlRail.appendChild(el);
 });
-buildDots('tlDots',tlCards.length,'tlRail',null,updateStepper);
+tlRail.addEventListener('scroll',()=>{const w=tlRail.children[0].offsetWidth+16;
+  const idx=Math.round(Math.abs(tlRail.scrollLeft)/w);updateStepper(idx);});
 function goTL(i){const r=tlRail;r.scrollTo({left:-(i*r.children[0].offsetWidth+i*16),behavior:'smooth'})}
 function updateStepper(i){[...stp.children].forEach((el,idx)=>{
-  const stepNum=steps.length-idx; el.classList.toggle('on',stepNum===i+1);});}
+  el.classList.toggle('on',idx===i);});}
 
 /* ---------- dots helper ---------- */
 function buildDots(dotsId,n,railId,onClick,onScroll){
