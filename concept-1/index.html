@@ -170,8 +170,12 @@
   .sector-head .h-social svg{width:18px;height:18px}
   .sector-body{flex:1;overflow-y:auto;padding:22px 22px 40px;display:flex;flex-direction:column;align-items:center}
   .sector-title{font-size:36px;font-weight:700;color:var(--teal-dark);text-align:center;line-height:.95;margin-bottom:16px}
-  .sector-card{width:100%;max-width:331px;aspect-ratio:331/414;border-radius:23px;overflow:hidden;background:#f8f9fa;position:relative}
-  .sector-card img{width:100%;height:100%;object-fit:cover;display:block}
+  /* 2-slide slider inside the inner page: slide 1 = live map, slide 2 = the base animation */
+  .sector-slider{width:100%;max-width:331px;aspect-ratio:331/414;border-radius:23px;overflow:hidden;background:#f8f9fa;
+    position:relative;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .sector-slider::-webkit-scrollbar{display:none}
+  .sector-slide{flex:0 0 100%;height:100%;scroll-snap-align:start;position:relative;background:#f8f9fa}
+  .sector-slide video,.sector-slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
   .sector-dots{display:flex;gap:8px;justify-content:center;margin:14px 0}
   .sector-dots i{width:8.86px;height:8.86px;border-radius:50%;background:var(--line)}
   .sector-dots i.on{background:var(--teal);width:19.44px;border-radius:5px}
@@ -289,7 +293,10 @@
     </header>
     <div class="sector-body">
       <h2 class="sector-title" id="baseSector">גזרת עזה</h2>
-      <div class="sector-card" id="baseMapCard"></div>
+      <div class="sector-slider" id="sectorSlider">
+        <div class="sector-slide" id="baseMapCard"></div>
+        <div class="sector-slide"><video id="baseAnim" muted loop playsinline preload="auto"></video></div>
+      </div>
       <div class="sector-dots"><i class="on"></i><i></i></div>
       <div class="base-info">
         <h3 id="baseName">בסיס: שדה תימן</h3>
@@ -348,11 +355,11 @@ const roles=[
   text:'עוסקים במגוון תחומים הקשורים לפיתוח המרחב, ובהם בנייה, תחבורה, מים, אנרגיה ותחומים נוספים המהווים חלק משמעותי מפעילות היחידה ביהודה ושומרון וברצועת עזה. ביום יום מלווים ומקדמים פרויקטים תשתיתיים בעבודה מול משרדי ממשלה וגורמי מקצוע, ולוקחים חלק בפעילויות פיקוח ואכיפה לצד כוחות צה״ל ומשטרת ישראל.'},
 ];
 const bases=[
- {sector:'גזרת עזה', name:'בסיס: שדה תימן', map:'../assets/map-sde-teiman.svg', lng:34.7600, lat:31.2830, color:'#f5b21e',
+ {sector:'גזרת עזה', name:'בסיס: שדה תימן', anim:'../assets/sde_teyman.mp4', lng:34.7600, lat:31.2830, color:'#f5b21e',
   desc:'מתפ״ש שדה תימן פועלים בגזרת רצועת עזה. שדה תימן הינו בסיס סגור, ממוקם רבע שעה מבאר שבע.'},
- {sector:'גזרת איו״ש', name:'בסיס: בית אל', map:'../assets/map-yosh.svg', lng:35.2200, lat:31.9400, color:'#1f7a5c',
+ {sector:'גזרת איו״ש', name:'בסיס: בית אל', anim:'../assets/ayosh.mp4', lng:35.2200, lat:31.9400, color:'#1f7a5c',
   desc:'המתפ״ש באיו״ש פועלים לאורך הגזרה. הבסיס משמש כמרכז תיאום אזורי ומאפשר קרבה לזירת הפעילות.'},
- {sector:'המטה', name:'בסיס: הקריה', map:'../assets/map-kirya.svg', lng:34.7900, lat:32.0740, color:'#45b0c4',
+ {sector:'המטה', name:'בסיס: הקריה', anim:'../assets/kria.mp4', lng:34.7900, lat:32.0740, color:'#45b0c4',
   desc:'מטה היחידה ממוקם בקריה בתל אביב — מרכז הפיקוד, התכנון והבקרה של פעילות המתפ״ש בכלל הגזרות.'},
 ];
 const steps=[
@@ -419,6 +426,20 @@ function ensureMapD(){
   mapD.on('load',()=>localizeHeDetail(mapD));
   mapD.on('idle',()=>localizeHeDetail(mapD));
 }
+/* slider: slide 0 = map (right, RTL), slide 1 = base animation */
+const sectorSlider=document.getElementById('sectorSlider');
+function setSectorDots(idx){
+  document.querySelectorAll('.sector-dots i').forEach((d,i)=>d.classList.toggle('on',i===idx));
+  const v=document.getElementById('baseAnim');
+  if(idx===1){ v.play().catch(()=>{}); } else { try{v.pause();}catch(e){} }
+}
+sectorSlider.addEventListener('scroll',()=>{
+  const w=sectorSlider.clientWidth||1;
+  setSectorDots(Math.round(Math.abs(sectorSlider.scrollLeft)/w));
+},{passive:true});
+document.querySelectorAll('.sector-dots i').forEach((d,i)=>{
+  d.onclick=()=>sectorSlider.scrollTo({left:i?-sectorSlider.clientWidth:0,behavior:'smooth'});
+});
 function openSector(i){
   const b=bases[i];
   setBase(i);
@@ -429,11 +450,16 @@ function openSector(i){
     mapDMarker=new mapboxgl.Marker({element:mpinEl(b.color,''),anchor:'bottom'}).setLngLat([b.lng,b.lat]).addTo(mapD);
     [40,250,700].forEach(t=>setTimeout(()=>{try{mapD.resize();}catch(e){}},t));
   }
+  const v=document.getElementById('baseAnim');
+  if(v.getAttribute('src')!==b.anim){ v.src=b.anim; }
+  sectorSlider.scrollTo({left:0});           // always open on the map slide
+  setSectorDots(0);
   document.getElementById('mapDetail').classList.add('open');
   document.body.style.overflow='hidden';
 }
 function closeSector(){
   document.getElementById('mapDetail').classList.remove('open');
+  try{document.getElementById('baseAnim').pause();}catch(e){}
   document.body.style.overflow='';
 }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSector(); });
