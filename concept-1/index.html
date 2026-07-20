@@ -132,12 +132,13 @@
     padding:44px 20px 20px;display:none;flex-direction:column}
   .role-card.flipped .rc-face{display:none}
   .role-card.flipped .rc-back{display:flex}
-  /* while the role video plays, clear the overlay so only the footage shows */
-  .role-card .rc-play,.role-card .grad,.role-card .rc-meta{transition:opacity .25s}
-  .role-card .rc-face.playing .rc-play,
-  .role-card .rc-face.playing .grad,
-  .role-card .rc-face.playing .rc-meta{opacity:0;pointer-events:none}
+  /* Shorts-style: the caption stays up the whole time so "קרא עוד" is always tappable */
+  .role-card .rc-play{transition:opacity .25s}
   .role-card .rc-meta{cursor:default}
+  .vp-bar{position:relative;height:3px;border-radius:3px;background:rgba(255,255,255,.32);
+    margin-top:10px;direction:ltr;cursor:pointer;touch-action:none}
+  .vp-bar i{position:absolute;top:0;bottom:0;left:0;width:0;background:#fff;border-radius:3px}
+  .vp-bar::after{content:"";position:absolute;left:0;right:0;top:-12px;bottom:-12px}
   .role-card .rc-more{font-weight:700;text-decoration:underline;cursor:pointer;white-space:nowrap}
   .rc-close{position:absolute;top:12.8px;left:12.4px;width:31.6px;height:31.6px;z-index:3;
     display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--on-dark)}
@@ -225,10 +226,12 @@
   .tl-card .ph .tl-slide.on{opacity:1}
 
   /* ---------- whatsapp float ---------- */
-  .wa{position:fixed;bottom:17px;left:max(17.8px,calc(50% - 169.7px));z-index:55;width:43px;height:43px;border-radius:50%;
+  .wa{position:fixed;bottom:17px;left:18px;z-index:55;width:43px;height:43px;border-radius:50%;
     background:#f8f9fa;box-shadow:0 4px 14px rgba(20,51,61,.18);
     display:flex;align-items:center;justify-content:center}
   .wa svg{width:26.81px;height:26.81px}
+  /* desktop mock: keep it inside the phone frame; on a phone it is a flat 18px from the edge */
+  @media (min-width:481px){ .wa{left:calc(50% - 187.5px + 18px)} }
 
   footer{padding:40px 20px 120px;text-align:center;color:var(--muted);font-size:13px}
   .spacer{height:60px}
@@ -400,6 +403,34 @@
 </div>
 
 <script>
+
+/* ---------- Shorts-style video player (tap = play/pause, scrubbable bar) ---------- */
+function wireVideo(vid, playBtn, bar){
+  if(!vid) return;
+  var fill = bar && bar.querySelector('i');
+  function toggle(){ if(vid.paused){ vid.play().catch(function(){}); } else { vid.pause(); } }
+  function sync(){ if(playBtn) playBtn.style.opacity = vid.paused ? '1' : '0'; }
+  vid.addEventListener('play',sync); vid.addEventListener('pause',sync);
+  vid.addEventListener('ended',function(){ if(fill) fill.style.width='0%'; sync(); });
+  vid.addEventListener('timeupdate',function(){
+    if(fill && vid.duration) fill.style.width=(vid.currentTime/vid.duration*100)+'%'; });
+  vid.addEventListener('click',function(e){ e.stopPropagation(); toggle(); });
+  if(playBtn) playBtn.addEventListener('click',function(e){ e.stopPropagation(); toggle(); });
+  if(bar){
+    var scrub=false;
+    function seek(e){ var r=bar.getBoundingClientRect();
+      var p=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));
+      if(vid.duration) vid.currentTime=p*vid.duration;
+      if(fill) fill.style.width=(p*100)+'%'; }
+    bar.addEventListener('pointerdown',function(e){ e.stopPropagation(); scrub=true;
+      try{bar.setPointerCapture(e.pointerId);}catch(err){} seek(e); });
+    bar.addEventListener('pointermove',function(e){ if(scrub){ e.stopPropagation(); seek(e); } });
+    bar.addEventListener('pointerup',function(e){ scrub=false; e.stopPropagation(); });
+    bar.addEventListener('click',function(e){ e.stopPropagation(); });
+  }
+  sync();
+}
+
 /* ---------- data ---------- */
 const roles=[
  {name:'פיקוד והדרכה', short:'עוסקים בהכשרת דור העתיד…', poster:'../assets/r-pikud.jpg', video:'../assets/r-pikud.mp4',
@@ -455,7 +486,8 @@ roles.forEach((r,i)=>{
        <video class="rc-vid" src="${r.video}" poster="${r.poster}" preload="none" playsinline></video>
        <div class="grad"></div>
        <div class="rc-play"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-       <div class="rc-meta"><h3>${r.name}</h3><span>${r.short} <b class="rc-more">קרא עוד</b></span></div>
+       <div class="rc-meta"><h3>${r.name}</h3><span>${r.short} <b class="rc-more">קרא עוד</b></span>
+         <div class="vp-bar"><i></i></div></div>
      </div>
      <div class="rc-back">
        <button class="rc-close">✕</button>
@@ -464,11 +496,8 @@ roles.forEach((r,i)=>{
        <div class="tags">${tagsHtml}</div>
      </div>`;
   const vid=c.querySelector('.rc-vid'), play=c.querySelector('.rc-play');
-  play.onclick=e=>{ e.stopPropagation();
-    if(vid.paused){ document.querySelectorAll('.rc-vid').forEach(o=>{if(o!==vid){o.pause();o.closest('.rc-face').classList.remove('playing');}});
-      vid.play().catch(()=>{}); c.querySelector('.rc-face').classList.add('playing'); }
-    else { vid.pause(); c.querySelector('.rc-face').classList.remove('playing'); } };
-  vid.addEventListener('ended',()=>c.querySelector('.rc-face').classList.remove('playing'));
+  vid.addEventListener('play',()=>document.querySelectorAll('.rc-vid').forEach(o=>{if(o!==vid)o.pause();}));
+  wireVideo(vid, play, c.querySelector('.vp-bar'));
   /* tapping anywhere else on the face still flips to the text side */
   /* only "קרא עוד" flips to the description side — the rest of the face is the video (YouTube-style) */
   c.querySelector('.rc-more').onclick=e=>{e.stopPropagation();
