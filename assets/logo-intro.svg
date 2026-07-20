@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" aria-label="COGAT logo" viewBox="0 0 2069.0 1571.9" id="cogat"><style>
 .ink path{stroke-dasharray:1;stroke-dashoffset:1;
-  animation:draw .8s ease-in-out forwards, fade-ink .4s ease-out forwards;
-  animation-delay:calc(var(--d) * .034s), calc(2.32s + var(--d) * .014s);}
+  animation:draw .42s ease-in-out forwards, fade-ink .22s ease-out forwards;
+  animation-delay:calc(var(--d) * .015s), calc(1.00s + var(--d) * .005s);}
 @keyframes draw{to{stroke-dashoffset:0}}
 @keyframes fade-ink{to{opacity:0}}
 .art path{opacity:0;transform-box:fill-box;transform-origin:center;
-  animation:paint .45s cubic-bezier(.2,.75,.3,1) forwards;
-  animation-delay:calc(2.28s + var(--d) * .014s);}
+  animation:paint .3s cubic-bezier(.2,.75,.3,1) forwards;
+  animation-delay:calc(0.97s + var(--d) * .005s);}
 @keyframes paint{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:none}}
 </style>
 <g transform="translate(-169.98 -2049.58)">

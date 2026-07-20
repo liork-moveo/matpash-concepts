@@ -37,7 +37,7 @@
   }
   /* phone shell */
   .phone{
-    position:relative;width:100%;max-width:375px;min-height:100vh;margin:0 auto;
+    position:relative;width:100%;max-width:375px;min-height:100vh;min-height:100dvh;margin:0 auto;
     background:var(--bg);box-shadow:0 0 60px rgba(0,0,0,.18);
   }
   /* on a real phone the shell fills the screen edge-to-edge (mockup frame only on wider screens) */
@@ -66,7 +66,7 @@
 
   /* ---------- Hero ---------- */
   .hero{
-    height:calc(100vh - 57px);min-height:600px;position:relative;
+    height:calc(100vh - 57px);height:calc(100dvh - 57px);min-height:480px;position:relative;
     display:flex;flex-direction:column;justify-content:flex-end;align-items:center;text-align:center;
     padding:0 24px 58px;color:var(--on-dark);overflow:hidden;
   }
@@ -236,7 +236,7 @@
   .boot.lift{background:transparent}
   .boot.gone{opacity:0;pointer-events:none}
   .boot-logo{width:min(74vw,300px);
-    transition:transform .9s cubic-bezier(.6,.02,.3,1),opacity .3s ease}
+    transition:transform .5s cubic-bezier(.6,.02,.3,1),opacity .25s ease}
   .boot-logo svg{width:100%;height:auto;display:block}
   /* the bar starts with no emblem — the one that just drew itself becomes it */
   #navLogo{opacity:0}
@@ -756,8 +756,8 @@ document.querySelectorAll('.video-card').forEach(card=>{
       bl.style.opacity='0'; boot.classList.add('gone');
       document.body.style.overflow='';
       setTimeout(function(){ boot.remove(); },420);
-    }, still?60:780);
-  }, still?250:3400);                      /* the SVG draw+paint runs ~3.3s */
+    }, still?60:420);
+  }, still?250:1500);                      /* the SVG draw+paint runs ~1.5s */
   }
 })();
 

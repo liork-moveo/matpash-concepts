@@ -201,7 +201,7 @@
   .boot.lift{background:transparent}
   .boot.gone{opacity:0;pointer-events:none}
   .boot-logo{width:min(74vw,300px);
-    transition:transform .9s cubic-bezier(.6,.02,.3,1),opacity .3s ease}
+    transition:transform .5s cubic-bezier(.6,.02,.3,1),opacity .25s ease}
   .boot-logo svg{width:100%;height:auto;display:block}
   /* the bar starts with no emblem — the one that just drew itself becomes it */
   #navLogo{opacity:0}
@@ -710,8 +710,8 @@ renderAccordion();
       bl.style.opacity='0'; boot.classList.add('gone');
       document.body.style.overflow='';
       setTimeout(function(){ boot.remove(); },420);
-    }, still?60:780);
-  }, still?250:3400);                      /* the SVG draw+paint runs ~3.3s */
+    }, still?60:420);
+  }, still?250:1500);                      /* the SVG draw+paint runs ~1.5s */
   }
 })();
 
