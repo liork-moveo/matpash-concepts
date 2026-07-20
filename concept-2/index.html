@@ -31,19 +31,7 @@
   body{font-family:'Assistant',system-ui,sans-serif;background:#e5e7e9;color:var(--ink);overflow-x:hidden}
   .phone{position:relative;width:100%;max-width:375px;height:100dvh;margin:0 auto;background:var(--sand);box-shadow:0 0 60px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden}
   /* on a real phone the shell fills the screen edge-to-edge (mockup frame only on wider screens) */
-  @media (max-width:480px){
-    body{background:var(--sand)}
-    .phone,.sheet,.base-sheet,.side-menu{max-width:none}
-    .phone{box-shadow:none}
-    /* true edge-to-edge: no centring maths, so no sliver of the page shows at the sides */
-    .sheet{left:0;width:100vw;transform:translate(0,100%)}
-    .sheet.open{transform:translate(0,0)}
-    .base-sheet{left:0;width:100vw;transform:translate(0,100%)}
-    .base-sheet.open{transform:translate(0,calc(100% - 128px))}
-    .base-sheet.open.full{transform:translate(0,0)}
-    .side-menu{left:0;transform:translate(0,-100%)}
-    .side-menu.open{transform:translate(0,0)}
-  }
+
   /* nested scroll: hero + content are two snap "pages"; the grid scrolls inside .panels,
      so scrolling the images never moves the pager (no bounce back to the tabs). */
   .pager{flex:1;min-height:0;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
@@ -145,10 +133,10 @@
   .map-hint{flex:0 0 auto;text-align:center;color:var(--muted);font-size:13.5px;padding:12px 20px;margin:0}
 
   /* base bottom sheet */
-  .base-sheet{position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);width:100%;max-width:375px;z-index:90;
+  .base-sheet{--peek:340px;position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);width:100%;max-width:375px;z-index:90;
     background:var(--sand);border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding:10px 22px 34px;
     transition:transform .4s;max-height:82vh;overflow-y:auto;cursor:pointer}
-  .base-sheet.open{transform:translate(-50%,calc(100% - 128px))}   /* peek — handle + name; tap to expand */
+  .base-sheet.open{transform:translate(-50%,calc(100% - var(--peek)))}  /* peek already reveals the top of the animation */
   .base-sheet.open.full{transform:translate(-50%,0)}
   .handle{width:44px;height:5px;border-radius:3px;background:#d8dbde;margin:6px auto 14px}
   .base-sheet h3{font-size:24px;font-weight:700;color:var(--navy);line-height:1.2}
@@ -159,7 +147,10 @@
   .base-close{position:absolute;top:14px;left:18px;width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
 
   /* SERVICE TIMELINE */
-  .segmented{display:flex;gap:8px;justify-content:center;margin-bottom:24px}
+  .segmented{display:flex;gap:8px;justify-content:flex-start;margin-bottom:24px;
+    overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-inline:22px}
+  .segmented::-webkit-scrollbar{display:none}
+  .segmented button{flex:0 0 auto;white-space:nowrap}
   .segmented button{height:30px;border-radius:10px;font-size:14px;font-weight:700;letter-spacing:.56px;padding:0 18px;background:var(--teal-light);color:var(--navy)}
   .segmented button.on{background:var(--navy);color:var(--on-dark)}
   /* service accordion (one open) + decorative vertical progress line on the inline-start (RTL: right) */
@@ -203,7 +194,7 @@
     background:#fff;filter:drop-shadow(0 0 6px rgba(0,0,0,.08));display:flex;align-items:center;justify-content:center}
   .wa svg{width:26.81px;height:26.81px}
   /* desktop mock: keep it inside the phone frame; on a phone it is a flat 18px from the edge */
-  @media (min-width:481px){ .wa{left:calc(50% - 187.5px + 18px)} }
+  @media (min-width:700px){ .wa{left:calc(50% - 187.5px + 18px)} }
   /* ---------- boot: emblem draws itself, then shrinks up into the nav bar ---------- */
   .boot{position:fixed;inset:0;z-index:200;background:var(--sand);display:grid;place-items:center;
     transition:background-color .6s ease,opacity .35s ease}
@@ -238,6 +229,22 @@
     display:flex;align-items:center;justify-content:center}
   .sm-ic .ig{width:18.43px;height:18.43px}
   .sm-ic .tt{width:17px;height:17px}
+  /* mobile overrides last so they win the cascade over the component rules above */
+  @media (max-height:720px){ .base-sheet{--peek:300px} }
+  @media (max-height:600px){ .base-sheet{--peek:250px} }
+  @media (max-width:699px){
+    body{background:var(--sand)}
+    .phone,.sheet,.base-sheet,.side-menu{max-width:none}
+    .phone{box-shadow:none}
+    /* true edge-to-edge: no centring maths, so no sliver of the page shows at the sides */
+    .sheet{left:0;width:100vw;transform:translate(0,100%)}
+    .sheet.open{transform:translate(0,0)}
+    .base-sheet{left:0;width:100vw;transform:translate(0,100%)}
+    .base-sheet.open{transform:translate(0,calc(100% - var(--peek)))}
+    .base-sheet.open.full{transform:translate(0,0)}
+    .side-menu{left:0;transform:translate(0,-100%)}
+    .side-menu.open{transform:translate(0,0)}
+  }
 </style>
 </head>
 <body>
@@ -309,7 +316,9 @@
   <div class="panel" id="p-service">
     <div class="segmented" id="svcToggle">
       <button class="on" data-track="main">גיוס ושירות</button>
-      <button data-track="alt">מסלולים נוספים</button>
+      <button data-track="alt">קצונה</button>
+      <button data-track="alt">יעודי לקצונה</button>
+      <button data-track="alt">מסלול עמית</button>
     </div>
     <div class="acc" id="accordion"></div>
   </div>
@@ -567,28 +576,30 @@ function closeBase(){document.getElementById('baseSheet').classList.remove('open
 /* drag the sheet up/down like Google Maps; a plain tap still expands it */
 (function(){
   var sh=document.getElementById('baseSheet');
-  var startY=0, dy=0, dragging=false, startFull=false;
-  function xShift(){ return window.matchMedia('(max-width:480px)').matches ? '0' : '-50%'; }
+  var grabY=0, startTop=0, rest=0, dragging=false, startFull=false, moved=0;
+  function xShift(){ return window.matchMedia('(max-width:699px)').matches ? '0' : '-50%'; }
   sh.addEventListener('pointerdown',function(e){
     if(e.target.closest('.base-close')) return;
-    if(sh.scrollTop>0) return;                 /* let the inner scroll take over */
-    dragging=true; startY=e.clientY; dy=0; startFull=sh.classList.contains('full');
+    if(sh.scrollTop>0) return;                      /* once scrolled, the inner scroll wins */
+    dragging=true; moved=0; grabY=e.clientY;
+    startTop=sh.getBoundingClientRect().top;
+    rest=window.innerHeight-sh.getBoundingClientRect().height;   /* top position when fully open */
+    startFull=sh.classList.contains('full');
     sh.style.transition='none';
     try{ sh.setPointerCapture(e.pointerId); }catch(err){}
   });
   sh.addEventListener('pointermove',function(e){
     if(!dragging) return;
-    dy=e.clientY-startY;
-    var base=startFull?0:(sh.getBoundingClientRect().height-128);
-    var y=Math.max(0, base+dy);
-    sh.style.transform='translate('+xShift()+','+y+'px)';
+    moved=e.clientY-grabY;
+    var top=Math.max(rest,startTop+moved);          /* never drag above fully-open */
+    sh.style.transform='translate('+xShift()+','+(top-rest)+'px)';
   });
   function end(){
     if(!dragging) return; dragging=false;
     sh.style.transition=''; sh.style.transform='';
-    if(dy<-40) sh.classList.add('full');                 /* dragged up  -> expand */
-    else if(dy>60){ if(startFull) sh.classList.remove('full'); else closeBase(); }
-    else if(Math.abs(dy)<6 && !startFull) sh.classList.add('full');  /* tap -> expand */
+    if(moved<-40) sh.classList.add('full');                                  /* dragged up */
+    else if(moved>70){ if(startFull) sh.classList.remove('full'); else closeBase(); }
+    else if(Math.abs(moved)<6 && !startFull) sh.classList.add('full');       /* tap */
   }
   sh.addEventListener('pointerup',end);
   sh.addEventListener('pointercancel',end);

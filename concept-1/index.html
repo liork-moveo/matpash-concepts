@@ -41,14 +41,7 @@
     background:var(--bg);box-shadow:0 0 60px rgba(0,0,0,.18);
   }
   /* on a real phone the shell fills the screen edge-to-edge (mockup frame only on wider screens) */
-  @media (max-width:480px){
-    body{background:var(--bg)}
-    .phone,.sector-page,.side-menu{max-width:none}
-    .phone{box-shadow:none}
-    /* inner page: true edge-to-edge — drop the centering math so no sliver of the main screen shows */
-    .sector-page{left:0;width:100vw;transform:translate(0,100%)}
-    .sector-page.open{transform:translate(0,0)}
-  }
+
   img{display:block;max-width:100%}
   button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 
@@ -231,7 +224,7 @@
     display:flex;align-items:center;justify-content:center}
   .wa svg{width:26.81px;height:26.81px}
   /* desktop mock: keep it inside the phone frame; on a phone it is a flat 18px from the edge */
-  @media (min-width:481px){ .wa{left:calc(50% - 187.5px + 18px)} }
+  @media (min-width:700px){ .wa{left:calc(50% - 187.5px + 18px)} }
 
   footer{padding:40px 20px 120px;text-align:center;color:var(--muted);font-size:13px}
   .spacer{height:60px}
@@ -269,6 +262,17 @@
     display:flex;align-items:center;justify-content:center}
   .sm-ic .ig{width:18.43px;height:18.43px}
   .sm-ic .tt{width:17px;height:17px}
+  /* mobile overrides last so they win the cascade over the component rules above */
+  @media (max-width:699px){
+    body{background:var(--bg)}
+    .phone,.sector-page,.side-menu{max-width:none}
+    .phone{box-shadow:none}
+    /* inner page: true edge-to-edge — drop the centering math so no sliver of the main screen shows */
+    .sector-page{left:0;width:100vw;transform:translate(0,100%)}
+    .sector-page.open{transform:translate(0,0)}
+    .side-menu{left:0;width:100vw;transform:translate(0,-100%)}
+    .side-menu.open{transform:translate(0,0)}
+  }
 </style>
 </head>
 <body>
