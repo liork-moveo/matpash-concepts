@@ -31,7 +31,7 @@
   body{font-family:'Assistant',system-ui,sans-serif;background:#e5e7e9;color:var(--ink);overflow-x:hidden}
   .phone{position:relative;width:100%;max-width:375px;height:100dvh;margin:0 auto;background:var(--sand);box-shadow:0 0 60px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden}
   /* on a real phone the shell fills the screen edge-to-edge (mockup frame only on wider screens) */
-  @media (max-width:480px){ body{background:var(--sand)} .phone,.sheet,.base-sheet{max-width:none} .phone{box-shadow:none} }
+  @media (max-width:480px){ body{background:var(--sand)} .phone,.sheet,.base-sheet,.side-menu{max-width:none} .phone{box-shadow:none} }
   /* nested scroll: hero + content are two snap "pages"; the grid scrolls inside .panels,
      so scrolling the images never moves the pager (no bounce back to the tabs). */
   .pager{flex:1;min-height:0;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
@@ -49,6 +49,8 @@
   .h-social .ig{width:18.43px;height:18.43px}
   .h-social .tt{width:17px;height:17px}
   .logo-c{height:48.73px;width:48.73px;object-fit:contain}
+  /* centre the emblem on the phone screen, not between the burger and the social icons */
+  header>.logo-c{position:absolute;left:50%;transform:translateX(-50%)}
   .burger{width:19.9px;height:14px;display:flex;flex-direction:column;justify-content:space-between}
   .burger span{height:2px;background:var(--ink);border-radius:2px}
 
@@ -182,17 +184,70 @@
   .wa{position:fixed;bottom:16.52px;left:max(17.8px,calc(50% - 169.7px));z-index:55;width:43px;height:43px;border-radius:50%;
     background:#fff;filter:drop-shadow(0 0 6px rgba(0,0,0,.08));display:flex;align-items:center;justify-content:center}
   .wa svg{width:26.81px;height:26.81px}
-  .back-strip{position:fixed;bottom:0;right:0;z-index:80;background:var(--navy-deep);color:var(--on-dark);font-size:12px;
-    padding:5px 12px;border-top-left-radius:10px;opacity:.8;text-decoration:none}
+  /* ---------- boot: emblem draws itself, then shrinks up into the nav bar ---------- */
+  .boot{position:fixed;inset:0;z-index:200;background:var(--sand);display:grid;place-items:center;
+    transition:background-color .6s ease,opacity .35s ease}
+  .boot.lift{background:transparent}
+  .boot.gone{opacity:0;pointer-events:none}
+  .boot-logo{width:min(74vw,300px);
+    transition:transform .9s cubic-bezier(.6,.02,.3,1),opacity .3s ease}
+  .boot-logo svg{width:100%;height:auto;display:block}
+  /* the bar starts with no emblem — the one that just drew itself becomes it */
+  #navLogo{opacity:0}
+  #navLogo.landed{opacity:1;transition:opacity .3s ease}
+  /* ---------- side menu (Figma 1912-545) ---------- */
+  .side-menu{position:fixed;top:0;bottom:0;left:50%;width:100%;max-width:375px;transform:translate(-50%,-100%);z-index:120;background:var(--sand);
+    transition:transform .38s cubic-bezier(.4,0,.2,1);
+    display:flex;flex-direction:column;visibility:hidden}
+  .side-menu.open{transform:translate(-50%,0);visibility:visible}
+  .sm-head{flex:0 0 57px;position:relative;display:flex;align-items:center;justify-content:center}
+  .sm-close{position:absolute;right:19px;top:50%;transform:translateY(-50%);
+    width:14px;height:19.9px;display:flex;justify-content:space-between;align-items:stretch}
+  .sm-close span{width:2px;background:var(--ink);border-radius:2px}
+  .sm-list{margin-top:25px;display:flex;flex-direction:column;padding:0 10px}
+  .sm-list a{height:58px;margin-bottom:11px;display:flex;align-items:center;justify-content:center;
+    font-size:22px;font-weight:700;color:var(--ink);text-decoration:none;text-align:center}
+  .sm-list a:active{opacity:.6}
+  .sm-foot{margin-top:auto;padding:0 22px 14px;display:flex;align-items:center;justify-content:space-between}
+  .sm-wa{display:inline-flex;align-items:center;gap:5px;background:#fff;border-radius:9999px;
+    height:53.7px;padding:0 22px;text-decoration:none;color:var(--ink);font-size:15px;font-weight:600;
+    box-shadow:0 4px 14px rgba(20,51,61,.10)}
+  .sm-wa svg{width:32px;height:32px;flex:0 0 32px}
+  .sm-social{display:flex;gap:8px}
+  .sm-ic{width:43px;height:43px;border-radius:50%;border:1px solid var(--ink);
+    display:flex;align-items:center;justify-content:center}
+  .sm-ic .ig{width:18.43px;height:18.43px}
+  .sm-ic .tt{width:17px;height:17px}
 </style>
 </head>
 <body>
 <div class="phone">
-  <a href="../index.html" class="back-strip">‹ הקונספטים</a>
 
+  <div class="side-menu" id="sideMenu">
+    <div class="sm-head">
+      <img class="logo-c" src="../assets/logo-color.png" alt="מתפ״ש">
+      <button class="sm-close" id="smClose" aria-label="סגירת תפריט"><span></span><span></span><span></span></button>
+    </div>
+    <nav class="sm-list">
+      <a href="#" onclick="return false">על המתפ״ש</a>
+      <a href="#" onclick="return false">תשובות לשאלות שלכם</a>
+      <a href="#" data-tab="roles">האופציות של התפקידים</a>
+      <a href="#" data-tab="bases">מיקומי בסיסים</a>
+      <a href="#" data-tab="service">גיוס, הכשרה ומסלולי שירות</a>
+    </nav>
+    <div class="sm-foot">
+      <div class="sm-social">
+        <a class="sm-ic" href="#" onclick="return false" aria-label="אינסטגרם"><svg class="ig" viewBox="0 0 18.4 19" fill="#213357"><path d="M9.17973 5.83685C6.32976 5.83673 4.54855 8.92183 5.97343 11.39C7.3983 13.8583 10.9608 13.8584 12.3859 11.3903C12.7109 10.8275 12.882 10.189 12.882 9.53907C12.8798 7.49528 11.2235 5.83898 9.17973 5.83685ZM9.17973 11.3902C7.75475 11.3902 6.86412 9.84759 7.57662 8.61352C8.28912 7.37944 10.0703 7.37944 10.7828 8.61352C10.9453 8.89492 11.0308 9.21414 11.0308 9.53907C11.0308 10.5614 10.2021 11.3902 9.17973 11.3902ZM12.882 1.20908H5.47751C2.92289 1.21205 0.852706 3.28224 0.849731 5.83685V13.2413C0.852706 15.7959 2.92289 17.8661 5.47751 17.8691H12.882C15.4366 17.8661 17.5068 15.7959 17.5097 13.2413V5.83685C17.5068 3.28224 15.4366 1.21205 12.882 1.20908ZM15.6586 13.2413C15.6586 14.7748 14.4155 16.018 12.882 16.018H5.47751C3.944 16.018 2.70085 14.7748 2.70085 13.2413V5.83685C2.70085 4.30334 3.944 3.06019 5.47751 3.06019H12.882C14.4155 3.06019 15.6586 4.30334 15.6586 5.83685V13.2413ZM14.4245 5.52834C14.4245 6.47832 13.3961 7.07207 12.5734 6.59707C11.7507 6.12208 11.7507 4.93459 12.5734 4.45959C12.761 4.35128 12.9738 4.29426 13.1905 4.29426C13.872 4.29429 14.4245 4.8468 14.4245 5.52834Z"/></svg></a>
+        <a class="sm-ic" href="#" onclick="return false" aria-label="טיקטוק"><svg class="tt" viewBox="0 0 17 17" fill="#213357"><path d="M8.87212 0.0141667C9.80004 0 10.7209 0.00708333 11.6417 0C11.6984 1.08375 12.088 2.18875 12.8813 2.95375C13.6746 3.74 14.7938 4.10125 15.8846 4.22167V7.07625C14.8646 7.04083 13.8375 6.82833 12.9096 6.38917C12.5059 6.205 12.1305 5.97125 11.7621 5.73042C11.755 7.79875 11.7692 9.86708 11.748 11.9283C11.6913 12.92 11.3655 13.9046 10.7917 14.7192C9.86379 16.0792 8.25587 16.9646 6.60546 16.9929C5.59254 17.0496 4.57962 16.7733 3.71546 16.2633C2.28462 15.4204 1.27879 13.8763 1.13004 12.2188C1.11587 11.8646 1.10879 11.5104 1.12296 11.1633C1.25046 9.8175 1.91629 8.52833 2.95046 7.65C4.12629 6.63 5.76962 6.14125 7.30671 6.43167C7.32087 7.48 7.27837 8.52833 7.27837 9.57667C6.57712 9.35 5.75546 9.41375 5.13921 9.83875C4.69296 10.1292 4.35296 10.5754 4.17587 11.0783C4.02712 11.4396 4.06962 11.8363 4.07671 12.2188C4.24671 13.3804 5.36587 14.3579 6.55587 14.2517C7.34921 14.2446 8.10712 13.7842 8.51796 13.1112C8.65254 12.8775 8.80129 12.6367 8.80837 12.3604C8.87921 11.0925 8.85087 9.83167 8.85796 8.56375C8.86504 5.70917 8.85087 2.86167 8.87212 0.0141667Z"/></svg></a>
+      </div>
+      <a class="sm-wa" href="#" onclick="return false"><svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg"><path fill="#25D366" d="M0.8956 13.2902C0.894938 15.5031 1.47318 17.6639 2.57263 19.5683L0.790405 26.0756L7.44969 24.3295C9.28432 25.3294 11.3501 25.8573 13.4524 25.8578H13.458C20.381 25.8578 26.0165 20.2243 26.0194 13.3001C26.0207 9.94471 24.7152 6.78967 22.3434 4.41597C19.9719 2.0424 16.818 0.734551 13.4574 0.733093C6.53363 0.733093 0.89851 6.36624 0.8956 13.2902Z"/><path fill="#fff" d="M10.2079 7.84785C9.96428 7.30638 9.708 7.29554 9.47629 7.28602C9.28669 7.27795 9.06981 7.27845 8.85321 7.27845C8.63633 7.27845 8.28409 7.35997 7.98625 7.6852C7.68813 8.01058 6.84814 8.79711 6.84814 10.3967C6.84814 11.9965 8.01337 13.5422 8.17573 13.7594C8.33835 13.9761 10.425 17.3638 13.7297 18.667C16.4763 19.75 17.0352 19.5346 17.6313 19.4804C18.2274 19.4263 19.555 18.6941 19.8259 17.9349C20.0969 17.1758 20.0969 16.525 20.0156 16.3891C19.9344 16.2536 19.7175 16.1722 19.3924 16.0097C19.0671 15.8471 17.4687 15.0605 17.1707 14.952C16.8726 14.8436 16.6559 14.7895 16.439 15.115C16.2223 15.4401 15.5995 16.1722 15.4098 16.3891C15.2202 16.6064 15.0304 16.6335 14.7053 16.4709C14.3801 16.3077 13.3329 15.9648 12.0907 14.8572C11.1241 13.9954 10.4716 12.9312 10.2819 12.6057C10.0922 12.2806 10.2616 12.1044 10.4246 11.9424C10.5707 11.7967 10.7499 11.5627 10.9125 11.373C11.0747 11.1831 11.1288 11.0476 11.2372 10.8307C11.3457 10.6137 11.2915 10.4239 11.2102 10.2612C11.1288 10.0986 10.497 8.49078 10.2079 7.84785Z"/></svg><span>דברו איתנו</span></a>
+    </div>
+  </div>
+
+  <div class="boot" id="boot"><div class="boot-logo" id="bootLogo" aria-hidden="true"></div></div>
   <header>
     <button class="burger" aria-label="תפריט"><span></span><span></span><span></span></button>
-    <img class="logo-c" src="../assets/logo-color.png" alt="מתפ״ש">
+    <img class="logo-c" id="navLogo" src="../assets/logo-color.png" alt="מתפ״ש">
     <div class="h-social">
       <svg class="ig" viewBox="0 0 18.4 19" fill="#213357"><path d="M9.17973 5.83685C6.32976 5.83673 4.54855 8.92183 5.97343 11.39C7.3983 13.8583 10.9608 13.8584 12.3859 11.3903C12.7109 10.8275 12.882 10.189 12.882 9.53907C12.8798 7.49528 11.2235 5.83898 9.17973 5.83685ZM9.17973 11.3902C7.75475 11.3902 6.86412 9.84759 7.57662 8.61352C8.28912 7.37944 10.0703 7.37944 10.7828 8.61352C10.9453 8.89492 11.0308 9.21414 11.0308 9.53907C11.0308 10.5614 10.2021 11.3902 9.17973 11.3902ZM12.882 1.20908H5.47751C2.92289 1.21205 0.852706 3.28224 0.849731 5.83685V13.2413C0.852706 15.7959 2.92289 17.8661 5.47751 17.8691H12.882C15.4366 17.8661 17.5068 15.7959 17.5097 13.2413V5.83685C17.5068 3.28224 15.4366 1.21205 12.882 1.20908ZM15.6586 13.2413C15.6586 14.7748 14.4155 16.018 12.882 16.018H5.47751C3.944 16.018 2.70085 14.7748 2.70085 13.2413V5.83685C2.70085 4.30334 3.944 3.06019 5.47751 3.06019H12.882C14.4155 3.06019 15.6586 4.30334 15.6586 5.83685V13.2413ZM14.4245 5.52834C14.4245 6.47832 13.3961 7.07207 12.5734 6.59707C11.7507 6.12208 11.7507 4.93459 12.5734 4.45959C12.761 4.35128 12.9738 4.29426 13.1905 4.29426C13.872 4.29429 14.4245 4.8468 14.4245 5.52834Z"/></svg>
       <svg class="tt" viewBox="0 0 17 17" fill="#213357"><path d="M8.87212 0.0141667C9.80004 0 10.7209 0.00708333 11.6417 0C11.6984 1.08375 12.088 2.18875 12.8813 2.95375C13.6746 3.74 14.7938 4.10125 15.8846 4.22167V7.07625C14.8646 7.04083 13.8375 6.82833 12.9096 6.38917C12.5059 6.205 12.1305 5.97125 11.7621 5.73042C11.755 7.79875 11.7692 9.86708 11.748 11.9283C11.6913 12.92 11.3655 13.9046 10.7917 14.7192C9.86379 16.0792 8.25587 16.9646 6.60546 16.9929C5.59254 17.0496 4.57962 16.7733 3.71546 16.2633C2.28462 15.4204 1.27879 13.8763 1.13004 12.2188C1.11587 11.8646 1.10879 11.5104 1.12296 11.1633C1.25046 9.8175 1.91629 8.52833 2.95046 7.65C4.12629 6.63 5.76962 6.14125 7.30671 6.43167C7.32087 7.48 7.27837 8.52833 7.27837 9.57667C6.57712 9.35 5.75546 9.41375 5.13921 9.83875C4.69296 10.1292 4.35296 10.5754 4.17587 11.0783C4.02712 11.4396 4.06962 11.8363 4.07671 12.2188C4.24671 13.3804 5.36587 14.3579 6.55587 14.2517C7.34921 14.2446 8.10712 13.7842 8.51796 13.1112C8.65254 12.8775 8.80129 12.6367 8.80837 12.3604C8.87921 11.0925 8.85087 9.83167 8.85796 8.56375C8.86504 5.70917 8.85087 2.86167 8.87212 0.0141667Z"/></svg>
@@ -543,6 +598,47 @@ document.querySelectorAll('#svcToggle button').forEach(b=>b.onclick=()=>{
 });
 renderAccordion();
 
+
+/* ---------- boot hand-off (reference: brand.dropbox.com) ---------- */
+(function(){
+  var boot=document.getElementById('boot'), bl=document.getElementById('bootLogo'),
+      nav=document.getElementById('navLogo');
+  if(!boot||!bl||!nav){ if(nav){nav.classList.add('landed');nav.style.opacity='1';} return; }
+  var still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.body.style.overflow='hidden';
+  /* inline the SVG — CSS animations do not run inside an <img> */
+  fetch('../assets/logo-intro.svg').then(function(r){return r.text();})
+   .then(function(t){ bl.innerHTML=t; start(); })
+   .catch(function(){ nav.classList.add('landed'); nav.style.opacity='1'; boot.remove(); document.body.style.overflow=''; });
+  function start(){
+  setTimeout(function(){
+    var a=bl.getBoundingClientRect(), b=nav.getBoundingClientRect();
+    bl.style.transform='translate('+((b.left+b.width/2)-(a.left+a.width/2))+'px,'
+      +((b.top+b.height/2)-(a.top+a.height/2))+'px) scale('+(b.width/a.width)+')';
+    boot.classList.add('lift');
+    setTimeout(function(){                 /* crossfade the flying emblem into the real nav logo */
+      nav.classList.add('landed'); nav.style.opacity='1';   /* inline beats the cascade */
+      bl.style.opacity='0'; boot.classList.add('gone');
+      document.body.style.overflow='';
+      setTimeout(function(){ boot.remove(); },420);
+    }, still?60:780);
+  }, still?250:3400);                      /* the SVG draw+paint runs ~3.3s */
+  }
+})();
+
+/* ---------- side menu ---------- */
+(function(){
+  var m=document.getElementById('sideMenu'), b=document.querySelector('header>.burger'), x=document.getElementById('smClose');
+  if(!m||!b) return;
+  function open(){ m.classList.add('open'); document.body.style.overflow='hidden'; }
+  function close(){ m.classList.remove('open'); document.body.style.overflow=''; }
+  b.onclick=open; if(x) x.onclick=close;
+  m.querySelectorAll('.sm-list a').forEach(function(a){ a.addEventListener('click',function(){
+    var t=a.getAttribute('data-tab');
+    if(t){ var tab=document.querySelector('.tab[data-tab="'+t+'"]'); if(tab) tab.click(); }
+    setTimeout(close,80); }); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') close(); });
+})();
 </script>
 </body>
 </html>
