@@ -191,12 +191,11 @@
 
   /* ---------- Timeline ---------- */
   /* scrollable track tabs — first tab (גיוס ושירות) sits flush right, the rest scroll leftwards */
-  .toggle{display:flex;gap:6px;justify-content:flex-start;margin-bottom:26px;
-    overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
-    /* 23.5px = the rail's extra inset, so the first tab lines up with the card's right edge */
-    padding-inline-start:23.5px;padding-inline-end:20px}
-  .toggle::-webkit-scrollbar{display:none}
-  .toggle button{flex:0 0 auto;white-space:nowrap;background:var(--teal-light);color:var(--teal-deep);border-radius:9999px;padding:10px 25px;font-weight:700;font-size:18px;line-height:1.2}
+  /* the four tracks share the screen width — no scrolling, nothing clipped off-screen */
+  .toggle{display:flex;gap:5px;margin-bottom:26px}
+  .toggle button{flex:1 1 0;min-width:0;white-space:nowrap;text-align:center;
+    background:var(--teal-light);color:var(--teal-deep);border-radius:9999px;
+    padding:10px 4px;font-weight:700;font-size:clamp(10px,3.2vw,16px);line-height:1.2}
   .toggle button.on{background:var(--teal);color:var(--on-dark)}
   .stepper{display:flex;justify-content:space-between;align-items:flex-start;position:relative;margin:24px 6px 6px}
   .stepper::before{content:"";position:absolute;top:14px;inset-inline:12%;height:2px;background:var(--line)}

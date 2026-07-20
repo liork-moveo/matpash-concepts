@@ -147,11 +147,11 @@
   .base-close{position:absolute;top:14px;left:18px;width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
 
   /* SERVICE TIMELINE */
-  .segmented{display:flex;gap:8px;justify-content:flex-start;margin-bottom:24px;
-    overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-inline:22px}
-  .segmented::-webkit-scrollbar{display:none}
-  .segmented button{flex:0 0 auto;white-space:nowrap}
-  .segmented button{height:30px;border-radius:10px;font-size:14px;font-weight:700;letter-spacing:.56px;padding:0 18px;background:var(--teal-light);color:var(--navy)}
+  /* the four tracks share the screen width — no scrolling, nothing clipped off-screen */
+  .segmented{display:flex;gap:5px;margin-bottom:24px}
+  .segmented button{flex:1 1 0;min-width:0;white-space:nowrap;text-align:center;
+    height:30px;border-radius:10px;font-size:clamp(10px,3.1vw,14px);font-weight:700;letter-spacing:0;
+    padding:0 4px;background:var(--teal-light);color:var(--navy)}
   .segmented button.on{background:var(--navy);color:var(--on-dark)}
   /* service accordion (one open) + decorative vertical progress line on the inline-start (RTL: right) */
   .acc{position:relative}
