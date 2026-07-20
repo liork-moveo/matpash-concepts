@@ -62,6 +62,9 @@
 
   /* ---------- generic section ---------- */
   section{padding:0 20px}
+  /* jump targets land below the sticky header, so the section title is what you see first */
+  html{scroll-behavior:smooth}
+  section[id]{scroll-margin-top:78px}   /* 57px header + breathing room above the title */
   .sec-title{font-size:36px;font-weight:700;text-align:center;color:var(--teal-dark);margin:34px 0 26px;line-height:0.92}
 
   /* ---------- Hero ---------- */
