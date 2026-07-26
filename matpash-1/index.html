@@ -11,8 +11,8 @@
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 <style>
   :root{
-    /* PALETTE — black/white + primary + secondary (excl. maps/pins/logos): #fff, #B3D4D4, #307070, #000.
-       ALL text is black (#000) or white (#fff). Primary #307070 = non-text accents; #B3D4D4 = its light "off" tone. */
+    /* PALETTE — black/white + primary + secondary (excl. maps/pins/logos): #fff, #B3C9DA, #266594, #000.
+       ALL text is black (#000) or white (#fff). Primary #266594 = non-text accents; #B3C9DA = its light "off" tone. */
     --navy:#000000;      /* text ink → black */
     --navy-deep:#000000;
     --sand:#f8f9fa;
@@ -20,8 +20,8 @@
     --ink:#000000;
     --muted:#000000;
     --line:#000000;
-    --accent:#307070;    /* PRIMARY brand colour — non-text elements only (indicators, fills, icons) */
-    --teal-light:#B3D4D4;   /* secondary "off" tone — light tint of the primary #307070 */
+    --accent:#266594;    /* PRIMARY brand colour — non-text elements only (indicators, fills, icons) */
+    --teal-light:#B3C9DA;   /* secondary "off" tone — light tint of the primary #266594 */
     --on-dark:#f8f9fa;
     --pin-teal:#45b0c4;--pin-green:#1f7a5c;--pin-yellow:#f5b21e;
     --shadow:0 8px 22px -12px rgba(27,53,87,.22);   /* tight halo — hugs the card so the bg stays clean #F2F4F5 */
@@ -106,9 +106,10 @@
   .scroll::-webkit-scrollbar{display:none}
   .hero{height:calc(100dvh - 57px)}
   /* about — full blue brand panel (Figma 1976-916), reached from the menu ("על המתפ״ש") */
-  .about{min-height:calc(100dvh - 57px);background:var(--accent);position:relative;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 30px}
-  .about-text{max-width:300px;color:#fff;font-size:28px;font-weight:500;line-height:1.32;letter-spacing:-0.56px;text-align:center}
+  /* content-height (NOT full screen) so the sections above & below peek in, Wiz-style; wide text, roomy padding */
+  .about{background:var(--accent);position:relative;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;padding:84px 26px 92px}
+  .about-text{max-width:none;width:100%;color:#fff;font-size:27px;font-weight:500;line-height:1.42;letter-spacing:-0.3px;text-align:center}
   .about-more{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:#fff;opacity:.9;background:none;border:0;cursor:pointer}
   /* scroll-margin clears the full sticky tabs bar (~61px) so a tab-click never hides the section title */
   /* clear separation between sections (~48–64px is the mobile norm for major breaks) */
@@ -285,10 +286,16 @@
   /* hide the Mapbox wordmark — the required attribution stays in the (i) info control */
   .mapboxgl-ctrl-logo{display:none!important}
   .mapgl{position:absolute;inset:0;width:100%;height:100%}
-  .mpin{width:36px;cursor:pointer;filter:drop-shadow(0 3px 5px rgba(0,0,0,.3));line-height:0;transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
+  .mpin-wrap{position:relative;cursor:pointer;--c:#2e9e44;--balloon:#F8F9FA}
+  .mpin{width:36px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.3));line-height:0;transform-origin:bottom center;transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
   .mpin svg{display:block;width:100%;height:auto}
   .mpin .dot{fill:var(--c)}
-  .mpin.sel{transform:scale(1.18)}
+  .mpin .balloon{fill:var(--balloon)}
+  .mpin-wrap.sel .mpin{transform:scale(1.18)}   /* selected pop */
+  .mpin-lbl{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:1px;white-space:nowrap;
+    font-size:12px;font-weight:700;line-height:1.1;color:#213357;
+    text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff,0 0 3px #fff;pointer-events:none}
+  .mpin-wrap.wb.dim{--c:#7cc48c;--balloon:#c2c9c6}   /* non-selected West-Bank pins: lighter green + grey balloon */
   .map-hint{flex:0 0 auto;text-align:center;color:var(--muted);font-size:13.5px;padding:12px 20px;margin:0}
   /* curated city context labels (DOM markers — use page fonts, no map glyphs needed) */
   .city-label{display:flex;align-items:center;gap:4px;pointer-events:none;white-space:nowrap;
@@ -658,7 +665,7 @@ const TAG_COLORS={'איו״ש':'#2e9e44','רצועת עזה':'#f5b21e','מטה':
 function pinSvg(col){return '<svg viewBox="0 0 12 16" style="fill:'+col+'"><path d="M6 0C2.69 0 0 2.69 0 6c0 4.2 6 10 6 10s6-5.8 6-10c0-3.31-2.69-6-6-6zm0 8.2A2.2 2.2 0 1 1 6 3.8a2.2 2.2 0 0 1 0 4.4z"/></svg>';}
 roles.forEach((r,i)=>{
   const c=document.createElement('div');c.className='role-card';
-  const tagsHtml=r.tags.map(t=>`<span>${pinSvg(TAG_COLORS[t]||'#307070')}${t}</span>`).join('');
+  const tagsHtml=r.tags.map(t=>`<span>${pinSvg(TAG_COLORS[t]||'#266594')}${t}</span>`).join('');
   const descShort=r.B.replace(/[.\s]+$/,'');
   c.innerHTML=`
      <div class="rc-head">
@@ -860,99 +867,41 @@ function pinEl(color){
 /* ---- pins rendered INSIDE the GL canvas (a symbol layer) so they stay glued to the map while
    panning / zooming — exactly like Google/Apple. No DOM-overlay swim or lag. ---- */
 const BALLOON_D="M38.0654 8.714C54.671 8.714 65.418 21.91 65.418 38.385C65.418 47.767 61.62 54.216 56.694 59.233C54.223 61.751 51.466 63.909 48.751 65.897C46.056 67.87 43.358 69.704 41.099 71.521L41.02 71.594C39.402 73.349 36.729 73.349 35.11 71.594L35.033 71.522L34.13 70.809C31.983 69.147 29.581 67.493 27.203 65.751C24.468 63.747 21.725 61.6 19.28 59.105C14.41 54.134 10.714 47.771 10.714 38.385C10.714 21.91 21.46 8.714 38.0654 8.714Z";
-const PIN_RATIO=2, PIN_W=72, PIN_H=80;                     /* @2x device px → displays at 36×40 css, like .mpin */
-function makePinImage(color,balloonColor,cb){
-  if(typeof balloonColor==='function'){ cb=balloonColor; balloonColor='#F8F9FA'; }   /* default balloon = off-white */
-  /* width/height are REQUIRED here: iOS/WebKit gives an SVG <img> zero intrinsic size when they're
-     absent, so drawImage() paints nothing → blank pin images → "no pins on the map". */
-  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="77" height="86" viewBox="0 0 77 86">'+
-    '<path fill="'+balloonColor+'" d="'+BALLOON_D+'"/>'+
-    '<circle cx="38" cy="38" r="20" fill="'+color+'"/></svg>';
-  var img=new Image();
-  img.onload=function(){
-    var c=document.createElement('canvas'); c.width=PIN_W; c.height=PIN_H;
-    var ctx=c.getContext('2d');
-    ctx.shadowColor='rgba(0,0,0,.3)'; ctx.shadowBlur=5*PIN_RATIO; ctx.shadowOffsetY=3*PIN_RATIO;
-    ctx.drawImage(img,0,0,PIN_W,PIN_H);
-    try{ cb(ctx.getImageData(0,0,PIN_W,PIN_H)); }catch(e){ cb(null); }
-  };
-  img.onerror=function(){ cb(null); };
-  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+var baseMarkers=[], selIdx=-1;
+/* build a DOM pin: balloon + coloured dot + always-on name label underneath */
+function baseMarkerEl(b){
+  var wrap=document.createElement('div');
+  wrap.className='mpin-wrap'+(b.group==='wb'?' wb':'');
+  wrap.style.setProperty('--c', b.color);
+  wrap.innerHTML='<div class="mpin"><svg viewBox="0 0 77 86" xmlns="http://www.w3.org/2000/svg">'+
+    '<path class="balloon" d="'+BALLOON_D+'"/><circle class="dot" cx="38" cy="38" r="20"/></svg></div>'+
+    '<div class="mpin-lbl">'+(b.label||b.name)+'</div>';
+  return wrap;
 }
-var pinsGeo=null;
 function addBasePins(map){
-  function build(){
-    if(map.getSource('bases-src')) return;
-    if(!map.isStyleLoaded || !map.isStyleLoaded()) return;   /* wait for the style — load/styledata/idle retry */
-    var pending=bases.length;
-    bases.forEach(function(b,i){
-      makePinImage(b.color,function(imgData){
-        var id='pin-'+i;
-        try{ if(imgData && !map.hasImage(id)) map.addImage(id,imgData,{pixelRatio:PIN_RATIO}); }catch(e){}
-        if(--pending===0) place();
-      });
-    });
-    /* one shared DIM pin for the NON-selected West-Bank bases: lighter green + greyish balloon */
-    makePinImage('#7cc48c','#c2c9c6',function(imgData){ try{ if(imgData && !map.hasImage('wb-dim')) map.addImage('wb-dim',imgData,{pixelRatio:PIN_RATIO}); }catch(e){} });
-    function place(){
-      if(map.getSource('bases-src')) return;
-      pinsGeo={type:'FeatureCollection',features:bases.map(function(b,i){ return {type:'Feature',id:i,
-        properties:{idx:i,icon:'pin-'+i,size:1,name:b.name,label:b.label||b.name},
-        geometry:{type:'Point',coordinates:[b.lng,b.lat]}}; })};
-      try{
-        map.addSource('bases-src',{type:'geojson',data:pinsGeo});
-        map.addLayer({id:'base-pins',type:'symbol',source:'bases-src',layout:{
-          'icon-image':['get','icon'],
-          'icon-anchor':'bottom',
-          'icon-allow-overlap':true,
-          'icon-ignore-placement':true,
-          'icon-size':['coalesce',['get','size'],1],    /* a feature PROPERTY — feature-state is NOT allowed in layout props */
-          /* base NAME under the pin (self-hosted glyphs → renders on-device even where webviews block Mapbox's) */
-          'text-field':['get','label'],
-          'text-font':['DIN Offc Pro Bold','Arial Unicode MS Bold'],
-          'text-size':['interpolate',['linear'],['zoom'],6,10.5,11,13],
-          'text-anchor':'top','text-offset':[0,0.55],
-          /* names ALWAYS visible under every pin, at any zoom (in + out) */
-          'text-allow-overlap':true,'text-ignore-placement':true,'text-optional':false
-        },paint:{
-          'text-color':'#213357','text-halo-color':'#ffffff','text-halo-width':1.6
-        }});
-      }catch(e){ window.__pinsErr=String(e); }
-    }
-  }
-  build();                              /* run now if the style is already up … */
-  map.on('load',build);                 /* … and retry whenever it becomes ready (each guarded) */
-  map.on('styledata',build);
-  map.on('idle',build);
-}
-/* selected-pin "pop" — animate the feature's `size` property (setData is cheap: 5 tiny features) */
-var selIdx=-1, pinRAF=0;
-var easeBack=function(t){ var c=1.70158; return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2); };
-function setPinSize(i,s){ if(!pinsGeo||!map2) return;
-  try{ pinsGeo.features[i].properties.size=s; var src=map2.getSource('bases-src'); if(src) src.setData(pinsGeo); }catch(e){} }
-function tweenPin(i,from,to,ms,ease){
-  var t0=null; cancelAnimationFrame(pinRAF);
-  function step(ts){ if(t0===null)t0=ts; var t=Math.min(1,(ts-t0)/ms); setPinSize(i,from+(to-from)*ease(t));
-    if(t<1) pinRAF=requestAnimationFrame(step); }
-  pinRAF=requestAnimationFrame(step);
+  if(baseMarkers.length || typeof mapboxgl==='undefined') return;
+  bases.forEach(function(b,i){
+    var el=baseMarkerEl(b);
+    el.addEventListener('click', function(e){ e.stopPropagation(); openBase(i); flyToBase(bases[i]); });
+    var m=new mapboxgl.Marker({element:el, anchor:'bottom'}).setLngLat([b.lng,b.lat]).addTo(map);
+    baseMarkers.push({el:el, marker:m});
+  });
 }
 /* dim every NON-selected West-Bank pin (lighter green + grey balloon) so the tapped one stands out */
 function updateWbPins(){
-  if(!pinsGeo||!map2) return;
   var sel=bases[selIdx], dim=!!(sel && sel.group==='wb');
-  var hasDim=!!(map2.hasImage && map2.hasImage('wb-dim'));
-  pinsGeo.features.forEach(function(f,idx){
+  baseMarkers.forEach(function(mk,idx){
     if(bases[idx].group!=='wb') return;
-    f.properties.icon=(dim && idx!==selIdx && hasDim) ? 'wb-dim' : ('pin-'+idx);
+    mk.el.classList.toggle('dim', dim && idx!==selIdx);
   });
-  try{ var src=map2.getSource('bases-src'); if(src) src.setData(pinsGeo); }catch(e){}
 }
 function selectPin(i){
   if(selIdx===i) return;
-  if(selIdx>=0) setPinSize(selIdx,1);
-  selIdx=i; updateWbPins(); tweenPin(i,1,1.18,260,easeBack);
+  selIdx=i;
+  baseMarkers.forEach(function(mk,idx){ mk.el.classList.toggle('sel', idx===i); });
+  updateWbPins();
 }
-function clearPin(){ if(selIdx>=0){ tweenPin(selIdx,1.18,1,180,easeOutCubic); selIdx=-1; updateWbPins(); } }
+function clearPin(){ selIdx=-1; baseMarkers.forEach(function(mk){ mk.el.classList.remove('sel'); }); updateWbPins(); }
 function initMap2(){
   if(map2 || typeof mapboxgl==='undefined') return;
   map2=new mapboxgl.Map({container:'mapC2', style:'mapbox://styles/mapbox/streets-v11',
@@ -971,15 +920,8 @@ function initMap2(){
   addBasePins(map2);
   addCities(map2);
   map2.on('zoom',updateCityVis); updateCityVis();
-  /* one map click handler: hit-test the pins layer (with a little touch tolerance) → open, else close */
-  map2.on('click',function(e){
-    var x=e.point.x, y=e.point.y, f=[];
-    try{ f=map2.queryRenderedFeatures([[x-11,y-11],[x+11,y+11]],{layers:['base-pins']}); }catch(err){}
-    if(f.length){ var i=f[0].properties.idx; openBase(i); flyToBase(bases[i]); }
-    else closeBase();
-  });
-  map2.on('mouseenter','base-pins',function(){ map2.getCanvas().style.cursor='pointer'; });
-  map2.on('mouseleave','base-pins',function(){ map2.getCanvas().style.cursor=''; });
+  /* DOM pin markers handle their own click (→ open); a click on the empty map closes the drawer */
+  map2.on('click',function(){ closeBase(); });
   map2.on('styledata',()=>{localizeHe(map2);applyBorders(map2);});
   map2.on('load',()=>{localizeHe(map2);applyBorders(map2);});
   map2.on('idle',()=>{localizeHe(map2);applyBorders(map2);});
