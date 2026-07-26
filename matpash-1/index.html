@@ -11,15 +11,17 @@
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 <style>
   :root{
-    --navy:#213357;      /* dark ink — ALL text on light backgrounds */
-    --navy-deep:#213357;
+    /* PALETTE — exactly 4 colours (excl. maps/pins/logos): #fff, #B6D2FF, #166AE2, #000.
+       ALL text is black (#000) or white (#fff). Blue #166AE2 = non-text accents only. #B6D2FF = light-blue fills. */
+    --navy:#000000;      /* text ink → black */
+    --navy-deep:#000000;
     --sand:#f8f9fa;
     --cream:rgba(248,249,250,0.2);
-    --ink:#213357;
-    --muted:#213357;
-    --line:#213357;
+    --ink:#000000;
+    --muted:#000000;
+    --line:#000000;
     --accent:#166AE2;    /* blue brand accent — non-text elements only (indicators, fills, icons) */
-    --teal-light:#c2e5ee;
+    --teal-light:#B6D2FF;   /* light-blue (replaces the old teal) */
     --on-dark:#f8f9fa;
     --pin-teal:#45b0c4;--pin-green:#1f7a5c;--pin-yellow:#f5b21e;
     --shadow:0 8px 22px -12px rgba(27,53,87,.22);   /* tight halo — hugs the card so the bg stays clean #F2F4F5 */
@@ -89,9 +91,9 @@
     .tabs{background:rgba(236,239,242,0.96)}   /* graceful fallback where backdrop-filter is unsupported */
   }
   .tab{flex:0 0 auto;padding:7px 17px;font-size:14px;font-weight:700;letter-spacing:-0.28px;
-    color:var(--navy);position:relative;z-index:1;cursor:pointer;transition:color .35s;
+    color:#000;opacity:.5;position:relative;z-index:1;cursor:pointer;transition:opacity .35s;
     -webkit-tap-highlight-color:transparent}
-  .tab.on{color:var(--accent)}
+  .tab.on{opacity:1}   /* active word full-black; the sliding glass pill marks selection (palette: text = black/white only) */
   .tab-pill{position:absolute;top:0;left:0;border-radius:9999px;z-index:0;pointer-events:none;
     background:rgba(255,255,255,0.72);
     -webkit-backdrop-filter:blur(8px) saturate(160%);backdrop-filter:blur(8px) saturate(160%);
@@ -174,6 +176,7 @@
   /* tall map that spans most of the screen, leaving only a small peek of the next section's title
      so the user knows to scroll on. the drawer lives INSIDE this box (position:absolute). */
   #s-bases{padding-top:40px}
+  #s-service{padding-top:72px}   /* bigger breathing room between the map and the recruitment section (like roles→map) */
   /* smaller map: the next section (service toggle pills) peeks below so it's clearly scrollable */
   #s-bases .map-full{height:calc(100dvh - 57px - 46px - 120px);border-radius:var(--radius);margin:0 20px;width:auto}
   /* hint = small pill overlay at the bottom-center of the map; the drawer slides up over it when open */
@@ -191,10 +194,12 @@
   /* ONE pill-tab design, shared by the service toggle and the WB drawer tabs (common filter-chip size) */
   .toggle,.wb-tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
   .toggle::-webkit-scrollbar,.wb-tabs::-webkit-scrollbar{display:none}
-  .toggle button,.wb-tab{flex:0 0 auto;white-space:nowrap;text-align:center;border:0;cursor:pointer;
-    background:var(--teal-light);color:#559baa;border-radius:9999px;
-    padding:8px 18px;font-weight:700;font-size:15px;line-height:1.2}
-  .toggle button.on,.wb-tab.on{background:var(--accent);color:#fff}
+  /* WhatsApp-style filter chips (iOS metrics ~34px tall, 15px medium, fully rounded):
+     inactive = white + hairline; active = light-blue fill #B6D2FF, no border; text always black. */
+  .toggle button,.wb-tab{flex:0 0 auto;white-space:nowrap;text-align:center;cursor:pointer;
+    background:#fff;color:#000;border:1px solid var(--teal-light);border-radius:9999px;
+    padding:7px 16px;font-weight:600;font-size:15px;line-height:1.2}
+  .toggle button.on,.wb-tab.on{background:var(--accent);color:#fff;border-color:transparent}
   /* service pills: bleed to screen edges, sit close to the cards below */
   .toggle{margin:0 -20px 8px;padding:0 20px 2px}
   /* WB drawer tabs: bleed to the drawer edges */
@@ -211,16 +216,16 @@
   /* stepper: connecting line + dots; first step shows the envelope circle, active step highlights in accent */
   /* stepper: 4 icon circles joined by a line; the line ends exactly at the outer circle centres */
   .stepper{display:flex;justify-content:space-between;align-items:flex-start;position:relative;margin:12px 0 6px}
-  .stepper::before{content:"";position:absolute;top:19px;inset-inline:12.5%;height:1.5px;background:var(--line);opacity:.4}
+  .stepper::before{content:"";position:absolute;top:19px;inset-inline:12.5%;height:1.5px;background:var(--accent);opacity:.55}
   .step{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;z-index:2;cursor:pointer}
   .step .mark{height:38px;display:flex;align-items:center;justify-content:center}
   /* inactive: small dot, no icon. active (current card): big circle with the icon inside. */
-  .step .dot-icon{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--line);background:#fff;
+  .step .dot-icon{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--accent);background:#fff;
     display:flex;align-items:center;justify-content:center;color:var(--navy);transition:width .22s,height .22s}
   .step .dot-icon svg{width:0;height:0;opacity:0;transition:opacity .18s}
   .step small{font-size:13px;text-align:center;color:var(--navy);font-weight:400;line-height:1.15}
   .step.on small{font-weight:700}
-  .step.on .dot-icon{width:38px;height:38px;background:var(--sand);border-color:var(--accent);color:var(--accent)}
+  .step.on .dot-icon{width:38px;height:38px;background:#fff;border-width:2px;border-color:var(--accent);color:var(--accent)}   /* selected = blue STROKE, not a full-blue fill */
   .step.on .dot-icon svg{width:20px;height:20px;opacity:1}
   .page-end{height:60px}
   /* whatsapp icon in the nav bar (same size as ig/tt) */
@@ -368,10 +373,11 @@
   #navLogo{opacity:0}
   #navLogo.landed{opacity:1;transition:opacity .3s ease}
   /* ---------- side menu (Figma 1912-545) ---------- */
-  .side-menu{position:fixed;top:0;bottom:0;left:50%;width:100%;max-width:375px;transform:translate(-50%,-100%);z-index:120;background:var(--sand);
-    transition:transform .38s cubic-bezier(.4,0,.2,1);
+  /* menu simply FADES in (nav bar + logo are already in place, so a top-slide read like a glitch) */
+  .side-menu{position:fixed;top:0;bottom:0;left:50%;width:100%;max-width:375px;transform:translateX(-50%);z-index:120;background:var(--sand);
+    opacity:0;transition:opacity .26s ease;
     display:flex;flex-direction:column;visibility:hidden}
-  .side-menu.open{transform:translate(-50%,0);visibility:visible}
+  .side-menu.open{opacity:1;visibility:visible}
   .sm-head{flex:0 0 57px;position:relative;display:flex;align-items:center;justify-content:center}
   .sm-close{position:absolute;right:19px;top:50%;transform:translateY(-50%);
     width:14px;height:19.9px;display:flex;justify-content:space-between;align-items:stretch}
@@ -381,12 +387,16 @@
     font-size:22px;font-weight:700;color:var(--ink);text-decoration:none;text-align:center}
   .sm-list a:active{opacity:.6}
   .sm-foot{margin-top:auto;padding:0 22px 14px;display:flex;align-items:center;justify-content:space-between}
-  .sm-wa{display:inline-flex;align-items:center;gap:5px;background:#fff;border-radius:9999px;
+  /* menu footer buttons = liquid glass (same recipe as the main tabs); no stroke */
+  .sm-wa{display:inline-flex;align-items:center;gap:5px;border-radius:9999px;
     height:53.7px;padding:0 22px;text-decoration:none;color:var(--ink);font-size:15px;font-weight:600;
-    box-shadow:0 4px 14px rgba(20,51,61,.10)}
+    background:rgba(255,255,255,0.5);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);
+    box-shadow:0 8px 24px -6px rgba(27,53,87,.22), inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 0 .5px rgba(255,255,255,.5)}
   .sm-wa svg{width:32px;height:32px;flex:0 0 32px}
   .sm-social{display:flex;gap:8px}
-  .sm-ic{width:43px;height:43px;border-radius:50%;border:1px solid var(--ink);
+  .sm-ic{width:43px;height:43px;border-radius:50%;
+    background:rgba(255,255,255,0.5);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);
+    box-shadow:0 8px 24px -6px rgba(27,53,87,.22), inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 0 .5px rgba(255,255,255,.5);
     display:flex;align-items:center;justify-content:center}
   .sm-ic .ig{width:18.43px;height:18.43px}
   .sm-ic .tt{width:17px;height:17px}
@@ -409,8 +419,8 @@
     /* true edge-to-edge: no centring maths, so no sliver of the page shows at the sides */
     .sheet{left:0;width:100vw;transform:translate(0,100%)}
     .sheet.open{transform:translate(0,0)}
-    .side-menu{left:0;transform:translate(0,-100%)}
-    .side-menu.open{transform:translate(0,0)}
+    .side-menu{left:0;transform:none}
+    .side-menu.open{transform:none}
     .about-page{left:0;transform:translate(0,100%)}
     .about-page.open{transform:translate(0,0)}
   }
@@ -713,7 +723,7 @@ let map2=null, markers2=[];
 const IL_BOUNDS=[[34.05,30.85],[35.95,33.35]];
 mapboxgl.accessToken='pk.eyJ1IjoibGlvcmttb3ZlbzEyMzQiLCJhIjoiY21xcWd0djQ4MDQ0ZTJzcXZsNnBveHZydSJ9.-ANesy8sOPNF6TYeBlam5w';
 /* correct Hebrew (RTL) label rendering — locally hosted plugin so the worker can load it same-origin */
-try{ mapboxgl.setRTLTextPlugin('../assets/mapbox-gl-rtl-text.min.js', ()=>{}, true); }catch(e){}
+try{ mapboxgl.setRTLTextPlugin(new URL('../assets/mapbox-gl-rtl-text.min.js', location.href).href, ()=>{}, true); }catch(e){}
 /* redirect Mapbox glyph (font) requests to our own origin for the exact stacks streets-v11 uses,
    for the ranges we ship (Latin + Hebrew). Keeps RTL/Hebrew labels working inside webviews that
    block the worker's cross-origin font fetch. */
@@ -848,11 +858,12 @@ function pinEl(color){
    panning / zooming — exactly like Google/Apple. No DOM-overlay swim or lag. ---- */
 const BALLOON_D="M38.0654 8.714C54.671 8.714 65.418 21.91 65.418 38.385C65.418 47.767 61.62 54.216 56.694 59.233C54.223 61.751 51.466 63.909 48.751 65.897C46.056 67.87 43.358 69.704 41.099 71.521L41.02 71.594C39.402 73.349 36.729 73.349 35.11 71.594L35.033 71.522L34.13 70.809C31.983 69.147 29.581 67.493 27.203 65.751C24.468 63.747 21.725 61.6 19.28 59.105C14.41 54.134 10.714 47.771 10.714 38.385C10.714 21.91 21.46 8.714 38.0654 8.714Z";
 const PIN_RATIO=2, PIN_W=72, PIN_H=80;                     /* @2x device px → displays at 36×40 css, like .mpin */
-function makePinImage(color,cb){
+function makePinImage(color,balloonColor,cb){
+  if(typeof balloonColor==='function'){ cb=balloonColor; balloonColor='#F8F9FA'; }   /* default balloon = off-white */
   /* width/height are REQUIRED here: iOS/WebKit gives an SVG <img> zero intrinsic size when they're
      absent, so drawImage() paints nothing → blank pin images → "no pins on the map". */
   var svg='<svg xmlns="http://www.w3.org/2000/svg" width="77" height="86" viewBox="0 0 77 86">'+
-    '<path fill="#F8F9FA" d="'+BALLOON_D+'"/>'+
+    '<path fill="'+balloonColor+'" d="'+BALLOON_D+'"/>'+
     '<circle cx="38" cy="38" r="20" fill="'+color+'"/></svg>';
   var img=new Image();
   img.onload=function(){
@@ -878,6 +889,8 @@ function addBasePins(map){
         if(--pending===0) place();
       });
     });
+    /* one shared DIM pin for the NON-selected West-Bank bases: lighter green + greyish balloon */
+    makePinImage('#7cc48c','#c2c9c6',function(imgData){ try{ if(imgData && !map.hasImage('wb-dim')) map.addImage('wb-dim',imgData,{pixelRatio:PIN_RATIO}); }catch(e){} });
     function place(){
       if(map.getSource('bases-src')) return;
       pinsGeo={type:'FeatureCollection',features:bases.map(function(b,i){ return {type:'Feature',id:i,
@@ -920,12 +933,23 @@ function tweenPin(i,from,to,ms,ease){
     if(t<1) pinRAF=requestAnimationFrame(step); }
   pinRAF=requestAnimationFrame(step);
 }
+/* dim every NON-selected West-Bank pin (lighter green + grey balloon) so the tapped one stands out */
+function updateWbPins(){
+  if(!pinsGeo||!map2) return;
+  var sel=bases[selIdx], dim=!!(sel && sel.group==='wb');
+  var hasDim=!!(map2.hasImage && map2.hasImage('wb-dim'));
+  pinsGeo.features.forEach(function(f,idx){
+    if(bases[idx].group!=='wb') return;
+    f.properties.icon=(dim && idx!==selIdx && hasDim) ? 'wb-dim' : ('pin-'+idx);
+  });
+  try{ var src=map2.getSource('bases-src'); if(src) src.setData(pinsGeo); }catch(e){}
+}
 function selectPin(i){
   if(selIdx===i) return;
   if(selIdx>=0) setPinSize(selIdx,1);
-  selIdx=i; tweenPin(i,1,1.18,260,easeBack);
+  selIdx=i; updateWbPins(); tweenPin(i,1,1.18,260,easeBack);
 }
-function clearPin(){ if(selIdx>=0){ tweenPin(selIdx,1.18,1,180,easeOutCubic); selIdx=-1; } }
+function clearPin(){ if(selIdx>=0){ tweenPin(selIdx,1.18,1,180,easeOutCubic); selIdx=-1; updateWbPins(); } }
 function initMap2(){
   if(map2 || typeof mapboxgl==='undefined') return;
   map2=new mapboxgl.Map({container:'mapC2', style:'mapbox://styles/mapbox/streets-v11',
@@ -1014,7 +1038,7 @@ function openBase(i){const b=bases[i];
   const v=document.getElementById('bsVid');
   if(b.group){                                   /* grouped drawer: primary title → tabs (base names) → character */
     const g=BASE_GROUPS[b.group];
-    document.getElementById('bsName').textContent = g.short || 'המנהל האזרחי';   /* primary (constant) */
+    document.getElementById('bsName').textContent = 'בסיסי המנהל האזרחי באיו״ש';   /* primary (constant, final copy) */
     tabs.style.display=''; renderWbTabs(b.group,i);
     desc.style.display=''; desc.innerHTML=wbDesc(b);
     if(v.getAttribute('src')!==g.anim){ v.src=g.anim; }
@@ -1092,9 +1116,15 @@ function positionPill(noAnim){
 }
 requestAnimationFrame(function(){ positionPill(true); });
 window.addEventListener('resize', function(){ positionPill(true); });
+/* while a tab-click smooth-scrolls, suppress the scroll-spy so the pill glides STRAIGHT to the
+   target instead of snapping to every section it passes (kills the mid-jump between far tabs). */
+let spyLock=false, spyTimer=null;
+function lockSpy(){ spyLock=true; clearTimeout(spyTimer); spyTimer=setTimeout(function(){ spyLock=false; }, 900); }
+scroller.addEventListener('scrollend', function(){ spyLock=false; clearTimeout(spyTimer); });
 tabs.forEach(t=>t.onclick=()=>{
   const el=document.getElementById(t.dataset.target);
   if(t.dataset.target!=='s-bases') closeBase();
+  lockSpy();
   setActiveTab(t.dataset.target);
   if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
 });
@@ -1105,6 +1135,7 @@ function ensureMap(){ if(mapInit) return; mapInit=true; initMap2();
   setTimeout(()=>{try{map2&&map2.resize();}catch(e){}},400); }
 /* scroll-spy: the section crossing the viewport centre owns the active tab */
 const spy=new IntersectionObserver((entries)=>{
+  if(spyLock) return;   /* ignore intermediate sections during a click-driven scroll */
   entries.forEach(en=>{ if(en.isIntersecting) setActiveTab(en.target.id); });
 },{root:scroller, rootMargin:'-50% 0px -49% 0px', threshold:0});
 ['s-roles','s-bases','s-service'].forEach(id=>{ const el=document.getElementById(id); if(el) spy.observe(el); });
