@@ -132,36 +132,28 @@
   /* ---------- roles carousel (גרסה 1) ---------- */
   /* rail sits inside the section's 20px padding → content box = screen − 40px, IDENTICAL to the map (margin:0 20px).
      card flex:0 0 100% therefore equals the map width exactly. no negative-margin bleed = no width surprises. */
-  .rail{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;
-    padding:4px 0 6px;scrollbar-width:none}
+  .rail{display:flex;gap:21px;overflow-x:auto;scroll-snap-type:x mandatory;
+    padding:4px 0 6px;margin:0 -20px;padding-inline:43.5px;scrollbar-width:none}
   .rail::-webkit-scrollbar{display:none}
   /* white content card (Figma 1956-216): title → desc(+read-more) → region pills → video w/ caption */
   /* all cards span EXACTLY the same width as the map (screen − 40px, 20px each side); snap start = flush edge, no peek at rest */
-  .role-card{flex:0 0 100%;scroll-snap-align:start;position:relative;border-radius:20px;
-    overflow:hidden;height:524px;background:#fff;box-shadow:var(--shadow);
-    display:flex;flex-direction:column;align-items:center;padding:22px 18px 18px}
-  .rc-head{width:100%;text-align:right}
-  .rc-title{font-size:18px;font-weight:700;line-height:1.15;color:var(--navy);
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  /* fixed 2-line description → every card shows the same text height, so the video below is IDENTICAL in size */
-  .rc-desc{position:relative;margin-top:8px;font-size:15px;line-height:1.35;color:rgba(0,0,0,.72);
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;height:2.7em}
-  /* "קרא עוד" pinned to the end of line 2 (RTL = bottom-left), white mask hides the truncated text behind it */
-  .rc-more{position:absolute;inset-inline-end:0;bottom:0;font-weight:700;color:var(--navy);
-    background:#fff;padding-inline-start:6px;cursor:pointer;white-space:nowrap}
-  .rc-tags{display:flex;gap:6px;flex-wrap:nowrap;justify-content:flex-start;width:100%;margin:12px 0;overflow:hidden}
-  .rc-tags span{display:inline-flex;align-items:center;gap:5px;background:#f1f4f8;border-radius:100px;
-    padding:6px 13px;font-size:13px;font-weight:400;letter-spacing:.4px;color:var(--navy);white-space:nowrap}
-  .rc-tags span svg{width:9px;height:13px;fill:var(--accent);flex-shrink:0}
-  .rc-video{position:relative;flex:1;min-height:0;width:100%;border-radius:14px;overflow:hidden;background:#000}
-  .rc-video video{width:100%;height:100%;object-fit:cover}
-  .rc-play{position:absolute;inset:0;margin:auto;width:52px;height:52px;border-radius:50%;
+  /* video-first card (גישה 1 / concept-1): full-bleed video, title + teaser + "קרא עוד" overlaid at the bottom */
+  .role-card{flex:0 0 288px;scroll-snap-align:center;position:relative;border-radius:20px;
+    overflow:hidden;aspect-ratio:288/512;background:var(--accent);box-shadow:var(--shadow)}
+  .rc-face{position:absolute;inset:0}
+  .rc-face video{width:100%;height:100%;object-fit:cover;display:block}
+  .rc-face .grad{position:absolute;inset:0;background:linear-gradient(180deg,transparent 42%,rgba(10,26,45,.92))}
+  .rc-play{position:absolute;inset:0;margin:auto;width:48px;height:48px;border-radius:50%;
     background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;transition:opacity .25s}
   .rc-play svg{fill:var(--accent);margin-inline-start:3px}
-  .rc-cap{position:absolute;left:0;right:0;bottom:0;padding:24px 14px 20px;
-    background:linear-gradient(180deg,transparent,rgba(18,39,64,.85));
-    color:#fff;font-size:14px;font-weight:600;text-align:center;pointer-events:none}
-  .role-card .vp-bar{position:absolute;left:10px;right:10px;bottom:8px;z-index:3}
+  .rc-meta{position:absolute;bottom:0;inset-inline:0;padding:18px 20px;color:#fff;z-index:2;text-align:right}
+  .rc-meta h3{font-size:22px;font-weight:700;line-height:1.2}
+  .rc-short{font-size:14px;opacity:.9;line-height:1.35;margin-top:3px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .rc-more{display:inline-block;margin-top:6px;font-size:14px;font-weight:700;text-decoration:underline;cursor:pointer;white-space:nowrap}
+  .role-card .vp-bar{position:relative;height:3px;border-radius:3px;background:rgba(255,255,255,.32);
+    margin-top:12px;direction:ltr;cursor:pointer;touch-action:none;z-index:3}
+  .vp-bar i{position:absolute;top:0;bottom:0;left:0;width:0;background:#fff;border-radius:3px}
   /* fullscreen ("expand to story") button + modal */
   .rc-expand{position:absolute;top:10px;right:10px;z-index:4;width:32px;height:32px;border-radius:50%;
     background:rgba(0,0,0,.42);border:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -175,16 +167,18 @@
   /* full description reveal — a white overlay so the slider card keeps a fixed size */
   /* "קרא עוד" inner card — BLUE with white text, keeps the location tags */
   .role-card .rc-back{position:absolute;inset:0;background:var(--accent);color:#fff;z-index:5;
-    padding:22px 20px 22px;display:none;flex-direction:column}
+    padding:44px 20px 20px;display:none;flex-direction:column}
+  .role-card.flipped .rc-face{display:none}
   .role-card.flipped .rc-back{display:flex}
   .rc-close{position:absolute;top:12px;left:12px;width:32px;height:32px;z-index:6;
     display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;
     background:rgba(255,255,255,.18);border-radius:50%;cursor:pointer}
   .rc-back h3{font-size:22px;font-weight:700;line-height:1.2;text-align:right;margin:0 0 10px;color:#fff}
   .rc-back p{font-size:15px;line-height:1.42;text-align:right;overflow-y:auto;color:#fff;flex:1;min-height:0}
-  /* tags flush to the bottom edge (equal gap to the title-at-top gap) */
-  .rc-back .rc-tags{justify-content:flex-start;margin:14px 0 0;flex:0 0 auto}
-  .rc-back .rc-tags span{background:rgba(255,255,255,.2);color:#fff}
+  .rc-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;flex:0 0 auto}
+  .rc-tags span{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.2);border-radius:100px;
+    padding:5px 14px;font-size:13px;font-weight:400;color:#fff;white-space:nowrap}
+  .rc-tags span svg{width:9px;height:13px;flex-shrink:0}
   .dots{display:flex;gap:7px;justify-content:center;margin-top:16px}
   .dots i{width:8.86px;height:8.86px;border-radius:50%;background:var(--line);opacity:.35;transition:.3s;cursor:pointer}
   .dots i.on{background:var(--accent);opacity:1;width:19.44px;border-radius:5px}
@@ -687,16 +681,17 @@ roles.forEach((r,i)=>{
   const tagsHtml=r.tags.map(t=>`<span>${pinSvg(TAG_COLORS[t]||'#266594')}${t}</span>`).join('');
   const descShort=r.B.replace(/[.\s]+$/,'');
   c.innerHTML=`
-     <div class="rc-head">
-       <h3 class="rc-title">${r.name}</h3>
-       <p class="rc-desc">${descShort}<b class="rc-more">...קרא עוד</b></p>
-     </div>
-     <div class="rc-tags">${tagsHtml}</div>
-     <div class="rc-video">
+     <div class="rc-face">
        <video class="rc-vid" src="${r.video}" poster="${r.poster}" preload="none" playsinline></video>
+       <div class="grad"></div>
        <button class="rc-expand" aria-label="מסך מלא"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H4v4M16 3h4v4M8 21H4v-4M16 21h4v-4"/></svg></button>
        <div class="rc-play"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-       <div class="vp-bar"><i></i></div>
+       <div class="rc-meta">
+         <h3>${r.name}</h3>
+         <p class="rc-short">${descShort}</p>
+         <span class="rc-more">קרא עוד</span>
+         <div class="vp-bar"><i></i></div>
+       </div>
      </div>
      <div class="rc-back">
        <button class="rc-close">✕</button>
@@ -733,15 +728,18 @@ function closeVideoModal(){
   if(x) x.onclick=closeVideoModal;
   document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeVideoModal(); }); })();
 /* ---------- dots helper (גרסה 1) ---------- */
+/* measure the REAL card pitch (card width + gap) from the DOM → dots track correctly at ANY width/gap */
+function railPitch(r){ const k=r.children; if(!k.length) return 1;
+  if(k.length<2) return k[0].offsetWidth||1;
+  return Math.abs(k[1].offsetLeft-k[0].offsetLeft)||k[0].offsetWidth||1; }
 function buildDots(dotsId,n,railId,onClick,onScroll){
   const d=document.getElementById(dotsId);d.innerHTML='';
   for(let i=0;i<n;i++){const b=document.createElement('i');if(i===0)b.className='on';
     b.onclick=()=>{if(onClick)onClick(i);
-      if(railId){const r=document.getElementById(railId);r.scrollTo({left:-(i*r.children[0].offsetWidth+i*14),behavior:'smooth'});}};
+      if(railId){const r=document.getElementById(railId);r.scrollTo({left:-(i*railPitch(r)),behavior:'smooth'});}};
     d.appendChild(b);}
   if(railId){const r=document.getElementById(railId);
-    r.addEventListener('scroll',()=>{const w=r.children[0].offsetWidth+14;
-      const idx=Math.round(Math.abs(r.scrollLeft)/w);markDots(dotsId,idx);if(onScroll)onScroll(idx);});}
+    r.addEventListener('scroll',()=>{const idx=Math.round(Math.abs(r.scrollLeft)/railPitch(r));markDots(dotsId,idx);if(onScroll)onScroll(idx);});}
 }
 function markDots(id,idx){[...document.getElementById(id).children].forEach((x,i)=>x.classList.toggle('on',i===idx));}
 
