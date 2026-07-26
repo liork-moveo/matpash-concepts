@@ -11,8 +11,8 @@
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 <style>
   :root{
-    /* PALETTE — exactly 4 colours (excl. maps/pins/logos): #fff, #B6D2FF, #166AE2, #000.
-       ALL text is black (#000) or white (#fff). Blue #166AE2 = non-text accents only. #B6D2FF = light-blue fills. */
+    /* PALETTE — black/white + primary + secondary (excl. maps/pins/logos): #fff, #B3D4D4, #307070, #000.
+       ALL text is black (#000) or white (#fff). Primary #307070 = non-text accents; #B3D4D4 = its light "off" tone. */
     --navy:#000000;      /* text ink → black */
     --navy-deep:#000000;
     --sand:#f8f9fa;
@@ -20,8 +20,8 @@
     --ink:#000000;
     --muted:#000000;
     --line:#000000;
-    --accent:#166AE2;    /* blue brand accent — non-text elements only (indicators, fills, icons) */
-    --teal-light:#B6D2FF;   /* light-blue (replaces the old teal) */
+    --accent:#307070;    /* PRIMARY brand colour — non-text elements only (indicators, fills, icons) */
+    --teal-light:#B3D4D4;   /* secondary "off" tone — light tint of the primary #307070 */
     --on-dark:#f8f9fa;
     --pin-teal:#45b0c4;--pin-green:#1f7a5c;--pin-yellow:#f5b21e;
     --shadow:0 8px 22px -12px rgba(27,53,87,.22);   /* tight halo — hugs the card so the bg stays clean #F2F4F5 */
@@ -106,7 +106,7 @@
   .scroll::-webkit-scrollbar{display:none}
   .hero{height:calc(100dvh - 57px)}
   /* about — full blue brand panel (Figma 1976-916), reached from the menu ("על המתפ״ש") */
-  .about{min-height:calc(100dvh - 57px);background:#166AE2;position:relative;
+  .about{min-height:calc(100dvh - 57px);background:var(--accent);position:relative;
     display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 30px}
   .about-text{max-width:300px;color:#fff;font-size:28px;font-weight:500;line-height:1.32;letter-spacing:-0.56px;text-align:center}
   .about-more{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:#fff;opacity:.9;background:none;border:0;cursor:pointer}
@@ -128,12 +128,15 @@
     overflow:hidden;height:524px;background:#fff;box-shadow:var(--shadow);
     display:flex;flex-direction:column;align-items:center;padding:22px 18px 18px}
   .rc-head{width:100%;text-align:right}
-  .rc-title{font-size:26px;font-weight:700;line-height:1.15;color:var(--navy);
+  .rc-title{font-size:18px;font-weight:700;line-height:1.15;color:var(--navy);
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .rc-desc{margin-top:8px;font-size:15px;line-height:1.35;color:var(--navy);opacity:.72;
-    display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
-  .rc-more{opacity:1;font-weight:600;color:var(--navy);cursor:pointer;white-space:nowrap}
-  .rc-tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start;width:100%;margin:12px 0}
+  /* fixed 2-line description → every card shows the same text height, so the video below is IDENTICAL in size */
+  .rc-desc{position:relative;margin-top:8px;font-size:15px;line-height:1.35;color:rgba(0,0,0,.72);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;height:2.7em}
+  /* "קרא עוד" pinned to the end of line 2 (RTL = bottom-left), white mask hides the truncated text behind it */
+  .rc-more{position:absolute;inset-inline-end:0;bottom:0;font-weight:700;color:var(--navy);
+    background:#fff;padding-inline-start:6px;cursor:pointer;white-space:nowrap}
+  .rc-tags{display:flex;gap:6px;flex-wrap:nowrap;justify-content:flex-start;width:100%;margin:12px 0;overflow:hidden}
   .rc-tags span{display:inline-flex;align-items:center;gap:5px;background:#f1f4f8;border-radius:100px;
     padding:6px 13px;font-size:13px;font-weight:400;letter-spacing:.4px;color:var(--navy);white-space:nowrap}
   .rc-tags span svg{width:9px;height:13px;fill:var(--accent);flex-shrink:0}
@@ -178,7 +181,7 @@
   #s-bases{padding-top:40px}
   #s-service{padding-top:72px}   /* bigger breathing room between the map and the recruitment section (like roles→map) */
   /* smaller map: the next section (service toggle pills) peeks below so it's clearly scrollable */
-  #s-bases .map-full{height:calc(100dvh - 57px - 46px - 120px);border-radius:var(--radius);margin:0 20px;width:auto}
+  #s-bases .map-full{height:calc(100dvh - 57px - 46px - 80px);border-radius:var(--radius);margin:0 20px;width:auto}
   /* hint = small pill overlay at the bottom-center of the map; the drawer slides up over it when open */
   #s-bases .map-hint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);margin:0;z-index:5;
     background:rgba(255,255,255,.92);padding:6px 14px;border-radius:100px;font-size:12px;white-space:nowrap;
@@ -402,7 +405,7 @@
   .sm-ic .tt{width:17px;height:17px}
   /* about internal page — blue full-screen overlay (same look as the home about section) */
   .about-page{position:fixed;top:0;bottom:0;left:50%;width:100%;max-width:375px;transform:translate(-50%,100%);
-    z-index:130;background:#166AE2;color:#fff;display:flex;flex-direction:column;visibility:hidden;
+    z-index:130;background:var(--accent);color:#fff;display:flex;flex-direction:column;visibility:hidden;
     transition:transform .4s cubic-bezier(.4,0,.2,1)}
   .about-page.open{transform:translate(-50%,0);visibility:visible}
   .ap-head{flex:0 0 57px;display:flex;align-items:center;padding:0 18px}
@@ -597,27 +600,27 @@ const roles=[
  {name:'קשרי חוץ', icon:'kishrei', poster:'../assets/r-kishrei.jpg', video:'../assets/r-kishrei.mp4', cap:'הפנים הבינלאומיות', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
   B:'עוסקים בתיאום וקישור ישירות מול מול מגוון רחב של ארגונים בינלאומיים, נציגי ממשלות זרות, שגרירויות וגורמים נוספים בקהילה הבינלאומית הפועלים באזור.',
   C:'ביום יום מקיימים פגישות עבודה, מובילים תיאומים, משתפים בהערכות מצב משותפות ולוקחים חלק בקידום פרויקטים ותהליכים המתבצעים בשטח. העבודה מאפשרת היכרות עם עולם קשרי החוץ והעבודה הבינלאומית של מדינת ישראל, ותורמת לחיזוק מעמדה וללגיטימציה שלה מול הקהילה הבינלאומית. אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ. ידע קודם באנגלית ברמה גבוהה מהווה יתרון.'},
- {name:'מש״ק תיאום אזרחי', icon:'ezrahi', poster:'../assets/r-ezrahi.jpg', video:'../assets/r-ezrahi.mp4', cap:'הגשר לאוכלוסייה', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+ {name:'תיאום אזרחי', icon:'ezrahi', poster:'../assets/r-ezrahi.jpg', video:'../assets/r-ezrahi.mp4', cap:'הגשר לאוכלוסייה', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
   B:'עוסקים במגוון רחב של נושאים אזרחיים בזירה הפלסטינית, ובהם תיעוד ומרשם, מעברים, כלכלה, קידום פרויקטים אזרחיים ותחומים נוספים הנמצאים בליבת העשייה של מתפ"ש.',
   C:'ביום יום מטפלים בסוגיות אזרחיות שונות, עוקבים אחר ההתפתחויות בשטח, מסייעים בקידום פרויקטים ותהליכים אזרחיים ומקיימים קשר שוטף עם גורמים מקצועיים במערכת הביטחון ומחוצה לה. העבודה מאפשרת היכרות מעמיקה עם העשייה האזרחית של מתפ"ש, ומהווה חלק בלתי נפרד מהמאמץ הביטחוני הרחב של מדינת ישראל.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
- {name:'מש״ק דוברות והסברה', icon:'dovrut', poster:'../assets/r-dovrut.jpg', video:'../assets/r-dovrut.mp4', cap:'הקול של היחידה', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+ {name:'דוברות והסברה', icon:'dovrut', poster:'../assets/r-dovrut.jpg', video:'../assets/r-dovrut.mp4', cap:'הקול של היחידה', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
   B:'עוסקים בהצגת פעילות היחידה לקהלים שונים בארץ ובעולם, ובהובלת מאמצי ההסברה והדוברות בזירה הישראלית, הפלסטינית והבינלאומית.',
   C:'ביום יום עובדים מול עיתונאים וכלי תקשורת, מנסחים הודעות לתקשורת ומענים לשאילתות של כתבים, מלווים אירועים ופעילויות בשטח ולוקחים חלק בקמפיינים הסברתיים. העבודה מאפשרת היכרות עם עולם התקשורת, הדיגיטל וההסברה, ומהווה חלק מרכזי במאמצי היחידה לחיזוק הלגיטימציה של מדינת ישראל. מדובר באחד ממסלולי השירות הייחודיים במתפ"ש, אליו נבחרים מספר מצומצם של חיילים לאחר ההכשרה.'},
- {name:'מש״ק תשתיות', icon:'tashtiot', poster:'../assets/r-tashtiot.jpg', video:'../assets/r-tashtiot.mp4', cap:'בונים את המרחב', tags:['איו״ש','רצועת עזה'], tagsVerified:true,
+ {name:'תשתיות', icon:'tashtiot', poster:'../assets/r-tashtiot.jpg', video:'../assets/r-tashtiot.mp4', cap:'בונים את המרחב', tags:['איו״ש','רצועת עזה'], tagsVerified:true,
   B:'עוסקים במגוון תחומים הקשורים לפיתוח המרחב, ובהם בנייה, תחבורה, מים, אנרגיה ותחומים נוספים המהווים חלק משמעותי מפעילות היחידה ביהודה ושומרון וברצועת עזה.',
   C:'ביום יום מלווים ומקדמים פרויקטים תשתיתיים בעבודה מול משרדי ממשלה וגורמי מקצוע, מתאמים תהליכים מול גורמים שונים ולוקחים חלק בפעילויות פיקוח ואכיפה לצד כוחות צה״ל ומשטרת ישראל. העבודה מאפשרת היכרות עם אחד מתחומי הליבה של פעילות מתפ"ש ביהודה ושומרון, ותורמת לשמירה על שגרת הפעילות המבצעית של צה"ל במרחב. אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
- {name:'מש״ק תיאום ביטחוני', icon:'bithoni', poster:'../assets/r-bithoni.jpg', video:'../assets/r-bithoni.mp4', cap:'ממשק מול השטח', tags:['איו״ש'], tagsVerified:true,
+ {name:'תיאום ביטחוני', icon:'bithoni', poster:'../assets/r-bithoni.jpg', video:'../assets/r-bithoni.mp4', cap:'ממשק מול השטח', tags:['איו״ש'], tagsVerified:true,
   B:'עוסקים בקיום התיאום והקישור בין צה"ל לבין מנגנוני הביטחון הפלסטיניים ביהודה ושומרון.',
   C:'ביום יום מקיימים תיאומים שוטפים מול גורמי הביטחון בזירה, מסייעים בקישור בין כוחות צה"ל לבין הגורמים הפלסטיניים ולוקחים חלק בעבודות מטה שונות. העבודה מאפשרת היכרות עם אחד מתחומי הליבה של פעילות מתפ"ש ביהודה ושומרון, ותורמת לשמירה על שגרת הפעילות המבצעית של צה"ל במרחב.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
  {name:'פיקוד והדרכה', icon:'pikud', poster:'../assets/r-pikud.jpg', video:'../assets/r-pikud.mp4', cap:'מכשירים את הדור הבא', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
   B:'עוסקים בהכשרת דור העתיד של חיילי וקציני יחידת המתפ"ש, ובהקניית הידע המקצועי והיכולות הנדרשים לשירותם ביחידה.',
   C:'ביום יום, <b>בתפקידי הפיקוד</b> מובילים את תהליך ההכשרה של החניכים, מלווים אותם לאורך הקורס והטירונות ומסייעים בפיתוח הידע, המיומנויות והערכים הנדרשים לשירות ביחידה, <b>ובתפקידי ההדרכה</b> אחראים על לימוד השפה הערבית או האנגלית ומקנים לחניכים את הידע הנדרש לקראת תפקידם. העבודה מעניקה הזדמנות להוביל, לחנוך ולהדריך חיילים, וללוות אותם בצעדיהם הראשונים ביחידה. מדובר במסלול שירות ייחודי במתפ"ש, אליו נבחרים מספר מצומצם של חיילים בסוף ההכשרה.'},
- {name:'מש״ק מבצעים', icon:'mivtzaim', poster:'../assets/r-mivtzaim.jpg', video:'../assets/r-mivtzaim.mp4', cap:'לב הפעילות בזמן אמת', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+ {name:'מבצעים', icon:'mivtzaim', poster:'../assets/r-mivtzaim.jpg', video:'../assets/r-mivtzaim.mp4', cap:'לב הפעילות בזמן אמת', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
   B:'עוסקים בריכוז וניהול כל האירועים והמידע בחדר המבצעים (החמ"ל) וניהול הפעילות בגזרה בזמן אמת.',
   C:'ביום יום קולטים ומעבירים דיווחים בזמן אמת, עוקבים אחר אירועים והתפתחויות בשטח ומסייעים בתיאום בין גורמים שונים ביחידה ובמערכת הביטחון. העבודה מאפשרת היכרות עם מגוון תחומי הפעילות של מתפ"ש ועם המתרחש בזירה בזמן אמת, ומהווה חלק מרכזי בניהול הפעילות השוטפת של היחידה.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
 ];
 /* role display order per client (2026-07-26) */
-roles.sort(function(a,b){var ord=['מש״ק תיאום אזרחי','מידע ומחקר','מש״ק מבצעים','קשרי חוץ','מש״ק תשתיות','מש״ק תיאום ביטחוני','פיקוד והדרכה','מש״ק דוברות והסברה'];return ord.indexOf(a.name)-ord.indexOf(b.name);});
+roles.sort(function(a,b){var ord=['תיאום אזרחי','מידע ומחקר','מבצעים','קשרי חוץ','תשתיות','תיאום ביטחוני','פיקוד והדרכה','דוברות והסברה'];return ord.indexOf(a.name)-ord.indexOf(b.name);});
 // DEMO CONTENT — קואורדינטות מקורבות + תיאורים להדגמה, לא לפרודקשן
 /* grouped drawers: several pins that all open the SAME sheet (accordion + one shared animation) */
 const BASE_GROUPS={ wb:{ title:'המנהל האזרחי – בסיסים ברחבי יהודה ושומרון', short:'המנהל האזרחי', anim:'../assets/ayosh.mp4',
@@ -655,7 +658,7 @@ const TAG_COLORS={'איו״ש':'#2e9e44','רצועת עזה':'#f5b21e','מטה':
 function pinSvg(col){return '<svg viewBox="0 0 12 16" style="fill:'+col+'"><path d="M6 0C2.69 0 0 2.69 0 6c0 4.2 6 10 6 10s6-5.8 6-10c0-3.31-2.69-6-6-6zm0 8.2A2.2 2.2 0 1 1 6 3.8a2.2 2.2 0 0 1 0 4.4z"/></svg>';}
 roles.forEach((r,i)=>{
   const c=document.createElement('div');c.className='role-card';
-  const tagsHtml=r.tags.map(t=>`<span>${pinSvg(TAG_COLORS[t]||'#166AE2')}${t}</span>`).join('');
+  const tagsHtml=r.tags.map(t=>`<span>${pinSvg(TAG_COLORS[t]||'#307070')}${t}</span>`).join('');
   const descShort=r.B.replace(/[.\s]+$/,'');
   c.innerHTML=`
      <div class="rc-head">
