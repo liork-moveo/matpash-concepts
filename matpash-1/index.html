@@ -81,7 +81,7 @@
      a rounded capsule that floats over the scroll (no full-width bar, no underline),
      with a brighter glass pill that slides behind the active tab. Glass = blur+saturate+rim sheen. */
   .tabs{position:sticky;top:10px;z-index:55;width:-webkit-fit-content;width:fit-content;max-width:calc(100% - 24px);
-    margin:10px auto;display:flex;gap:4px;padding:5px;border-radius:9999px;
+    margin:56px auto 10px;display:flex;gap:4px;padding:5px;border-radius:9999px;
     background:rgba(255,255,255,0.5);
     -webkit-backdrop-filter:blur(20px) saturate(180%);
     backdrop-filter:blur(20px) saturate(180%);
@@ -115,8 +115,9 @@
   /* clear separation between sections (~48–64px is the mobile norm for major breaks) */
   .sec{padding:32px 20px 48px;scroll-margin-top:72px}
   .sec.nopad{padding:0;scroll-margin-top:72px}
-  .sec-title{font-size:34px;font-weight:700;text-align:center;color:var(--navy);margin:0 0 26px;line-height:.95}
-  #s-roles .sec-title{font-size:22px;line-height:.92}   /* roles title per Figma 1975-684 */
+  .sec-title{font-size:22px;font-weight:700;text-align:center;color:var(--navy);margin:0 0 18px;line-height:1.05}
+  #s-roles .sec-title{line-height:.92}   /* roles title per Figma 1975-684 */
+  #s-bases .sec-title{padding-top:6px;margin:0 0 14px}   /* map section header ("איפה משרתים?") */
   /* ---------- roles carousel (גרסה 1) ---------- */
   /* rail sits inside the section's 20px padding → content box = screen − 40px, IDENTICAL to the map (margin:0 20px).
      card flex:0 0 100% therefore equals the map width exactly. no negative-margin bleed = no width surprises. */
@@ -182,7 +183,7 @@
   #s-bases{padding-top:40px}
   #s-service{padding-top:72px}   /* bigger breathing room between the map and the recruitment section (like roles→map) */
   /* smaller map: the next section (service toggle pills) peeks below so it's clearly scrollable */
-  #s-bases .map-full{height:calc(100dvh - 57px - 46px - 80px);border-radius:var(--radius);margin:0 20px;width:auto}
+  #s-bases .map-full{height:calc(100dvh - 57px - 46px - 80px - 44px);border-radius:var(--radius);margin:0 20px;width:auto}
   /* hint = small pill overlay at the bottom-center of the map; the drawer slides up over it when open */
   #s-bases .map-hint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);margin:0;z-index:5;
     background:rgba(255,255,255,.92);padding:6px 14px;border-radius:100px;font-size:12px;white-space:nowrap;
@@ -286,7 +287,9 @@
   /* hide the Mapbox wordmark — the required attribution stays in the (i) info control */
   .mapboxgl-ctrl-logo{display:none!important}
   .mapgl{position:absolute;inset:0;width:100%;height:100%}
-  .mpin-wrap{position:relative;cursor:pointer;--c:#2e9e44;--balloon:#F8F9FA}
+  /* DON'T set position here — Mapbox's own .mapboxgl-marker{position:absolute} must win, else the
+     block wrapper stretches to the map width and the anchor shifts every pin sideways. */
+  .mpin-wrap{cursor:pointer;--c:#2e9e44;--balloon:#F8F9FA}
   .mpin{width:36px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.3));line-height:0;transform-origin:bottom center;transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
   .mpin svg{display:block;width:100%;height:auto}
   .mpin .dot{fill:var(--c)}
@@ -503,8 +506,7 @@
 
   <!-- EMPTY placeholder section (Lior fills later) -->
   <section class="about" id="s-empty">
-    <p class="about-text">מתאם פעולות הממשלה בשטחים היא יחידה ייחודית בצה״ל אשר אחראית על תיאום ויישום המדיניות האזרחית של מדינת ישראל ביהודה ושומרון, ברצועת עזה ובמרחבים נוספים בצפון. השירות ביחידה כולל מגוון הזדמנויות להשפיע בזירות המשמעותיות והרגישות ביותר במדינה.</p>
-    <button class="about-more" aria-label="המשך לתוכן" onclick="document.getElementById('s-roles').scrollIntoView({behavior:'smooth'})"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+    <p class="about-text">מתאם פעולות הממשלה בשטחים היא יחידה ייחודית בצה״ל אשר אחראית על תיאום ויישום המדיניות האזרחית של מדינת ישראל ביהודה ושומרון, ברצועת עזה ובמרחבים נוספים בצפון. השירות ביחידה כולל מגוון הזדמנויות להשפיע בזירות המשמעותיות והרגישות ביותר&nbsp;במדינה.</p>
   </section>
 
   <!-- STICKY SCROLL-SPY TABS -->
@@ -524,6 +526,7 @@
 
   <!-- BASES — the new map (drawer lives INSIDE .map-full) -->
   <section class="sec nopad" id="s-bases">
+    <h2 class="sec-title">איפה משרתים?</h2>
     <div class="map-full">
       <div id="mapC2" class="mapgl"></div>
       <button class="map-recenter" onclick="resetMapView()" aria-label="מרכוז המפה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="7"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/></svg></button>
@@ -542,6 +545,7 @@
 
   <!-- SERVICE — timeline (גרסה 1) -->
   <section class="sec" id="s-service">
+    <h2 class="sec-title">מסלולי הגיוס והשירות</h2>
     <div class="toggle" id="svcToggle">
       <button class="on">גיוס ושירות</button>
       <button>קצונה</button>
