@@ -229,7 +229,7 @@
   /* service pills: bleed to screen edges, sit close to the cards below */
   .toggle{margin:0 -20px 8px;padding:0 20px 2px}
   /* WB drawer tabs: bleed to the drawer edges */
-  .wb-tabs{margin:0 -22px 16px;padding:0 22px}
+  .wb-tabs{margin:0 -22px 16px;padding:0 22px;touch-action:pan-x}   /* horizontal tab scroll still works even though the drawer blocks vertical touch */
   /* service (גיוס) rail: each card = the MAP width exactly (screen − 40px, no peek).
      override the roles-rail peek geometry; gap 14px matches the stepper-scroll maths in JS. */
   #tlRail{margin:0;padding:0 0 6px;padding-inline:0;gap:14px}
@@ -265,9 +265,9 @@
   .step.on small{font-weight:700}
   .step.on .dot-icon{width:38px;height:38px;background:#fff;border-width:1.5px;border-color:var(--accent);color:var(--accent)}   /* selected = blue STROKE, not a full-blue fill; same 1.5px as the line + small dots */
   .step.on .dot-icon svg{width:20px;height:20px;opacity:1}
-  .page-end{height:60px;background:var(--sand)}   /* same light tone as the footer → the footer reads as ONE colour */
+  .page-end{height:0}   /* no extra gap below the footer */
   /* main-page footer — identical buttons to the menu footer (.sm-social/.sm-ic/.sm-wa), laid out the same way */
-  .site-foot{display:flex;align-items:center;justify-content:space-between;padding:22px;
+  .site-foot{display:flex;align-items:center;justify-content:space-between;padding:22px 22px 14px;
     border-top:1px solid var(--teal-light);background:var(--sand)}
   /* whatsapp icon in the nav bar (same size as ig/tt) */
   /* .wa-ic sized by the shared .h-social svg rule (uniform height) */
@@ -352,9 +352,9 @@
 
   /* base bottom sheet */
   /* drawer lives INSIDE the map box (absolute), so it's visually tied to the map and scrolls with it */
-  .base-sheet{--peek:64svh;position:absolute;left:0;right:0;bottom:0;transform:translateY(110%);width:100%;z-index:90;
+  .base-sheet{--peek:40svh;position:absolute;left:0;right:0;bottom:0;transform:translateY(110%);width:100%;z-index:90;
     background:#F2F4F5;border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding:44px 22px 24px;
-    transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s linear .52s;max-height:100%;overflow-y:auto;cursor:pointer;visibility:hidden}
+    transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s linear .52s;max-height:100%;overflow-y:auto;cursor:pointer;visibility:hidden;touch-action:none}
   /* closed = translated fully out AND visibility:hidden (after the slide) → disappears completely, Google-Maps style */
   .base-sheet.open{transform:translateY(max(0px, calc(100% - var(--peek))));visibility:visible;
     transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s}   /* max(0…) → never rises above the map's bottom edge (no detach) even when content < peek */
@@ -1051,7 +1051,7 @@ function clearPin(){ selIdx=-1; baseMarkers.forEach(function(mk){ mk.el.classLis
 function initMap2(){
   if(map2 || typeof mapboxgl==='undefined') return;
   map2=new mapboxgl.Map({container:'mapC2', style:'mapbox://styles/mapbox/streets-v11',
-    bounds:basesBounds(), fitBoundsOptions:{padding:40}, minZoom:6.5, maxZoom:15,
+    bounds:basesBounds(), fitBoundsOptions:{padding:{top:100,bottom:30,left:30,right:30}}, minZoom:6.5, maxZoom:15,
     dragRotate:false, pitchWithRotate:false, projection:'mercator', attributionControl:true,
     /* one finger = scroll the PAGE (map never traps the scroll); two fingers = pan the map.
        this is the behaviour the client wants back: reaching the map while scrolling never gets stuck. */
@@ -1170,8 +1170,9 @@ function closeBase(){var sh=document.getElementById('baseSheet');
   try{document.getElementById('bsVid').pause();}catch(e){}
   clearPin();
   /* pull the map back out to the whole-country view so every pin is pickable again */
-  try{ map2 && map2.easeTo({padding:{bottom:0},duration:0,essential:true});
-       map2 && map2.fitBounds(basesBounds(),{padding:40,duration:700,essential:true}); }catch(e){}}
+  try{ map2 && map2.easeTo({padding:{top:0,bottom:0,left:0,right:0},duration:0,essential:true});
+       /* frame ALL bases (incl. the far-north מת״ק צפוני); top padding keeps the northern pin clear of the tabs */
+       map2 && map2.fitBounds(basesBounds(),{padding:{top:100,bottom:30,left:30,right:30},duration:700,essential:true}); }catch(e){}}
 /* recenter button — same as closing: return to the initial whole-country view */
 function resetMapView(){ closeBase(); }
 
