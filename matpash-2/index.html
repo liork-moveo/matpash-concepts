@@ -1162,7 +1162,14 @@ function openBase(i){const b=bases[i];
     if(v.getAttribute('src')!==b.anim){ v.src=b.anim; }
   }
   v.play().catch(()=>{});
-  sh.classList.remove('full'); sh.classList.add('open');
+  sh.classList.remove('full');
+  /* open the drawer up to the MIDDLE of the video (content-aware) — BUT never cover more than ~55% of the
+     map, so the map strip always stays big enough for the pin (balloon + label) to be fully visible. */
+  var r=sh.querySelector('.render'), mapEl=document.getElementById('mapC2'), mapH=mapEl?mapEl.offsetHeight:700;
+  if(r){ var pk=Math.round(r.offsetTop + r.offsetHeight/2);
+    pk=Math.min(pk, Math.round(mapH*0.55));
+    if(pk>80) sh.style.setProperty('--peek', pk+'px'); }
+  sh.classList.add('open');
   selectPin(i);}
 function closeBase(){var sh=document.getElementById('baseSheet');
   sh.classList.remove('open','full');
