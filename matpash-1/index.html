@@ -343,10 +343,11 @@
   /* drawer lives INSIDE the map box (absolute), so it's visually tied to the map and scrolls with it */
   .base-sheet{--peek:40svh;position:absolute;left:0;right:0;bottom:0;transform:translateY(110%);width:100%;z-index:90;
     background:#F2F4F5;border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding:44px 22px 24px;
-    transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s linear .52s;max-height:100%;overflow-y:auto;cursor:pointer;visibility:hidden;touch-action:none}
-  /* closed = translated fully out AND visibility:hidden (after the slide) → disappears completely, Google-Maps style */
-  .base-sheet.open{transform:translateY(max(0px, calc(100% - var(--peek))));visibility:visible;
-    transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s}   /* max(0…) → never rises above the map's bottom edge (no detach) even when content < peek */
+    transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s linear .52s;height:100%;overflow-y:auto;cursor:pointer;visibility:hidden;touch-action:none}
+  /* drawer height = MAP height, so peek/full are a fixed % of the map — identical on every device.
+     peek: translateY(45%) → drawer covers the bottom 55%, map strip = top 45% (pin always fits & centres). */
+  .base-sheet.open{transform:translateY(45%);visibility:visible;
+    transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s}
   .base-sheet.open.full{transform:translateY(0)}
   /* --peek is svh-based (≈1/3 of the screen) so the map stays ~2/3 visible on every device */
   /* fixed 44px top zone holds the handle + close, so content never sits under the X */
@@ -1075,12 +1076,8 @@ const easeOutCubic=t=>1-Math.pow(1-t,3);
 /* current sheet peek height (matches the CSS var, which shrinks on short screens) */
 /* resolve --peek to REAL pixels (it's svh-based now, so parseInt on the raw value would give "34") —
    a probe element that inherits --peek and reports its offsetHeight gives the true peek height. */
-function peekPx(){ try{ var sh=document.getElementById('baseSheet');
-  var p=document.createElement('div'); p.style.cssText='position:absolute;left:-9999px;top:0;width:1px;height:var(--peek)';
-  sh.appendChild(p); var pk=p.offsetHeight; sh.removeChild(p);
-  /* actual visible coverage = min(peek, content) — the drawer never covers more than its own content */
-  return Math.min(pk||300, sh.scrollHeight||pk||300)||300;
-}catch(e){ return 300; } }
+/* drawer coverage at peek = 55% of the map height (fixed %, so it's IDENTICAL on every device) */
+function peekPx(){ var m=document.getElementById('mapC2'); return Math.round((m?m.offsetHeight:700)*0.55); }
 /* pan the tapped pin into the strip ABOVE the sheet (like Google/Apple: the pin never hides behind the card) */
 function nearestCity(b){
   var best=null, bd=Infinity, fs=(IL_CITIES&&IL_CITIES.features)||[];
@@ -1102,7 +1099,7 @@ function flyToBase(b){ if(!map2) return;
      (between the sticky tabs at the top and the drawer at the bottom) via easeTo padding. */
   var padT=92;                                   /* clears the floating tabs */
   var mapEl=document.getElementById('mapC2'), mapH=mapEl?mapEl.offsetHeight:700;
-  var padB=Math.min(peekPx()+16, mapH-padT-90);  /* keep at least a ~90px band so the pin isn't over-zoomed-out */
+  var padB=Math.min(peekPx()+16, mapH-padT-150);  /* keep a ≥150px map band so the pin (balloon+label) is always fully visible & centred */
   var z = b.group ? 12.2 : 11;
   try{ map2.easeTo({center:[b.lng,b.lat], zoom:z, padding:{top:padT,bottom:padB,left:0,right:0},
         duration:700, easing:easeOutCubic, essential:true}); }catch(e){}}
@@ -1149,12 +1146,6 @@ function openBase(i){const b=bases[i];
   }
   v.play().catch(()=>{});
   sh.classList.remove('full');
-  /* open the drawer up to the MIDDLE of the video (content-aware) — BUT never cover more than ~55% of the
-     map, so the map strip always stays big enough for the pin (balloon + label) to be fully visible. */
-  var r=sh.querySelector('.render'), mapEl=document.getElementById('mapC2'), mapH=mapEl?mapEl.offsetHeight:700;
-  if(r){ var pk=Math.round(r.offsetTop + r.offsetHeight/2);
-    pk=Math.min(pk, Math.round(mapH*0.55));
-    if(pk>80) sh.style.setProperty('--peek', pk+'px'); }
   sh.classList.add('open');
   selectPin(i);}
 function closeBase(){var sh=document.getElementById('baseSheet');
