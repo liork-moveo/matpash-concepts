@@ -142,8 +142,8 @@
   .rc-face .grad{position:absolute;inset:0;background:linear-gradient(180deg,transparent 42%,rgba(10,26,45,.92));transition:opacity .3s}
   /* while playing: fade the dark gradient + title/teaser so the video's own (burned-in) subtitles are fully visible */
   .role-card.playing .grad{opacity:0}
-  .role-card.playing .rc-meta h3,.role-card.playing .rc-line{opacity:0;pointer-events:none}
-  .rc-meta h3,.rc-line{transition:opacity .3s}
+  .role-card.playing .rc-meta h3,.role-card.playing .rc-short{opacity:0;pointer-events:none}
+  .rc-meta h3,.rc-short{transition:opacity .3s}
   .rc-play{position:absolute;inset:0;margin:auto;width:48px;height:48px;border-radius:50%;
     background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;transition:opacity .25s}
   .rc-play svg{fill:var(--accent);margin-inline-start:3px}
@@ -151,10 +151,8 @@
   .rc-meta h3{font-size:22px;font-weight:700;line-height:1.2}
   /* teaser is ONE line: short text + "…" then the "קרא עוד" button, all on a single row.
      text truncates with an ellipsis if ever too long, so a word never breaks mid-way. */
-  .rc-line{display:flex;align-items:baseline;gap:5px;margin-top:4px}
-  .rc-short{font-size:14px;opacity:.9;line-height:1.35;flex:0 1 auto;min-width:0;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .rc-more{flex:0 0 auto;font-size:14px;font-weight:700;text-decoration:underline;cursor:pointer;white-space:nowrap}
+  .rc-short{font-size:14px;opacity:.9;line-height:1.35;margin-top:4px;overflow:hidden}
+  .rc-more{font-size:14px;font-weight:700;text-decoration:underline;cursor:pointer;white-space:nowrap;color:#fff}
   .role-card .vp-bar{position:relative;height:3px;border-radius:3px;background:rgba(255,255,255,.32);
     margin-top:12px;direction:ltr;cursor:pointer;touch-action:none;z-index:3}
   .vp-bar i{position:absolute;top:0;bottom:0;left:0;width:0;background:#fff;border-radius:3px}
@@ -232,10 +230,11 @@
   .tl-card .big{font-size:60px;font-weight:700;line-height:.92;text-align:right;color:var(--navy)}
   .tl-card h3{font-size:22px;font-weight:700;line-height:1.2;margin:2px 0 0;text-align:right}
   /* body text: exactly 5 lines by default (reserved height), clamped with "קרא עוד" when longer */
-  .tl-text{font-size:16px;line-height:1.45;text-align:right;color:var(--navy);margin-top:8px;
-    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;min-height:calc(1.45em * 3)}
-  .tl-card.expanded .tl-text{-webkit-line-clamp:unset;overflow:visible;min-height:0}
-  .tl-more{align-self:flex-start;margin-top:4px;font-size:14px;font-weight:700;color:var(--accent);text-decoration:underline;cursor:pointer}
+  .tl-text{font-size:16px;line-height:1.45;text-align:right;color:var(--navy);margin-top:8px;overflow:hidden;min-height:calc(1.45em * 3)}
+  .tl-card.expanded .tl-text{overflow:visible;min-height:0}
+  /* inline read-more: whole word + "…" + button on the SAME last line (JS trims by whole words, never mid-word) */
+  .rm-ell{white-space:nowrap}
+  .rm-more{font-size:14px;font-weight:700;color:var(--accent);text-decoration:underline;cursor:pointer;white-space:nowrap;background:none;border:0;padding:0}
   /* image fills the remaining space → same size when text is 5 lines; SHRINKS when "קרא עוד" opens the full text */
   .tl-card .ph{flex:1 1 auto;min-height:48px;margin-top:12px;border-radius:11px;overflow:hidden;position:relative}
   .tl-card .ph img{width:100%;height:100%;object-fit:cover}
@@ -309,7 +308,7 @@
   #p-bases{padding:0}
   #p-bases.on{display:flex;flex-direction:column;height:100%}
   /* no touch-action:none — cooperativeGestures lets one-finger touches scroll the page through the map */
-  .map-full{position:relative;flex:1;min-height:0;overflow:hidden;background:#eef3e8}
+  .map-full{position:relative;flex:1;min-height:0;overflow:hidden;background:#F2F4F5}
   /* hide the Mapbox wordmark — the required attribution stays in the (i) info control */
   .mapboxgl-ctrl-logo{display:none!important}
   .mapgl{position:absolute;inset:0;width:100%;height:100%}
@@ -343,7 +342,7 @@
   /* base bottom sheet */
   /* drawer lives INSIDE the map box (absolute), so it's visually tied to the map and scrolls with it */
   .base-sheet{--peek:34svh;position:absolute;left:0;right:0;bottom:0;transform:translateY(110%);width:100%;z-index:90;
-    background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding:44px 22px 24px;
+    background:#F2F4F5;border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding:44px 22px 24px;
     transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s linear .52s;max-height:100%;overflow-y:auto;cursor:pointer;visibility:hidden}
   /* closed = translated fully out AND visibility:hidden (after the slide) → disappears completely, Google-Maps style */
   .base-sheet.open{transform:translateY(calc(100% - var(--peek)));visibility:visible;
@@ -357,7 +356,10 @@
   .base-sheet p b{color:var(--navy);font-weight:700}
   .base-sheet .render{margin-top:16px;border-radius:20px;overflow:hidden;aspect-ratio:16/10}
   .base-sheet .render img,.base-sheet .render video{width:100%;height:100%;object-fit:cover;display:block}
-  .base-close{position:absolute;top:9px;left:16px;width:30px;height:30px;border-radius:50%;background:#f1f4f8;display:flex;align-items:center;justify-content:center;z-index:2;cursor:pointer}
+  /* close button — Google-Maps size: a clear ~40px white circle with a bold X */
+  .base-close{position:absolute;top:10px;left:14px;width:40px;height:40px;border-radius:50%;background:#fff;
+    box-shadow:0 1px 5px rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;
+    font-size:22px;line-height:1;color:var(--navy);z-index:6;cursor:pointer}
 
   /* SERVICE TIMELINE */
   /* the four tracks share the screen width — no scrolling, nothing clipped off-screen */
@@ -751,10 +753,7 @@ roles.forEach((r,i)=>{
        <div class="rc-play"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
        <div class="rc-meta">
          <h3>${r.name}</h3>
-         <div class="rc-line">
-           <p class="rc-short">${teaser}</p>
-           <span class="rc-more">קרא עוד</span>
-         </div>
+         <p class="rc-short"><span class="rm-txt">${teaser}</span><span class="rm-ell">…</span>&nbsp;<span class="rc-more">קרא עוד</span></p>
          <div class="vp-bar"><i></i></div>
        </div>
      </div>
@@ -775,8 +774,11 @@ roles.forEach((r,i)=>{
   /* only "קרא עוד" flips to the description side — the rest of the face is the video */
   c.querySelector('.rc-more').onclick=e=>{e.stopPropagation(); if(!vid.paused){ vid.pause(); } c.classList.add('flipped');};
   c.querySelector('.rc-close').onclick=e=>{e.stopPropagation();c.classList.remove('flipped');};
+  c.querySelector('.rc-short')._full=teaser;
   rolesRail.appendChild(c);
 });
+/* trim each teaser to a single line (whole words) + "… קרא עוד"; the button always shows (it flips to the full text) */
+requestAnimationFrame(function(){ document.querySelectorAll('#rolesRail .rc-short').forEach(function(box){ clampWithMore(box, box._full||'', 1, true); }); });
 buildDots('rolesDots',roles.length,'rolesRail');
 /* ---------- fullscreen video modal (expand a role video to full screen, X to return) ---------- */
 function openVideoModal(src,time,srcVid){
@@ -1094,16 +1096,16 @@ function nearestSettlement(b){
 /* zoom-in on a tapped pin: centre the PIN exactly, then zoom OUT just enough that the nearest reference
    is visible (big city for standard bases, Jewish settlement for איו"ש). drawer stays ~1/3 (bottom padding). */
 function flyToBase(b){ if(!map2) return;
-  var padB=peekPx()+24;
+  var padB=peekPx()+24, padT=92;   /* padT clears the floating sticky tabs so the pin is never hidden behind them */
   var ref = b.group ? nearestSettlement(b) : nearestCity(b);
   try{
     if(ref){
-      /* symmetric box around the pin → the pin stays dead-centre; the reference sits near the edge */
+      /* symmetric box around the pin → the pin stays dead-centre BETWEEN the tabs (top) and drawer (bottom) */
       var dLng=Math.max(Math.abs(b.lng-ref[0]),0.02)*1.25, dLat=Math.max(Math.abs(b.lat-ref[1]),0.02)*1.25;
       var sw=[b.lng-dLng,b.lat-dLat], ne=[b.lng+dLng,b.lat+dLat];
-      map2.fitBounds([sw,ne],{padding:{top:40,left:40,right:40,bottom:padB},maxZoom:13,duration:750,easing:easeOutCubic,essential:true});
+      map2.fitBounds([sw,ne],{padding:{top:padT,left:40,right:40,bottom:padB},maxZoom:13,duration:750,easing:easeOutCubic,essential:true});
     } else {
-      map2.easeTo({center:[b.lng,b.lat], zoom:11, padding:{bottom:padB}, duration:700, easing:easeOutCubic, essential:true});
+      map2.easeTo({center:[b.lng,b.lat], zoom:11, padding:{top:padT,bottom:padB}, duration:700, easing:easeOutCubic, essential:true});
     }
   }catch(e){}}
 /* render the grouped accordion (all bases of a group), with base index `activeI` expanded */
@@ -1186,7 +1188,7 @@ function resetMapView(){ closeBase(); }
     moved=e.clientY-grabY;
     var t=now(), dt=t-lastT; if(dt>0){ vy=(e.clientY-lastY)/dt; lastY=e.clientY; lastT=t; }
     var off=base+moved;
-    if(off<0) off=off*0.28;                          /* rubber-band past fully-open */
+    if(off<0) off=0;                                 /* HARD stop at fully-open → the drawer never detaches from the map's bottom edge */
     sh.style.transform='translateY('+off+'px)';      /* VERTICAL ONLY — never sideways */
   });
   function end(){
@@ -1272,15 +1274,38 @@ function clearSlides(){ slideTimers.forEach(clearInterval); slideTimers=[]; }
 function tlCardEl(inner){ const el=document.createElement('div');el.className='role-card';
   el.style.cssText='aspect-ratio:auto;background:none;box-shadow:none;flex:0 0 100%;height:480px;overflow:hidden';
   el.innerHTML='<div class="tl-card">'+inner+'</div>'; return el; }
-/* show "קרא עוד"/"הצג פחות" only when the 5-line clamp actually hides text; toggle expands + shrinks the image */
+/* trim box text to WHOLE words so "word… <more>" fits within `lines` visible lines (never cuts a word).
+   box contains: <span class="rm-txt"> <span class="rm-ell">…</span> &nbsp; <more>.  returns true if it truncated. */
+function clampWithMore(box, full, lines, alwaysMore){
+  var txt=box.querySelector('.rm-txt'), ell=box.querySelector('.rm-ell'), more=box.querySelector('.rm-more, .rc-more');
+  if(!txt) return false;
+  var lh=parseFloat(getComputedStyle(box).lineHeight); if(!lh||isNaN(lh)) lh=parseFloat(getComputedStyle(box).fontSize)*1.4;
+  var maxH=Math.round(lh*lines)+2;
+  if(ell) ell.style.display='none'; if(more) more.style.display='none';
+  txt.textContent=full;
+  var pmh=box.style.maxHeight, pov=box.style.overflow;
+  box.style.maxHeight=maxH+'px'; box.style.overflow='hidden';
+  if(box.scrollHeight<=maxH){ box.style.maxHeight=pmh; box.style.overflow=pov; if(more&&alwaysMore) more.style.display=''; return false; }
+  if(ell) ell.style.display=''; if(more) more.style.display='';
+  var words=full.split(/\s+/), lo=1, hi=words.length, best=1;
+  while(lo<=hi){ var mid=(lo+hi)>>1; txt.textContent=words.slice(0,mid).join(' ');
+    if(box.scrollHeight<=maxH){ best=mid; lo=mid+1; } else { hi=mid-1; } }
+  txt.textContent=words.slice(0,best).join(' ');
+  box.style.maxHeight=pmh; box.style.overflow=pov;
+  return true;
+}
+/* service cards: 3-line clamp with inline "קרא עוד" → expands full text (image shrinks) + "הצג פחות" */
 function setupReadMore(){ requestAnimationFrame(function(){
   document.querySelectorAll('#tlRail .tl-card').forEach(function(card){
-    var txt=card.querySelector('.tl-text'), more=card.querySelector('.tl-more');
-    if(!txt||!more) return; card.classList.remove('expanded');
-    if(txt.scrollHeight-txt.clientHeight>2){
-      more.style.display=''; more.textContent='קרא עוד';
-      more.onclick=function(){ var ex=card.classList.toggle('expanded'); more.textContent=ex?'הצג פחות':'קרא עוד'; };
-    } else { more.style.display='none'; }
+    var box=card.querySelector('.tl-text'); if(!box) return;
+    var full=box._full||'', more=box.querySelector('.rm-more'), ell=box.querySelector('.rm-ell'), txt=box.querySelector('.rm-txt');
+    card.classList.remove('expanded');
+    var trunc=clampWithMore(box, full, 3, false);
+    if(trunc && more){ more.textContent='קרא עוד';
+      more.onclick=function(){ var ex=card.classList.toggle('expanded');
+        if(ex){ txt.textContent=full; if(ell) ell.style.display='none'; more.style.display=''; more.textContent='הצג פחות'; }
+        else { clampWithMore(box, full, 3, false); more.textContent='קרא עוד'; } };
+    }
   });
 }); }
 function buildMainTrack(){
@@ -1291,7 +1316,8 @@ function buildMainTrack(){
     el.onclick=()=>goTL(idx); stp.appendChild(el); });
   tlRail.innerHTML='';
   tlCards.forEach(c=>{ const slides=c.imgs.map((src,k)=>`<img class="tl-slide${k===0?' on':''}" src="${src}" alt="">`).join('');
-    tlRail.appendChild(tlCardEl(`<div class="tl-head"><div class="big">${c.no}</div><h3>${c.title}</h3></div><div class="tl-text">${c.text}</div><span class="tl-more"></span><div class="ph">${slides}</div>`)); });
+    const el=tlCardEl(`<div class="tl-head"><div class="big">${c.no}</div><h3>${c.title}</h3></div><div class="tl-text"><span class="rm-txt">${c.text}</span><span class="rm-ell">…</span>&nbsp;<button class="rm-more"></button></div><div class="ph">${slides}</div>`);
+    el.querySelector('.tl-text')._full=c.text; tlRail.appendChild(el); });
   document.querySelectorAll('#tlRail .ph').forEach((ph,n)=>{ const imgs=[...ph.querySelectorAll('.tl-slide')];
     if(imgs.length<2) return; let i=0;
     slideTimers.push(setInterval(()=>{ imgs[i].classList.remove('on'); i=(i+1)%imgs.length; imgs[i].classList.add('on'); },3200+n*260)); });
@@ -1303,7 +1329,8 @@ function buildInfoTrack(cards){
   tlRail.innerHTML='';
   cards.forEach(c=>{ const slides=(c.imgs||[]).map((src,k)=>`<img class="tl-slide${k===0?' on':''}" src="${src}" alt="">`).join('');
     const ph = slides ? `<div class="ph">${slides}</div>` : '';
-    tlRail.appendChild(tlCardEl(`<div class="tl-head tl-head-info"><h3>${c.title}</h3></div><div class="tl-text">${c.text}</div><span class="tl-more"></span>${ph}`)); });
+    const el=tlCardEl(`<div class="tl-head tl-head-info"><h3>${c.title}</h3></div><div class="tl-text"><span class="rm-txt">${c.text}</span><span class="rm-ell">…</span>&nbsp;<button class="rm-more"></button></div>${ph}`);
+    el.querySelector('.tl-text')._full=c.text; tlRail.appendChild(el); });
   document.querySelectorAll('#tlRail .ph').forEach((ph,n)=>{ const imgs=[...ph.querySelectorAll('.tl-slide')];
     if(imgs.length<2) return; let i=0;
     slideTimers.push(setInterval(()=>{ imgs[i].classList.remove('on'); i=(i+1)%imgs.length; imgs[i].classList.add('on'); },3200+n*260)); });
