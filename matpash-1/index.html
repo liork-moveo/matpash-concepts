@@ -224,12 +224,19 @@
   /* service (גיוס) rail: each card = the MAP width exactly (screen − 40px, no peek).
      override the roles-rail peek geometry; gap 14px matches the stepper-scroll maths in JS. */
   #tlRail{margin:0;padding:0 0 6px;padding-inline:0;gap:14px}
-  .tl-card{background:#fff;color:var(--navy);border-radius:20px;padding:22px 22px;position:relative;overflow:hidden;
+  .tl-card{background:#fff;color:var(--navy);border-radius:20px;padding:22px;position:relative;overflow:hidden;
     width:100%;height:100%;display:flex;flex-direction:column}
-  .tl-card .big{font-size:40px;font-weight:700;line-height:1;text-align:right;color:var(--navy)}   /* smaller number → more room for text + image inside the fixed-height card */
-  .tl-card h3{font-size:22px;font-weight:700;line-height:1.2;margin:2px 0 8px;text-align:right}
-  .tl-card p{font-size:16px;line-height:1.2;text-align:right;margin-bottom:16px}
-  .tl-card .ph{margin-top:auto;border-radius:11px;overflow:hidden;aspect-ratio:284.7/189.83;position:relative;flex:0 1 auto;min-height:0}   /* image may SHRINK (object-fit crops) when text is long, so it never gets clipped by the card edge */
+  /* fixed header zone (number + title, or title only) → the image below is IDENTICAL in size on every card */
+  .tl-head{flex:0 0 auto;min-height:92px;display:flex;flex-direction:column;justify-content:flex-end}
+  .tl-card .big{font-size:60px;font-weight:700;line-height:.92;text-align:right;color:var(--navy)}
+  .tl-card h3{font-size:22px;font-weight:700;line-height:1.2;margin:2px 0 0;text-align:right}
+  /* body text: exactly 5 lines by default (reserved height), clamped with "קרא עוד" when longer */
+  .tl-text{font-size:16px;line-height:1.45;text-align:right;color:var(--navy);margin-top:8px;
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:5;overflow:hidden;min-height:calc(1.45em * 5)}
+  .tl-card.expanded .tl-text{-webkit-line-clamp:unset;overflow:visible;min-height:0}
+  .tl-more{align-self:flex-start;margin-top:4px;font-size:14px;font-weight:700;color:var(--accent);text-decoration:underline;cursor:pointer}
+  /* image fills the remaining space → same size when text is 5 lines; SHRINKS when "קרא עוד" opens the full text */
+  .tl-card .ph{flex:1 1 auto;min-height:48px;margin-top:12px;border-radius:11px;overflow:hidden;position:relative}
   .tl-card .ph img{width:100%;height:100%;object-fit:cover}
   .tl-card .ph .tl-slide{position:absolute;inset:0;opacity:0;transition:opacity .9s ease}
   .tl-card .ph .tl-slide.on{opacity:1}
@@ -324,6 +331,13 @@
     text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff,0 0 3px #fff}
   .city-label::before{content:"";flex:0 0 auto;width:5px;height:5px;border-radius:50%;
     background:#5b6577;box-shadow:0 0 0 1.5px #fff}
+  /* settlement labels (איו"ש) — a LOWER tier than bases/cities: smaller, regular weight, muted grey +
+     a tiny hollow marker (like POIs/"cafes" vs prominent city labels). clear visual hierarchy. */
+  .settle-label{display:flex;align-items:center;gap:4px;pointer-events:none;white-space:nowrap;
+    font-family:'Assistant',system-ui,sans-serif;font-weight:400;font-size:11px;color:#7a8699;
+    text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff}
+  .settle-label::before{content:"";flex:0 0 auto;width:5px;height:5px;border-radius:50%;
+    background:#fff;box-shadow:0 0 0 1.4px #9aa3b2}
 
   /* base bottom sheet */
   /* drawer lives INSIDE the map box (absolute), so it's visually tied to the map and scrolls with it */
@@ -417,6 +431,8 @@
   .sm-list{margin-top:25px;display:flex;flex-direction:column;padding:0 10px}
   .sm-list a{height:58px;margin-bottom:11px;display:flex;align-items:center;justify-content:center;
     font-size:22px;font-weight:700;color:var(--ink);text-decoration:none;text-align:center}
+  /* home-page SECTION links are lighter (regular weight) than the internal-page links (bold) */
+  .sm-list a.sm-sec{font-weight:400}
   .sm-list a:active{opacity:.6}
   .sm-foot{margin-top:auto;padding:0 22px 14px;display:flex;align-items:center;justify-content:space-between}
   /* menu footer buttons = liquid glass (same recipe as the main tabs); no stroke */
@@ -488,9 +504,9 @@
     <nav class="sm-list">
       <a href="#" data-page="about">מי אנחנו?</a>
       <a href="#" data-page="faq">תשובות לשאלות שלכם</a>
-      <a href="#" data-tab="roles">הזדמנויות השיבוץ</a>
-      <a href="#" data-tab="bases">מיקומי בסיסים</a>
-      <a href="#" data-tab="service">גיוס, הכשרה ומסלולי שירות</a>
+      <a class="sm-sec" href="#" data-tab="roles">הזדמנויות השיבוץ</a>
+      <a class="sm-sec" href="#" data-tab="bases">איפה משרתים?</a>
+      <a class="sm-sec" href="#" data-tab="service">מסלולי הגיוס והשירות</a>
     </nav>
     <div class="sm-foot">
       <div class="sm-social">
@@ -960,7 +976,7 @@ let settleMarkers=[];
 function addSettlements(map){
   if(settleMarkers.length || typeof mapboxgl==='undefined') return;
   WB_SETTLEMENTS.forEach(function(s){
-    const el=document.createElement('div'); el.className='city-label'; el.textContent=s.name;
+    const el=document.createElement('div'); el.className='settle-label'; el.textContent=s.name;
     settleMarkers.push(new mapboxgl.Marker({element:el,anchor:'left'}).setLngLat([s.lng,s.lat]).addTo(map));
   });
 }
@@ -1241,15 +1257,26 @@ const tlCards=[
 const trackCards={
  'קצונה':[{title:'יציאה לקצונה',text:'במתפ״ש קיימת אפשרות לצאת לקצונה במהלך השירות במסלול המיועד לחיילים וחיילות המעוניינים להמשיך לשירות קבע. המסלול כולל מיונים, קורס קצינים בבה״ד 1 והשלמה חיילית ייעודית למתפ״ש שמתקיימת גם היא בבית הספר לתיאום וקישור במחנה גדעונים.',imgs:['../assets/tl2a.jpg','../assets/tl2b.jpg','../assets/tl2c.jpg']}],
  'יעודי לקצונה':[{title:'מסלול ייעודי לקצונה',text:'מסלול ייחודי המיועד למועמדים שאותרו ומוינו עוד לפני גיוסם כבעלי פוטנציאל פיקודי גבוה, וקיבלו שיבוץ למסלול זה. החניכים במסלול עוברים הכשרה מקצועית בבית הספר לתיאום וקישור, משתבצים בשטח לתקופת התנסות ביחידה ולאחר מכן יוצאים לקורס קצינים. בסיום המסלול משתבצים בתפקידי קצונה במגוון תחומי הליבה של היחידה כבר במהלך השנה הראשונה לשירות. המסלול מהווה את הדרך המהירה ביותר להפוך לקצין תיאום וקישור במתפ״ש.',imgs:['../assets/tl4a.jpg','../assets/tl4b.jpg','../assets/tl4c.jpg']}],
- 'מסלול עמית':[{title:'מסלול עמ״ית',text:'מיועד למועמדים בעלי רקע מתקדם בשפה הערבית (5 יח״ל) שאותרו לתפקיד עוד לפני גיוסם, וקיבלו שיבוץ לתפקיד זה. המסלול כולל הכשרה מועצמת בערבית מדוברת וספרותית, ומיועד למשרתים שישתלבו בתפקידים שבהם השפה הערבית מהווה חלק מרכזי מהעשייה.',imgs:['../assets/tl3a.jpg','../assets/tl3b.jpg','../assets/tl3c.jpg']}]
+ 'מסלול עמית':[{title:'מסלול עמית',text:'מיועד למועמדים בעלי רקע מתקדם בשפה הערבית (5 יח״ל) שאותרו לתפקיד עוד לפני גיוסם, וקיבלו שיבוץ לתפקיד זה. המסלול כולל הכשרה מועצמת בערבית מדוברת וספרותית, ומיועד למשרתים שישתלבו בתפקידים שבהם השפה הערבית מהווה חלק מרכזי מהעשייה.',imgs:['../assets/tl3a.jpg','../assets/tl3b.jpg','../assets/tl3c.jpg']}]
 };
 const tlRail=document.getElementById('tlRail');
 const stp=document.getElementById('stepper');
 let slideTimers=[];
 function clearSlides(){ slideTimers.forEach(clearInterval); slideTimers=[]; }
 function tlCardEl(inner){ const el=document.createElement('div');el.className='role-card';
-  el.style.cssText='aspect-ratio:auto;background:none;box-shadow:none;flex:0 0 100%;height:420px;overflow:visible';
+  el.style.cssText='aspect-ratio:auto;background:none;box-shadow:none;flex:0 0 100%;height:480px;overflow:hidden';
   el.innerHTML='<div class="tl-card">'+inner+'</div>'; return el; }
+/* show "קרא עוד"/"הצג פחות" only when the 5-line clamp actually hides text; toggle expands + shrinks the image */
+function setupReadMore(){ requestAnimationFrame(function(){
+  document.querySelectorAll('#tlRail .tl-card').forEach(function(card){
+    var txt=card.querySelector('.tl-text'), more=card.querySelector('.tl-more');
+    if(!txt||!more) return; card.classList.remove('expanded');
+    if(txt.scrollHeight-txt.clientHeight>2){
+      more.style.display=''; more.textContent='קרא עוד';
+      more.onclick=function(){ var ex=card.classList.toggle('expanded'); more.textContent=ex?'הצג פחות':'קרא עוד'; };
+    } else { more.style.display='none'; }
+  });
+}); }
 function buildMainTrack(){
   clearSlides();
   stp.style.display=''; stp.innerHTML='';
@@ -1258,11 +1285,11 @@ function buildMainTrack(){
     el.onclick=()=>goTL(idx); stp.appendChild(el); });
   tlRail.innerHTML='';
   tlCards.forEach(c=>{ const slides=c.imgs.map((src,k)=>`<img class="tl-slide${k===0?' on':''}" src="${src}" alt="">`).join('');
-    tlRail.appendChild(tlCardEl(`<div class="big">${c.no}</div><h3>${c.title}</h3><p>${c.text}</p><div class="ph">${slides}</div>`)); });
+    tlRail.appendChild(tlCardEl(`<div class="tl-head"><div class="big">${c.no}</div><h3>${c.title}</h3></div><div class="tl-text">${c.text}</div><span class="tl-more"></span><div class="ph">${slides}</div>`)); });
   document.querySelectorAll('#tlRail .ph').forEach((ph,n)=>{ const imgs=[...ph.querySelectorAll('.tl-slide')];
     if(imgs.length<2) return; let i=0;
     slideTimers.push(setInterval(()=>{ imgs[i].classList.remove('on'); i=(i+1)%imgs.length; imgs[i].classList.add('on'); },3200+n*260)); });
-  tlRail.scrollLeft=0; updateStepper(0);
+  tlRail.scrollLeft=0; updateStepper(0); setupReadMore();
 }
 function buildInfoTrack(cards){
   clearSlides();
@@ -1270,12 +1297,11 @@ function buildInfoTrack(cards){
   tlRail.innerHTML='';
   cards.forEach(c=>{ const slides=(c.imgs||[]).map((src,k)=>`<img class="tl-slide${k===0?' on':''}" src="${src}" alt="">`).join('');
     const ph = slides ? `<div class="ph">${slides}</div>` : '';
-    const el=tlCardEl(`<h3>${c.title}</h3><p>${c.text}</p>${ph}`);
-    el.style.height='auto'; tlRail.appendChild(el); });
+    tlRail.appendChild(tlCardEl(`<div class="tl-head"><h3>${c.title}</h3></div><div class="tl-text">${c.text}</div><span class="tl-more"></span>${ph}`)); });
   document.querySelectorAll('#tlRail .ph').forEach((ph,n)=>{ const imgs=[...ph.querySelectorAll('.tl-slide')];
     if(imgs.length<2) return; let i=0;
     slideTimers.push(setInterval(()=>{ imgs[i].classList.remove('on'); i=(i+1)%imgs.length; imgs[i].classList.add('on'); },3200+n*260)); });
-  tlRail.scrollLeft=0;
+  tlRail.scrollLeft=0; setupReadMore();
 }
 document.querySelectorAll('#svcToggle button').forEach(b=>{
   b.onclick=()=>{ document.querySelectorAll('#svcToggle button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
