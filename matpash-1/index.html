@@ -228,6 +228,7 @@
     width:100%;height:100%;display:flex;flex-direction:column}
   /* fixed header zone (number + title, or title only) → the image below is IDENTICAL in size on every card */
   .tl-head{flex:0 0 auto;min-height:92px;display:flex;flex-direction:column;justify-content:flex-end}
+  .tl-head-info{min-height:0}   /* info tracks (עמית/קצונה/ייעודי) have no number → title sits at the TOP (number's position), no gap */
   .tl-card .big{font-size:60px;font-weight:700;line-height:.92;text-align:right;color:var(--navy)}
   .tl-card h3{font-size:22px;font-weight:700;line-height:1.2;margin:2px 0 0;text-align:right}
   /* body text: exactly 5 lines by default (reserved height), clamped with "קרא עוד" when longer */
@@ -1297,7 +1298,7 @@ function buildInfoTrack(cards){
   tlRail.innerHTML='';
   cards.forEach(c=>{ const slides=(c.imgs||[]).map((src,k)=>`<img class="tl-slide${k===0?' on':''}" src="${src}" alt="">`).join('');
     const ph = slides ? `<div class="ph">${slides}</div>` : '';
-    tlRail.appendChild(tlCardEl(`<div class="tl-head"><h3>${c.title}</h3></div><div class="tl-text">${c.text}</div><span class="tl-more"></span>${ph}`)); });
+    tlRail.appendChild(tlCardEl(`<div class="tl-head tl-head-info"><h3>${c.title}</h3></div><div class="tl-text">${c.text}</div><span class="tl-more"></span>${ph}`)); });
   document.querySelectorAll('#tlRail .ph').forEach((ph,n)=>{ const imgs=[...ph.querySelectorAll('.tl-slide')];
     if(imgs.length<2) return; let i=0;
     slideTimers.push(setInterval(()=>{ imgs[i].classList.remove('on'); i=(i+1)%imgs.length; imgs[i].classList.add('on'); },3200+n*260)); });
