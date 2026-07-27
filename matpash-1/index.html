@@ -970,8 +970,8 @@ function addCities(map){
 }
 /* city names are geographic CONTEXT — hidden on the zoomed-out country view, revealed once you zoom in */
 const LABEL_ZOOM=8.8;   /* boundary: below = "zoomed out" (central cities, NO base names); at/above = "zoomed in" (full base names). lowered so names appear earlier */
-function updateCityVis(){ if(!map2) return; const show=map2.getZoom()<LABEL_ZOOM;   /* central cities appear when ZOOMED OUT */
-  cityMarkers.forEach(function(m){ m.getElement().style.display = show ? '' : 'none'; }); }
+function updateCityVis(){ if(!map2) return;   /* central/major cities stay visible at EVERY zoom (geographic context) */
+  cityMarkers.forEach(function(m){ m.getElement().style.display = ''; }); }
 /* Jewish-settlement context labels (איו"ש) — appear only when zoomed in (e.g. after tapping a WB base) */
 let settleMarkers=[];
 function addSettlements(map){
@@ -1071,7 +1071,12 @@ function pumpMap(map){
 }
 const easeOutCubic=t=>1-Math.pow(1-t,3);
 /* current sheet peek height (matches the CSS var, which shrinks on short screens) */
-function peekPx(){ try{ return parseInt(getComputedStyle(document.getElementById('baseSheet')).getPropertyValue('--peek'),10)||340; }catch(e){ return 340; } }
+/* resolve --peek to REAL pixels (it's svh-based now, so parseInt on the raw value would give "34") —
+   a probe element that inherits --peek and reports its offsetHeight gives the true peek height. */
+function peekPx(){ try{ var sh=document.getElementById('baseSheet');
+  var p=document.createElement('div'); p.style.cssText='position:absolute;left:-9999px;top:0;width:1px;height:var(--peek)';
+  sh.appendChild(p); var h=p.offsetHeight; sh.removeChild(p); return h||300;
+}catch(e){ return 300; } }
 /* pan the tapped pin into the strip ABOVE the sheet (like Google/Apple: the pin never hides behind the card) */
 function nearestCity(b){
   var best=null, bd=Infinity, fs=(IL_CITIES&&IL_CITIES.features)||[];
@@ -1163,7 +1168,7 @@ function resetMapView(){ closeBase(); }
   var grabY=0, grabX=0, base=0, dragging=false, startFull=false, moved=0;
   var lastY=0, lastT=0, vy=0;                        /* vy: px per ms, + = downward */
   function now(){ return (window.performance&&performance.now)?performance.now():Date.now(); }
-  function peek(){ return parseInt(getComputedStyle(sh).getPropertyValue('--peek'),10)||300; }
+  function peek(){ return peekPx(); }   /* real px (svh-resolved), so the drag baseline matches the actual peek */
   sh.addEventListener('pointerdown',function(e){
     if(e.target.closest('.base-close')) return;
     if(e.target.closest('.wb-tabs')) return;        /* let the tab row scroll horizontally on its own */
