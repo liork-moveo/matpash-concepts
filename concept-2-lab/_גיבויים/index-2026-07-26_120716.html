@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>מתפ״ש · קונספט 2 — חלק מהשלם</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<style>
+  :root{
+    --navy:#213357;
+    --navy-deep:#213357;
+    --sand:#f8f9fa;
+    --cream:rgba(248,249,250,0.2);
+    --ink:#213357;
+    --muted:#213357;
+    --line:#213357;
+    --accent:#213357;
+    --teal-light:#c2e5ee;
+    --on-dark:#f8f9fa;
+    --pin-teal:#45b0c4;--pin-green:#1f7a5c;--pin-yellow:#f5b21e;
+    --shadow:0 14px 34px rgba(27,53,87,.16);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{scroll-padding-top:57px}
+  html,body{height:100%}
+  body{font-family:'Assistant',system-ui,sans-serif;background:#e5e7e9;color:var(--ink);overflow-x:hidden}
+  .phone{position:relative;width:100%;max-width:375px;height:100dvh;margin:0 auto;background:var(--sand);box-shadow:0 0 60px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden}
+  /* on a real phone the shell fills the screen edge-to-edge (mockup frame only on wider screens) */
+
+  /* nested scroll: hero + content are two snap "pages"; the grid scrolls inside .panels,
+     so scrolling the images never moves the pager (no bounce back to the tabs). */
+  .pager{flex:1;min-height:0;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .pager::-webkit-scrollbar{display:none}
+  .page{height:100%;scroll-snap-align:start;scroll-snap-stop:always}
+  .content{display:flex;flex-direction:column;background:var(--sand)}
+  .panels{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  img{display:block;max-width:100%}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+  header{position:sticky;top:0;z-index:60;width:100%;height:57px;
+    display:flex;align-items:center;justify-content:space-between;padding:0 19px;
+    background:var(--sand);box-shadow:0 1px 0 rgba(0,0,0,0.06)}
+  .h-social{display:flex;gap:12px;align-items:center}
+  .h-social .ig{width:18.43px;height:18.43px}
+  .h-social .tt{width:17px;height:17px}
+  .logo-c{height:48.73px;width:48.73px;object-fit:contain}
+  /* centre the emblem on the phone screen, not between the burger and the social icons */
+  header>.logo-c{position:absolute;left:50%;transform:translateX(-50%)}
+  .burger{width:19.9px;height:14px;display:flex;flex-direction:column;justify-content:space-between}
+  .burger span{height:2px;background:var(--ink);border-radius:2px}
+
+  /* HERO */
+  .hero{height:100%;position:relative;display:flex;flex-direction:column;justify-content:flex-end;
+    align-items:center;text-align:center;padding:0 24px 100px;color:var(--on-dark);overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:0;background:url('../assets/hero.jpg') center 22%/cover}
+  .hero::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(18,39,64,.5),rgba(18,39,64,.32) 45%,rgba(18,39,64,.75))}
+  .hero .hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+  .hero>*{position:relative;z-index:2}
+  /* no pill background — plain white text (per request) */
+  .hero .eyebrow{background:none;color:#ffffff;font-size:14px;font-weight:400;letter-spacing:0.56px;line-height:1.6;
+    padding:0;margin-bottom:8px}
+  /* hero typography per Figma 1975-635: 55px title, line-height .85, only "מתפ״ש" bold */
+  .hero h1{font-size:55px;font-weight:400;line-height:0.85;width:338px;max-width:none}
+  .hero h1 b{font-weight:700}
+  .hero p{font-size:22px;line-height:1.2;margin-top:25px;opacity:.95;max-width:332px}
+  .hero p b{font-weight:700}
+  .scroll-hint{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:3;color:var(--on-dark);opacity:.85;animation:bob 1.8s infinite}
+  @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
+
+  /* STICKY SCROLL-SPY TABS */
+  .tabs{position:sticky;top:0;z-index:55;background:var(--sand);display:flex;justify-content:center;gap:25px;
+    padding:14px 12px 12px;box-shadow:0 1px 0 rgba(0,0,0,.06)}
+  .tab{flex:0 0 auto;padding:6px 4px 12px;font-size:14px;font-weight:700;letter-spacing:-0.28px;color:var(--navy);position:relative;opacity:.55;transition:opacity .2s}
+  .tab.on{opacity:1}
+  .tab.on::after{content:"";position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:60px;height:1.8px;border-radius:3px;background:var(--navy)}
+
+  /* ---------- linear-scroll container + sections ---------- */
+  .scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .scroll::-webkit-scrollbar{display:none}
+  .hero{height:calc(100dvh - 57px)}
+  .about{background:var(--sand);padding:36px 24px 40px}
+  .about .sec-title{margin:0 0 20px}
+  .about-body{max-width:520px;margin:0 auto}
+  .about-body p{font-size:16px;line-height:1.55;color:var(--navy);text-align:right;margin:0 0 14px}
+  .about-body p:last-child{margin-bottom:0}
+  .sec{padding:0 20px 10px;scroll-margin-top:52px}
+  .sec.nopad{padding:0;scroll-margin-top:52px}
+  .sec-title{font-size:34px;font-weight:700;text-align:center;color:var(--navy);margin:30px 0 22px;line-height:.95}
+  /* ---------- roles carousel (גרסה 1) ---------- */
+  .rail{display:flex;gap:21px;overflow-x:auto;scroll-snap-type:x mandatory;
+    padding:4px 0 6px;margin:0 -20px;padding-inline:43.5px;scrollbar-width:none}
+  .rail::-webkit-scrollbar{display:none}
+  /* white content card (Figma 1956-216): title → desc(+read-more) → region pills → video w/ caption */
+  .role-card{flex:0 0 300px;scroll-snap-align:center;position:relative;border-radius:20px;
+    overflow:hidden;height:524px;background:#fff;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;align-items:center;padding:22px 18px 18px}
+  .rc-head{width:100%;text-align:right}
+  .rc-title{font-size:26px;font-weight:700;line-height:1.15;color:var(--navy);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .rc-desc{margin-top:8px;font-size:15px;line-height:1.35;color:var(--navy);opacity:.72;
+    display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+  .rc-more{opacity:1;font-weight:600;color:var(--navy);cursor:pointer;white-space:nowrap}
+  .rc-tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:100%;margin:12px 0}
+  .rc-tags span{display:inline-flex;align-items:center;gap:5px;background:#f1f4f8;border-radius:100px;
+    padding:6px 13px;font-size:13px;font-weight:400;letter-spacing:.4px;color:var(--navy);white-space:nowrap}
+  .rc-tags span svg{width:9px;height:13px;fill:var(--navy);flex-shrink:0}
+  .rc-video{position:relative;flex:1;min-height:0;width:100%;border-radius:14px;overflow:hidden;background:#000}
+  .rc-video video{width:100%;height:100%;object-fit:cover}
+  .rc-play{position:absolute;inset:0;margin:auto;width:52px;height:52px;border-radius:50%;
+    background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;transition:opacity .25s}
+  .rc-play svg{fill:var(--navy);margin-inline-start:3px}
+  .rc-cap{position:absolute;left:0;right:0;bottom:0;padding:24px 14px 20px;
+    background:linear-gradient(180deg,transparent,rgba(18,39,64,.85));
+    color:#fff;font-size:14px;font-weight:600;text-align:center;pointer-events:none}
+  .role-card .vp-bar{position:absolute;left:10px;right:10px;bottom:8px;z-index:3}
+  /* full description reveal — a white overlay so the slider card keeps a fixed size */
+  .role-card .rc-back{position:absolute;inset:0;background:#fff;color:var(--navy);z-index:5;
+    padding:46px 20px 20px;display:none;flex-direction:column}
+  .role-card.flipped .rc-back{display:flex}
+  .rc-close{position:absolute;top:12px;left:12px;width:32px;height:32px;z-index:6;
+    display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--navy);
+    background:#f1f4f8;border-radius:50%;cursor:pointer}
+  .rc-back h3{font-size:22px;font-weight:700;line-height:1.2;text-align:right;margin-bottom:12px;color:var(--navy)}
+  .rc-back p{font-size:15px;line-height:1.42;text-align:right;overflow-y:auto;color:var(--navy)}
+  .dots{display:flex;gap:7px;justify-content:center;margin-top:16px}
+  .dots i{width:8.86px;height:8.86px;border-radius:50%;background:var(--line);opacity:.35;transition:.3s;cursor:pointer}
+  .dots i.on{background:var(--navy);opacity:1;width:19.44px;border-radius:5px}
+  /* ---------- bases map (in linear scroll) ---------- */
+  /* not full-height: leave room above/below so the page can be scrolled by dragging outside the map
+     (a drag ON the map pans it — touch-action:none — so the map must not fill the whole viewport) */
+  #s-bases{padding-top:14px}
+  #s-bases .map-full{height:58vh;border-radius:var(--radius);margin:0 20px;width:auto}
+  #s-bases .map-hint{padding:12px 20px 20px}
+  /* ---------- service timeline (גרסה 1) ---------- */
+  .toggle{display:flex;gap:5px;margin-bottom:22px}
+  .toggle button{flex:1 1 0;min-width:0;white-space:nowrap;text-align:center;
+    background:var(--teal-light);color:var(--navy);border-radius:9999px;
+    padding:10px 4px;font-weight:700;font-size:clamp(10px,3.2vw,16px);line-height:1.2}
+  .toggle button.on{background:var(--navy);color:var(--on-dark)}
+  .tl-card{background:#fff;color:var(--navy);border-radius:var(--radius);padding:24px 22px;position:relative;overflow:hidden;
+    height:100%;display:flex;flex-direction:column}
+  .tl-card .big{font-size:60px;font-weight:700;line-height:.92;text-align:right}
+  .tl-card h3{font-size:24px;font-weight:700;line-height:1.2;margin:6px 0 8px;text-align:right}
+  .tl-card p{font-size:16px;line-height:1.25;text-align:right;margin-bottom:16px}
+  .tl-card .ph{margin-top:auto;border-radius:11px;overflow:hidden;aspect-ratio:284.7/189.83;position:relative;flex:0 0 auto}
+  .tl-card .ph img{width:100%;height:100%;object-fit:cover}
+  .tl-card .ph .tl-slide{position:absolute;inset:0;opacity:0;transition:opacity .9s ease}
+  .tl-card .ph .tl-slide.on{opacity:1}
+  .stepper{display:flex;justify-content:space-between;align-items:flex-start;position:relative;margin:24px 6px 6px}
+  .stepper::before{content:"";position:absolute;top:14px;inset-inline:12%;height:2px;background:var(--line);opacity:.4}
+  .step{display:flex;flex-direction:column;align-items:center;gap:4px;width:24%;z-index:2;cursor:pointer}
+  .step .num{width:28.55px;height:28.55px;border-radius:50%;background:var(--teal-light)}
+  .step.on .num{background:var(--navy)}
+  .step small{font-size:14px;text-align:center;color:var(--navy);font-weight:400;line-height:1.2;opacity:.7}
+  .step.on small{font-weight:700;opacity:1}
+  .page-end{height:60px}
+  /* whatsapp icon in the nav bar (same size as ig/tt) */
+  .h-social .wa-ic{width:18.43px;height:18.43px}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* ROLES GRID */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .g-card{position:relative;border-radius:20px;overflow:hidden;aspect-ratio:159/242}
+  .g-card img{width:100%;height:100%;object-fit:cover;transition:.4s}
+  .g-card:active img{transform:scale(1.05)}
+  .g-card::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8),rgba(0,0,0,0) 55%)}
+  .g-card span{position:absolute;bottom:16.4px;inset-inline:14px;z-index:2;color:var(--on-dark);font-size:18px;font-weight:700;line-height:1.2}
+
+  /* ROLE DETAIL MODAL */
+  .sheet{position:fixed;top:0;bottom:0;left:50%;transform:translate(-50%,100%);width:100%;max-width:375px;z-index:100;
+    background:#f8f9fa;overflow-y:auto;visibility:hidden;transition:transform .35s ease,visibility .35s}
+  .sheet.open{transform:translate(-50%,0);visibility:visible}
+  .sheet-card{width:100%;background:#f8f9fa;position:relative;padding:0 0 30px;min-height:100%}
+  .sheet-top{display:flex;justify-content:space-between;align-items:flex-start;padding:20px 20px 0}
+  .sheet-top .x{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--navy)}
+  .sheet-top .flag svg{width:25px;height:25px;stroke:var(--navy)}
+  .sheet-body{padding:6px 22px 0;text-align:right}
+  .sheet-body h2{font-size:28px;font-weight:700;color:var(--navy);line-height:1.2;margin-bottom:6px}
+  .sheet-body .desc{font-size:18px;line-height:1.35;color:var(--navy)}
+  .sheet-body .desc .more{color:var(--navy);cursor:pointer;font-weight:700;text-decoration:underline;white-space:nowrap}
+  .sheet-body .desc-more{font-size:16px;line-height:1.5;color:var(--navy);margin-top:10px}
+  .sheet-body .desc-more b{font-weight:700}
+  .chips{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin:16px 0}
+  .chips span{background:#fff;border-radius:100px;padding:0 16px;height:34px;font-size:14px;font-weight:300;letter-spacing:.56px;
+    line-height:1.6;display:inline-flex;gap:6px;align-items:center;color:var(--navy)}
+  .chips svg{width:12px;height:13px;stroke:var(--navy)}
+  .role-video{position:relative;border-radius:20px;overflow:hidden;aspect-ratio:331/456;box-shadow:var(--shadow);background:#000;margin:0 22px}
+  .role-video video,.role-video img{width:100%;height:100%;object-fit:cover}
+  .role-video .cap{position:absolute;bottom:16px;inset-inline:0;padding:0 18px;text-align:center;color:var(--on-dark);font-size:18px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+  .role-video .rc-play{transition:opacity .25s}
+  /* Shorts-style scrub bar — the caption stays up the whole time */
+  .vp-bar{position:relative;height:3px;border-radius:3px;background:rgba(255,255,255,.32);
+    margin-top:10px;direction:ltr;cursor:pointer;touch-action:none}
+  .vp-bar i{position:absolute;top:0;bottom:0;left:0;width:0;background:#fff;border-radius:3px}
+  .vp-bar::after{content:"";position:absolute;left:0;right:0;top:-12px;bottom:-12px}
+  .role-video .rc-play{position:absolute;inset:0;margin:auto;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center}
+  .role-video .rc-play svg{fill:var(--navy);margin-inline-start:3px}
+  .nav-arrows{display:flex;justify-content:center;gap:2px;margin:18px auto 0;background:#fff;border-radius:30px;
+    width:96px;height:30px;box-shadow:0 3px 10px rgba(0,0,0,.06);overflow:hidden}
+  .nav-arrows button{flex:1;color:var(--navy);font-size:16px}
+  .nav-arrows .sep{width:1px;background:var(--line);margin:6px 0}
+
+  /* BASES MAP */
+  #p-bases{padding:0}
+  #p-bases.on{display:flex;flex-direction:column;height:100%}
+  .map-full{position:relative;flex:1;min-height:0;overflow:hidden;background:#eef3e8;touch-action:none;overscroll-behavior:none}
+  .mapgl{position:absolute;inset:0;width:100%;height:100%}
+  .mpin{width:36px;cursor:pointer;filter:drop-shadow(0 3px 5px rgba(0,0,0,.3));line-height:0;transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
+  .mpin svg{display:block;width:100%;height:auto}
+  .mpin .dot{fill:var(--c)}
+  .mpin.sel{transform:scale(1.18)}
+  .map-hint{flex:0 0 auto;text-align:center;color:var(--muted);font-size:13.5px;padding:12px 20px;margin:0}
+  /* curated city context labels (DOM markers — use page fonts, no map glyphs needed) */
+  .city-label{display:flex;align-items:center;gap:4px;pointer-events:none;white-space:nowrap;
+    font-family:'Assistant',system-ui,sans-serif;font-weight:700;font-size:12.5px;color:#2b3a52;
+    text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff,0 0 3px #fff}
+  .city-label::before{content:"";flex:0 0 auto;width:5px;height:5px;border-radius:50%;
+    background:#5b6577;box-shadow:0 0 0 1.5px #fff}
+
+  /* base bottom sheet */
+  .base-sheet{--peek:340px;position:fixed;bottom:0;left:50%;transform:translate(-50%,100%);width:100%;max-width:375px;z-index:90;
+    background:var(--sand);border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding:10px 22px 34px;
+    transition:transform .52s cubic-bezier(.32,.72,0,1);max-height:82vh;overflow-y:auto;cursor:pointer}
+  .base-sheet.open{transform:translate(-50%,calc(100% - var(--peek)))}  /* peek already reveals the top of the animation */
+  .base-sheet.open.full{transform:translate(-50%,0)}
+  .handle{width:44px;height:5px;border-radius:3px;background:#d8dbde;margin:6px auto 14px}
+  .base-sheet h3{font-size:24px;font-weight:700;color:var(--navy);line-height:1.2}
+  .base-sheet p{font-size:16px;color:var(--navy);line-height:1.3;margin-top:8px}
+  .base-sheet p b{color:var(--navy);font-weight:700}
+  .base-sheet .render{margin-top:16px;border-radius:20px;overflow:hidden;aspect-ratio:16/10}
+  .base-sheet .render img,.base-sheet .render video{width:100%;height:100%;object-fit:cover;display:block}
+  .base-close{position:absolute;top:14px;left:18px;width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
+
+  /* SERVICE TIMELINE */
+  /* the four tracks share the screen width — no scrolling, nothing clipped off-screen */
+  .segmented{display:flex;gap:5px;margin-bottom:24px}
+  .segmented button{flex:1 1 0;min-width:0;white-space:nowrap;text-align:center;
+    height:30px;border-radius:10px;font-size:clamp(10px,3.1vw,14px);font-weight:700;letter-spacing:0;
+    padding:0 4px;background:var(--teal-light);color:var(--navy)}
+  .segmented button.on{background:var(--navy);color:var(--on-dark)}
+  /* service accordion (one open) + decorative vertical progress line on the inline-start (RTL: right) */
+  .acc{position:relative}
+  /* connector per row: from this node's centre down to the NEXT node's centre. Last row has none →
+     the line is always between two nodes, never trailing below the last one. Follows animated heights. */
+  .acc.has-line .acc-row:not(:last-child)::before{content:"";position:absolute;inset-inline-start:18.5px;top:29px;
+    height:calc(100% + 10px);width:1px;background:var(--navy);opacity:.5;z-index:0}
+  .acc-row{position:relative;margin-bottom:10px}
+  .acc.has-line .acc-row{padding-inline-start:56px}
+  /* node column (right in RTL) — OUTSIDE the box. Closed dots all identical; open = big circle + icon. */
+  .acc-node{position:absolute;inset-inline-start:0;top:0;height:58px;width:38px;display:flex;align-items:center;justify-content:center;z-index:2}
+  .acc:not(.has-line) .acc-node{display:none}
+  .acc-node .dot{width:12px;height:12px;border-radius:50%;background:var(--sand);border:1.5px solid var(--navy);flex-shrink:0}
+  .acc-node .big{width:43px;height:43px;border-radius:50%;background:var(--sand);border:1px solid var(--navy);
+    display:none;align-items:center;justify-content:center;flex-shrink:0}
+  .acc-node .big svg{width:22px;height:22px;stroke:var(--navy)}
+  .acc-row.open .acc-node .dot{display:none}
+  .acc-row.open .acc-node .big{display:flex}
+  /* the box: closed = white + border (title only); open = ONE navy rectangle holding title + text */
+  .acc-box{border-radius:12px;overflow:hidden;background:#fff;border:1px solid rgba(33,51,87,.14);transition:background .2s,border-color .2s}
+  .acc-row.open .acc-box{background:var(--navy);border-color:var(--navy)}
+  .acc-head{width:100%;display:flex;align-items:center;min-height:58px;padding:0 20px;text-align:right;
+    font-size:22px;font-weight:700;color:var(--navy);line-height:1.15;transition:color .2s}
+  .acc-row.open .acc-head{color:var(--on-dark)}
+  .acc-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s ease}
+  .acc-row.open .acc-body{grid-template-rows:1fr}
+  .acc-body>div{overflow:hidden}
+  .acc-body p{font-size:16px;line-height:1.5;color:var(--on-dark);padding:0 20px 18px;text-align:right}
+  /* image — separate element BELOW the box, shown only when the stage is open. Multi-image steps
+     auto-rotate (crossfade) while open — behaviour matches the demo-1-v3 stepper. */
+  .acc-media{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
+  .acc-row.open .acc-media{grid-template-rows:1fr;margin-top:6px}
+  .acc-media>div{overflow:hidden}
+  .acc-slides{position:relative;aspect-ratio:300/158;border-radius:12px;overflow:hidden}
+  .acc-slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .8s ease}
+  .acc-slide.on{opacity:1}
+  @media (prefers-reduced-motion: reduce){ .acc-body,.acc-media,.acc-slide{transition:none} }
+
+  .wa{position:fixed;bottom:16.52px;left:18px;z-index:55;width:43px;height:43px;border-radius:50%;
+    background:#fff;filter:drop-shadow(0 0 6px rgba(0,0,0,.08));display:flex;align-items:center;justify-content:center}
+  .wa svg{width:26.81px;height:26.81px}
+  /* desktop mock: keep it inside the phone frame; on a phone it is a flat 18px from the edge */
+  @media (min-width:700px){ .wa{left:calc(50% - 187.5px + 18px)} }
+  /* ---------- boot: emblem draws itself, then shrinks up into the nav bar ---------- */
+  .boot{position:fixed;inset:0;z-index:200;background:var(--sand);display:grid;place-items:center;
+    transition:background-color .6s ease,opacity .35s ease}
+  .boot.lift{background:transparent}
+  .boot.gone{opacity:0;pointer-events:none}
+  .boot-logo{width:min(74vw,300px);
+    transition:transform .5s cubic-bezier(.6,.02,.3,1),opacity .25s ease}
+  .boot-logo svg{width:100%;height:auto;display:block}
+  /* the bar starts with no emblem — the one that just drew itself becomes it */
+  #navLogo{opacity:0}
+  #navLogo.landed{opacity:1;transition:opacity .3s ease}
+  /* ---------- side menu (Figma 1912-545) ---------- */
+  .side-menu{position:fixed;top:0;bottom:0;left:50%;width:100%;max-width:375px;transform:translate(-50%,-100%);z-index:120;background:var(--sand);
+    transition:transform .38s cubic-bezier(.4,0,.2,1);
+    display:flex;flex-direction:column;visibility:hidden}
+  .side-menu.open{transform:translate(-50%,0);visibility:visible}
+  .sm-head{flex:0 0 57px;position:relative;display:flex;align-items:center;justify-content:center}
+  .sm-close{position:absolute;right:19px;top:50%;transform:translateY(-50%);
+    width:14px;height:19.9px;display:flex;justify-content:space-between;align-items:stretch}
+  .sm-close span{width:2px;background:var(--ink);border-radius:2px}
+  .sm-list{margin-top:25px;display:flex;flex-direction:column;padding:0 10px}
+  .sm-list a{height:58px;margin-bottom:11px;display:flex;align-items:center;justify-content:center;
+    font-size:22px;font-weight:700;color:var(--ink);text-decoration:none;text-align:center}
+  .sm-list a:active{opacity:.6}
+  .sm-foot{margin-top:auto;padding:0 22px 14px;display:flex;align-items:center;justify-content:space-between}
+  .sm-wa{display:inline-flex;align-items:center;gap:5px;background:#fff;border-radius:9999px;
+    height:53.7px;padding:0 22px;text-decoration:none;color:var(--ink);font-size:15px;font-weight:600;
+    box-shadow:0 4px 14px rgba(20,51,61,.10)}
+  .sm-wa svg{width:32px;height:32px;flex:0 0 32px}
+  .sm-social{display:flex;gap:8px}
+  .sm-ic{width:43px;height:43px;border-radius:50%;border:1px solid var(--ink);
+    display:flex;align-items:center;justify-content:center}
+  .sm-ic .ig{width:18.43px;height:18.43px}
+  .sm-ic .tt{width:17px;height:17px}
+  /* mobile overrides last so they win the cascade over the component rules above */
+  @media (max-height:720px){ .base-sheet{--peek:300px} }
+  @media (max-height:600px){ .base-sheet{--peek:250px} }
+  @media (max-width:699px){
+    body{background:var(--sand)}
+    .phone,.sheet,.base-sheet,.side-menu{max-width:none}
+    .phone{box-shadow:none}
+    /* true edge-to-edge: no centring maths, so no sliver of the page shows at the sides */
+    .sheet{left:0;width:100vw;transform:translate(0,100%)}
+    .sheet.open{transform:translate(0,0)}
+    .base-sheet{left:0;width:100vw;transform:translate(0,100%)}
+    .base-sheet.open{transform:translate(0,calc(100% - var(--peek)))}
+    .base-sheet.open.full{transform:translate(0,0)}
+    .side-menu{left:0;transform:translate(0,-100%)}
+    .side-menu.open{transform:translate(0,0)}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <div class="side-menu" id="sideMenu">
+    <div class="sm-head">
+      <img class="logo-c" src="../assets/logo-color.png" alt="מתפ״ש">
+      <button class="sm-close" id="smClose" aria-label="סגירת תפריט"><span></span><span></span><span></span></button>
+    </div>
+    <nav class="sm-list">
+      <a href="#" onclick="return false">על המתפ״ש</a>
+      <a href="#" onclick="return false">תשובות לשאלות שלכם</a>
+      <a href="#" data-tab="roles">האופציות של התפקידים</a>
+      <a href="#" data-tab="bases">מיקומי בסיסים</a>
+      <a href="#" data-tab="service">גיוס, הכשרה ומסלולי שירות</a>
+    </nav>
+    <div class="sm-foot">
+      <div class="sm-social">
+        <a class="sm-ic" href="#" onclick="return false" aria-label="אינסטגרם"><svg class="ig" viewBox="0 0 18.4 19" fill="#213357"><path d="M9.17973 5.83685C6.32976 5.83673 4.54855 8.92183 5.97343 11.39C7.3983 13.8583 10.9608 13.8584 12.3859 11.3903C12.7109 10.8275 12.882 10.189 12.882 9.53907C12.8798 7.49528 11.2235 5.83898 9.17973 5.83685ZM9.17973 11.3902C7.75475 11.3902 6.86412 9.84759 7.57662 8.61352C8.28912 7.37944 10.0703 7.37944 10.7828 8.61352C10.9453 8.89492 11.0308 9.21414 11.0308 9.53907C11.0308 10.5614 10.2021 11.3902 9.17973 11.3902ZM12.882 1.20908H5.47751C2.92289 1.21205 0.852706 3.28224 0.849731 5.83685V13.2413C0.852706 15.7959 2.92289 17.8661 5.47751 17.8691H12.882C15.4366 17.8661 17.5068 15.7959 17.5097 13.2413V5.83685C17.5068 3.28224 15.4366 1.21205 12.882 1.20908ZM15.6586 13.2413C15.6586 14.7748 14.4155 16.018 12.882 16.018H5.47751C3.944 16.018 2.70085 14.7748 2.70085 13.2413V5.83685C2.70085 4.30334 3.944 3.06019 5.47751 3.06019H12.882C14.4155 3.06019 15.6586 4.30334 15.6586 5.83685V13.2413ZM14.4245 5.52834C14.4245 6.47832 13.3961 7.07207 12.5734 6.59707C11.7507 6.12208 11.7507 4.93459 12.5734 4.45959C12.761 4.35128 12.9738 4.29426 13.1905 4.29426C13.872 4.29429 14.4245 4.8468 14.4245 5.52834Z"/></svg></a>
+        <a class="sm-ic" href="#" onclick="return false" aria-label="טיקטוק"><svg class="tt" viewBox="0 0 17 17" fill="#213357"><path d="M8.87212 0.0141667C9.80004 0 10.7209 0.00708333 11.6417 0C11.6984 1.08375 12.088 2.18875 12.8813 2.95375C13.6746 3.74 14.7938 4.10125 15.8846 4.22167V7.07625C14.8646 7.04083 13.8375 6.82833 12.9096 6.38917C12.5059 6.205 12.1305 5.97125 11.7621 5.73042C11.755 7.79875 11.7692 9.86708 11.748 11.9283C11.6913 12.92 11.3655 13.9046 10.7917 14.7192C9.86379 16.0792 8.25587 16.9646 6.60546 16.9929C5.59254 17.0496 4.57962 16.7733 3.71546 16.2633C2.28462 15.4204 1.27879 13.8763 1.13004 12.2188C1.11587 11.8646 1.10879 11.5104 1.12296 11.1633C1.25046 9.8175 1.91629 8.52833 2.95046 7.65C4.12629 6.63 5.76962 6.14125 7.30671 6.43167C7.32087 7.48 7.27837 8.52833 7.27837 9.57667C6.57712 9.35 5.75546 9.41375 5.13921 9.83875C4.69296 10.1292 4.35296 10.5754 4.17587 11.0783C4.02712 11.4396 4.06962 11.8363 4.07671 12.2188C4.24671 13.3804 5.36587 14.3579 6.55587 14.2517C7.34921 14.2446 8.10712 13.7842 8.51796 13.1112C8.65254 12.8775 8.80129 12.6367 8.80837 12.3604C8.87921 11.0925 8.85087 9.83167 8.85796 8.56375C8.86504 5.70917 8.85087 2.86167 8.87212 0.0141667Z"/></svg></a>
+      </div>
+      <a class="sm-wa" href="#" onclick="return false"><svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg"><path fill="#25D366" d="M0.8956 13.2902C0.894938 15.5031 1.47318 17.6639 2.57263 19.5683L0.790405 26.0756L7.44969 24.3295C9.28432 25.3294 11.3501 25.8573 13.4524 25.8578H13.458C20.381 25.8578 26.0165 20.2243 26.0194 13.3001C26.0207 9.94471 24.7152 6.78967 22.3434 4.41597C19.9719 2.0424 16.818 0.734551 13.4574 0.733093C6.53363 0.733093 0.89851 6.36624 0.8956 13.2902Z"/><path fill="#fff" d="M10.2079 7.84785C9.96428 7.30638 9.708 7.29554 9.47629 7.28602C9.28669 7.27795 9.06981 7.27845 8.85321 7.27845C8.63633 7.27845 8.28409 7.35997 7.98625 7.6852C7.68813 8.01058 6.84814 8.79711 6.84814 10.3967C6.84814 11.9965 8.01337 13.5422 8.17573 13.7594C8.33835 13.9761 10.425 17.3638 13.7297 18.667C16.4763 19.75 17.0352 19.5346 17.6313 19.4804C18.2274 19.4263 19.555 18.6941 19.8259 17.9349C20.0969 17.1758 20.0969 16.525 20.0156 16.3891C19.9344 16.2536 19.7175 16.1722 19.3924 16.0097C19.0671 15.8471 17.4687 15.0605 17.1707 14.952C16.8726 14.8436 16.6559 14.7895 16.439 15.115C16.2223 15.4401 15.5995 16.1722 15.4098 16.3891C15.2202 16.6064 15.0304 16.6335 14.7053 16.4709C14.3801 16.3077 13.3329 15.9648 12.0907 14.8572C11.1241 13.9954 10.4716 12.9312 10.2819 12.6057C10.0922 12.2806 10.2616 12.1044 10.4246 11.9424C10.5707 11.7967 10.7499 11.5627 10.9125 11.373C11.0747 11.1831 11.1288 11.0476 11.2372 10.8307C11.3457 10.6137 11.2915 10.4239 11.2102 10.2612C11.1288 10.0986 10.497 8.49078 10.2079 7.84785Z"/></svg><span>דברו איתנו</span></a>
+    </div>
+  </div>
+
+  <div class="boot" id="boot"><div class="boot-logo" id="bootLogo" aria-hidden="true"></div></div>
+  <header>
+    <button class="burger" aria-label="תפריט"><span></span><span></span><span></span></button>
+    <img class="logo-c" id="navLogo" src="../assets/logo-color.png" alt="מתפ״ש">
+    <div class="h-social">
+      <svg class="ig" viewBox="0 0 18.4 19" fill="#213357"><path d="M9.17973 5.83685C6.32976 5.83673 4.54855 8.92183 5.97343 11.39C7.3983 13.8583 10.9608 13.8584 12.3859 11.3903C12.7109 10.8275 12.882 10.189 12.882 9.53907C12.8798 7.49528 11.2235 5.83898 9.17973 5.83685ZM9.17973 11.3902C7.75475 11.3902 6.86412 9.84759 7.57662 8.61352C8.28912 7.37944 10.0703 7.37944 10.7828 8.61352C10.9453 8.89492 11.0308 9.21414 11.0308 9.53907C11.0308 10.5614 10.2021 11.3902 9.17973 11.3902ZM12.882 1.20908H5.47751C2.92289 1.21205 0.852706 3.28224 0.849731 5.83685V13.2413C0.852706 15.7959 2.92289 17.8661 5.47751 17.8691H12.882C15.4366 17.8661 17.5068 15.7959 17.5097 13.2413V5.83685C17.5068 3.28224 15.4366 1.21205 12.882 1.20908ZM15.6586 13.2413C15.6586 14.7748 14.4155 16.018 12.882 16.018H5.47751C3.944 16.018 2.70085 14.7748 2.70085 13.2413V5.83685C2.70085 4.30334 3.944 3.06019 5.47751 3.06019H12.882C14.4155 3.06019 15.6586 4.30334 15.6586 5.83685V13.2413ZM14.4245 5.52834C14.4245 6.47832 13.3961 7.07207 12.5734 6.59707C11.7507 6.12208 11.7507 4.93459 12.5734 4.45959C12.761 4.35128 12.9738 4.29426 13.1905 4.29426C13.872 4.29429 14.4245 4.8468 14.4245 5.52834Z"/></svg>
+      <svg class="tt" viewBox="0 0 17 17" fill="#213357"><path d="M8.87212 0.0141667C9.80004 0 10.7209 0.00708333 11.6417 0C11.6984 1.08375 12.088 2.18875 12.8813 2.95375C13.6746 3.74 14.7938 4.10125 15.8846 4.22167V7.07625C14.8646 7.04083 13.8375 6.82833 12.9096 6.38917C12.5059 6.205 12.1305 5.97125 11.7621 5.73042C11.755 7.79875 11.7692 9.86708 11.748 11.9283C11.6913 12.92 11.3655 13.9046 10.7917 14.7192C9.86379 16.0792 8.25587 16.9646 6.60546 16.9929C5.59254 17.0496 4.57962 16.7733 3.71546 16.2633C2.28462 15.4204 1.27879 13.8763 1.13004 12.2188C1.11587 11.8646 1.10879 11.5104 1.12296 11.1633C1.25046 9.8175 1.91629 8.52833 2.95046 7.65C4.12629 6.63 5.76962 6.14125 7.30671 6.43167C7.32087 7.48 7.27837 8.52833 7.27837 9.57667C6.57712 9.35 5.75546 9.41375 5.13921 9.83875C4.69296 10.1292 4.35296 10.5754 4.17587 11.0783C4.02712 11.4396 4.06962 11.8363 4.07671 12.2188C4.24671 13.3804 5.36587 14.3579 6.55587 14.2517C7.34921 14.2446 8.10712 13.7842 8.51796 13.1112C8.65254 12.8775 8.80129 12.6367 8.80837 12.3604C8.87921 11.0925 8.85087 9.83167 8.85796 8.56375C8.86504 5.70917 8.85087 2.86167 8.87212 0.0141667Z"/></svg>
+      <svg class="wa-ic" viewBox="0 0 24 24" fill="#213357" aria-label="וואטסאפ"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm0 18.15c-1.53 0-3.03-.41-4.34-1.19l-.31-.18-3.12.82.83-3.04-.2-.32a8.2 8.2 0 01-1.26-4.36c0-4.54 3.7-8.23 8.24-8.23 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 012.41 5.82c0 4.54-3.69 8.24-8.24 8.24zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.12-.16.25-.64.81-.79.97-.15.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.42-.14-.01-.31-.01-.48-.01-.17 0-.43.06-.66.31-.23.25-.87.85-.87 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.11-.22-.17-.47-.29z"/></svg>
+    </div>
+  </header>
+
+  <!-- LINEAR SCROLL: hero → empty → [sticky scroll-spy tabs] roles → bases → service -->
+  <div class="scroll" id="scroll">
+  <!-- HERO (גרסה 2) -->
+  <section class="hero">
+    <video class="hero-bg" autoplay muted loop playsinline poster="../assets/hero.jpg" src="../assets/hero-loop.mp4"></video>
+    <div class="eyebrow">מתאם פעולות הממשלה בשטחים</div>
+    <h1><b>מתפ״ש</b><br>יחידה אחת,<br>המון הזדמנויות.</h1>
+    <p>קיבלתם שיבוץ למתפ״ש? מחפשים שירות משמעותי ומגוון? <b>הגעתם למקום הנכון.</b></p>
+    <div class="scroll-hint" onclick="document.getElementById('s-empty').scrollIntoView({behavior:'smooth'})"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+  </section>
+
+  <!-- EMPTY placeholder section (Lior fills later) -->
+  <section class="about" id="s-empty">
+    <h2 class="sec-title">מי אנחנו?</h2>
+    <div class="about-body">
+      <p>מתאם פעולות הממשלה בשטחים (מתפ״ש) היא יחידה ייחודית בצה״ל הכפופה ישירות לשר הביטחון ובראשה עומד אלוף החבר בפורום מטכ״ל. היחידה אחראית על תיאום ויישום המדיניות האזרחית של מדינת ישראל ביהודה ושומרון, ברצועת עזה ובמרחבים נוספים בצפון, ופועלת בשיתוף מערכת הביטחון, משרדי הממשלה, ארגונים בינלאומיים וגורמים נוספים בארץ ובעולם.</p>
+      <p>יחידת המתפ״ש נמצאת בלב העשייה בזירות הרגישות, המורכבות והמשמעותיות ביותר של מדינת ישראל. היחידה מהווה מוקד ידע לאומי בנוגע לזירה הפלסטינית ואמונה על מגוון רחב של תהליכי תיאום וקישור המסייעים לשמירה על ביטחון המדינה, להרחבת חופש הפעולה של צה״ל ולקידום האינטרסים של ישראל מול גורמים אזוריים ובינלאומיים.</p>
+      <p>השירות במתפ״ש כולל המון הזדמנויות המאפשרות לכל חייל להשתלב בתחום פעילות שונה בהתאם לשיבוצו ולצרכי היחידה. חיילי ומפקדי היחידה משרתים במגוון רחב של תחומים ובהם תיאום אזרחי, תיאום ביטחוני, תשתיות, קשרי חוץ, מידע ומחקר ועוד.</p>
+      <p>השירות במתפ״ש מאפשר להכיר מקרוב את המציאות באזור, להבין את האתגרים הביטחוניים והאזרחיים של מדינת ישראל, לעבוד מול מגוון רחב של אנשים וארגונים ולרכוש ידע וכלים שילוו אתכם גם בהמשך הדרך. במהלך ההכשרה לומדים ערבית מדוברת, מכירים את הזירה לעומק ורוכשים ידע ומיומנויות מקצועיות הנדרשות לתפקיד.</p>
+      <p>בסיסי היחידה פרוסים ביהודה ושומרון, בגבול רצועת עזה, בגזרה הצפונית, בבסיס ההכשרות במחנה גדעונים ובמטה היחידה בקריה.</p>
+    </div>
+  </section>
+
+  <!-- STICKY SCROLL-SPY TABS -->
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-tab="roles" data-target="s-roles">תפקידים</button>
+    <button class="tab" data-tab="bases" data-target="s-bases">בסיסים</button>
+    <button class="tab" data-tab="service" data-target="s-service">השירות</button>
+  </div>
+
+  <!-- ROLES — carousel (גרסה 1) -->
+  <section class="sec" id="s-roles">
+    <h2 class="sec-title">הזדמנויות השיבוץ<br>למש״ק תיאום וקישור</h2>
+    <div class="rail" id="rolesRail"></div>
+    <div class="dots" id="rolesDots"></div>
+  </section>
+
+  <!-- BASES — the new map -->
+  <section class="sec nopad" id="s-bases">
+    <div class="map-full"><div id="mapC2" class="mapgl"></div></div>
+    <p class="map-hint">לחצו על סימון בסיס כדי לצפות בפרטים</p>
+  </section>
+
+  <!-- SERVICE — timeline (גרסה 1) -->
+  <section class="sec" id="s-service">
+    <h2 class="sec-title">מסלול והכשרה</h2>
+    <div class="toggle" id="svcToggle">
+      <button class="on">גיוס ושירות</button>
+      <button>קצונה</button>
+      <button>יעודי לקצונה</button>
+      <button>מסלול עמית</button>
+    </div>
+    <div class="rail" id="tlRail"></div>
+    <div class="stepper" id="stepper"></div>
+  </section>
+  <div class="page-end" aria-hidden="true"></div>
+  </div><!-- /scroll -->
+
+
+  <!-- BASE BOTTOM SHEET -->
+  <div class="base-sheet" id="baseSheet">
+    <button class="base-close" onclick="closeBase()">✕</button>
+    <div class="handle"></div>
+    <h3 id="bsName"></h3>
+    <p id="bsDesc"></p>
+    <div class="acc" id="bsAcc" style="display:none;margin-top:14px"></div>
+    <div class="render"><video id="bsVid" muted loop playsinline preload="auto"></video></div>
+  </div>
+</div>
+
+<script>
+/* role icons — extracted from Figma (Streamline-Cyber, node 1063-5787); stroke via CSS .flag svg */
+
+/* ---------- Shorts-style video player (tap = play/pause, scrubbable bar) ---------- */
+function wireVideo(vid, playBtn, bar){
+  if(!vid) return;
+  var fill = bar && bar.querySelector('i');
+  function toggle(){ if(vid.paused){ vid.play().catch(function(){}); } else { vid.pause(); } }
+  function sync(){ if(playBtn) playBtn.style.opacity = vid.paused ? '1' : '0'; }
+  vid.addEventListener('play',sync); vid.addEventListener('pause',sync);
+  vid.addEventListener('ended',function(){ if(fill) fill.style.width='0%'; sync(); });
+  vid.addEventListener('timeupdate',function(){
+    if(fill && vid.duration) fill.style.width=(vid.currentTime/vid.duration*100)+'%'; });
+  vid.addEventListener('click',function(e){ e.stopPropagation(); toggle(); });
+  if(playBtn) playBtn.addEventListener('click',function(e){ e.stopPropagation(); toggle(); });
+  if(bar){
+    var scrub=false;
+    function seek(e){ var r=bar.getBoundingClientRect();
+      var p=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));
+      if(vid.duration) vid.currentTime=p*vid.duration;
+      if(fill) fill.style.width=(p*100)+'%'; }
+    bar.addEventListener('pointerdown',function(e){ e.stopPropagation(); scrub=true;
+      try{bar.setPointerCapture(e.pointerId);}catch(err){} seek(e); });
+    bar.addEventListener('pointermove',function(e){ if(scrub){ e.stopPropagation(); seek(e); } });
+    bar.addEventListener('pointerup',function(e){ scrub=false; e.stopPropagation(); });
+    bar.addEventListener('click',function(e){ e.stopPropagation(); });
+  }
+  sync();
+}
+
+const ICONS={
+ meyda:'<svg viewBox="0 0 25.08 25.08" fill="none"><path d="M19.3337 3.65755H0.522741V18.2883H19.3337V3.65755Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M0.522741 7.83883H19.3337" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.61284 5.74814H3.65789" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.748 5.74814H6.79305" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.88315 5.74814H9.9282" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.3337 5.74814H21.4238V20.3789H2.61284V18.2888" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M21.4238 7.83883H23.5139V22.4695H4.70295V20.3794" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ kishrei:'<svg viewBox="0 0 25.08 25.08" fill="none"><path d="M12.48 9.0384L11.9805 7.17403L18.117 1.0354L22.779 2.28528L24.0289 6.94726L17.8923 13.0838L16.0269 12.5832" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5868 16.0258L13.0863 17.8912L6.9498 24.0278L2.28783 22.7789L1.03795 18.1159L7.17448 11.9794L9.0399 12.48" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.32393 7.32172L4.1731 4.17298" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.39835 5.21725V1.03705" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.21815 9.39785H1.03795" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.7586 17.7586L20.9084 20.9095" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.8634 15.685H24.0436" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.6832 19.8645V24.0447" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ ezrahi:'<svg viewBox="0 0 25.34 25.34" fill="none"><path d="M13.6836 2.64062H18.4783V6.86412" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.4772 18.4787V24.814H0.527344V2.64062H5.23548" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.69531 18.4785H10.0305" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.69531 14.2559H10.0305" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.69531 10.0312H14.254" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.7814 0.527344L13.1321 3.69496H5.741L4.22266 0.527344H14.7814Z" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.1992 16.3669V18.4786H15.311L23.7579 10.0317L21.6462 7.91992L13.1992 16.3669Z" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ dovrut:'<svg viewBox="0 0 25.34 25.34" fill="none"><path d="M17.4215 16.893L12.1423 19.5326L6.86318 16.893V4.6886L12.1423 1.58339L17.4215 4.6886V16.893Z" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.86318 8.97427H10.0307" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.69556 14.2534H20.5889" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.86318 6.86259H10.0307" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.4215 6.86259H14.254" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.4215 8.97427H14.254" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.86318 11.0859H10.0307" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.4215 11.0859H14.254" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.69556 11.0859V17.8866L12.1422 22.7001L20.5889 17.9489V11.0859" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.1423 22.7001V24.8118" stroke="currentColor" stroke-width="1.056" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ tashtiot:'<svg viewBox="0 0 25.08 25.08" fill="none"><path d="M23.5138 7.83873H0.522711V15.1541H23.5138V7.83873Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.70292 15.1542V24.5596" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.61281 24.5595H6.79302" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.3336 15.1542V24.5596" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M21.4237 24.5595H17.2435" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M0.522711 15.1541L7.83807 7.83873" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.74797 15.1541L13.0633 7.83873" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.9732 15.1541L18.2886 7.83873" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M16.1985 15.1541L23.5138 7.83873" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.79302 5.22552L4.70292 6.79309L2.61281 5.22552V3.13542L4.70292 1.56784L6.79302 3.13542V5.22552Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M21.4237 5.22552L19.3336 6.79309L17.2435 5.22552V3.13542L19.3336 1.56784L21.4237 3.13542V5.22552Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ bithoni:'<svg viewBox="0 0 25.08 25.08" fill="none"><path d="M14.1083 1.56784H2.6127V13.0634H14.1083V1.56784Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.1083 4.7027H21.4236V17.2433H9.92806L14.1083 13.0631" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.6127 0.522886V24.5591" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.92806 17.2435V13.0633" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ pikud:'<svg viewBox="0 0 25.08 25.08" fill="none"><path d="M8.88313 5.74775V0.522497H24.5589V12.0181H12.0183" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M1.56778 5.74795L3.65788 6.793L5.74798 5.74795V2.61279L3.65788 1.56774L1.56778 2.61279V5.74795Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.74798 3.13619L1.56778 4.18124" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.65788 9.92854V13.0637" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.79303 16.1987H0.522726" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M0.522726 8.62261L3.65788 7.83883L12.5408 8.88388L6.79303 12.019V24.5596L3.65788 18.2893L0.522726 24.5596V12.019" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ mivtzaim:'<svg viewBox="0 0 25.08 25.08" fill="none"><path d="M19.3335 5.74765H21.4237L23.5138 24.5586H0.522628L2.61273 5.74765H4.70283" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M1.20417 18.2881H22.8325" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.2885 10.9734H22.0047" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.03169 10.9734H5.74789" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.27041 24.5594L6.99672 13.5916" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.7658 24.5594L17.0395 13.5916" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.0182 16.1987L17.2434 8.36077V3.88168L12.0182 0.522886L6.79293 3.88168V8.36077L12.0182 16.1987Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.1083 7.57653L12.0182 8.88284L9.92805 7.57653V5.48643L12.0182 4.18011L14.1083 5.48643V7.57653Z" stroke="currentColor" stroke-width="1.045" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+
+// 8 roles — canonical order & exact copy from matpash-copy.md (A=name, B=cut sentence, C=expansion).
+// PLACEHOLDER TAGS (tagsVerified:false) except תשתיות + תיאום ביטחוני which are derived from the text.
+const roles=[
+ {name:'מידע ומחקר', icon:'meyda', poster:'../assets/r-meyda.jpg', video:'../assets/r-meyda.mp4', cap:'מוקד הידע של היחידה', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+  B:'אוספים מידע ומנתחים ארועים ותהליכים בזירה הפלסטינית.',
+  C:'ביום יום מאתרים מידע ברשתות החברתיות, אתרי חדשות ופלטפורמות דיגיטליות בערבית ובמקורות נוספים או חוקרים נושאים הקשורים לחברה, כלכלה וההנהגה הפלסטינית. את המידע הזה מנתחים, מעבדים ומייצרים ממנו דוחות שעוזרים למפקדים לקבל החלטות. העבודה מתבצעת בשיתוף פעולה עם השב"כ ומשרד הביטחון.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ. ידע קודם בערבית מהווה יתרון.'},
+ {name:'קשרי חוץ', icon:'kishrei', poster:'../assets/r-kishrei.jpg', video:'../assets/r-kishrei.mp4', cap:'הפנים הבינלאומיות', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+  B:'עוסקים בתיאום וקישור ישירות מול מול מגוון רחב של ארגונים בינלאומיים, נציגי ממשלות זרות, שגרירויות וגורמים נוספים בקהילה הבינלאומית הפועלים באזור.',
+  C:'ביום יום מקיימים פגישות עבודה, מובילים תיאומים, משתפים בהערכות מצב משותפות ולוקחים חלק בקידום פרויקטים ותהליכים המתבצעים בשטח. העבודה מאפשרת היכרות עם עולם קשרי החוץ והעבודה הבינלאומית של מדינת ישראל, ותורמת לחיזוק מעמדה וללגיטימציה שלה מול הקהילה הבינלאומית. אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ. ידע קודם באנגלית ברמה גבוהה מהווה יתרון.'},
+ {name:'תיאום אזרחי', icon:'ezrahi', poster:'../assets/r-ezrahi.jpg', video:'../assets/r-ezrahi.mp4', cap:'הגשר לאוכלוסייה', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+  B:'עוסקים במגוון רחב של נושאים אזרחיים בזירה הפלסטינית, ובהם תיעוד ומרשם, מעברים, כלכלה, קידום פרויקטים אזרחיים ותחומים נוספים הנמצאים בליבת העשייה של מתפ"ש.',
+  C:'ביום יום מטפלים בסוגיות אזרחיות שונות, עוקבים אחר ההתפתחויות בשטח, מסייעים בקידום פרויקטים ותהליכים אזרחיים ומקיימים קשר שוטף עם גורמים מקצועיים במערכת הביטחון ומחוצה לה. העבודה מאפשרת היכרות מעמיקה עם העשייה האזרחית של מתפ"ש, ומהווה חלק בלתי נפרד מהמאמץ הביטחוני הרחב של מדינת ישראל.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
+ {name:'דוברות', icon:'dovrut', poster:'../assets/r-dovrut.jpg', video:'../assets/r-dovrut.mp4', cap:'הקול של היחידה', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+  B:'עוסקים בהצגת פעילות היחידה לקהלים שונים בארץ ובעולם, ובהובלת מאמצי ההסברה והדוברות בזירה הישראלית, הפלסטינית והבינלאומית.',
+  C:'ביום יום עובדים מול עיתונאים וכלי תקשורת, מנסחים הודעות לתקשורת ומענים לשאילתות של כתבים, מלווים אירועים ופעילויות בשטח ולוקחים חלק בקמפיינים הסברתיים. העבודה מאפשרת היכרות עם עולם התקשורת, הדיגיטל וההסברה, ומהווה חלק מרכזי במאמצי היחידה לחיזוק הלגיטימציה של מדינת ישראל. מדובר באחד ממסלולי השירות הייחודיים במתפ"ש, אליו נבחרים מספר מצומצם של חיילים לאחר ההכשרה.'},
+ {name:'תשתיות', icon:'tashtiot', poster:'../assets/r-tashtiot.jpg', video:'../assets/r-tashtiot.mp4', cap:'בונים את המרחב', tags:['איו״ש','רצועת עזה'], tagsVerified:true,
+  B:'עוסקים במגוון תחומים הקשורים לפיתוח המרחב, ובהם בנייה, תחבורה, מים, אנרגיה ותחומים נוספים המהווים חלק משמעותי מפעילות היחידה ביהודה ושומרון וברצועת עזה.',
+  C:'ביום יום מלווים ומקדמים פרויקטים תשתיתיים בעבודה מול משרדי ממשלה וגורמי מקצוע, מתאמים תהליכים מול גורמים שונים ולוקחים חלק בפעילויות פיקוח ואכיפה לצד כוחות צה״ל ומשטרת ישראל. העבודה מאפשרת היכרות עם אחד מתחומי הליבה של פעילות מתפ"ש ביהודה ושומרון, ותורמת לשמירה על שגרת הפעילות המבצעית של צה"ל במרחב. אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
+ {name:'תיאום ביטחוני', icon:'bithoni', poster:'../assets/r-bithoni.jpg', video:'../assets/r-bithoni.mp4', cap:'ממשק מול השטח', tags:['איו״ש'], tagsVerified:true,
+  B:'עוסקים בקיום התיאום והקישור בין צה"ל לבין מנגנוני הביטחון הפלסטיניים ביהודה ושומרון.',
+  C:'ביום יום מקיימים תיאומים שוטפים מול גורמי הביטחון בזירה, מסייעים בקישור בין כוחות צה"ל לבין הגורמים הפלסטיניים ולוקחים חלק בעבודות מטה שונות. העבודה מאפשרת היכרות עם אחד מתחומי הליבה של פעילות מתפ"ש ביהודה ושומרון, ותורמת לשמירה על שגרת הפעילות המבצעית של צה"ל במרחב.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
+ {name:'פיקוד והדרכה', icon:'pikud', poster:'../assets/r-pikud.jpg', video:'../assets/r-pikud.mp4', cap:'מכשירים את הדור הבא', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+  B:'עוסקים בהכשרת דור העתיד של חיילי וקציני יחידת המתפ"ש, ובהקניית הידע המקצועי והיכולות הנדרשים לשירותם ביחידה.',
+  C:'ביום יום, <b>בתפקידי הפיקוד</b> מובילים את תהליך ההכשרה של החניכים, מלווים אותם לאורך הקורס והטירונות ומסייעים בפיתוח הידע, המיומנויות והערכים הנדרשים לשירות ביחידה, <b>ובתפקידי ההדרכה</b> אחראים על לימוד השפה הערבית או האנגלית ומקנים לחניכים את הידע הנדרש לקראת תפקידם. העבודה מעניקה הזדמנות להוביל, לחנוך ולהדריך חיילים, וללוות אותם בצעדיהם הראשונים ביחידה. מדובר במסלול שירות ייחודי במתפ"ש, אליו נבחרים מספר מצומצם של חיילים בסוף ההכשרה.'},
+ {name:'מבצעים', icon:'mivtzaim', poster:'../assets/r-mivtzaim.jpg', video:'../assets/r-mivtzaim.mp4', cap:'לב הפעילות בזמן אמת', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+  B:'עוסקים בריכוז וניהול כל האירועים והמידע בחדר המבצעים (החמ"ל) וניהול הפעילות בגזרה בזמן אמת.',
+  C:'ביום יום קולטים ומעבירים דיווחים בזמן אמת, עוקבים אחר אירועים והתפתחויות בשטח ומסייעים בתיאום בין גורמים שונים ביחידה ובמערכת הביטחון. העבודה מאפשרת היכרות עם מגוון תחומי הפעילות של מתפ"ש ועם המתרחש בזירה בזמן אמת, ומהווה חלק מרכזי בניהול הפעילות השוטפת של היחידה.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
+];
+// DEMO CONTENT — קואורדינטות מקורבות + תיאורים להדגמה, לא לפרודקשן
+/* grouped drawers: several pins that all open the SAME sheet (accordion + one shared animation) */
+const BASE_GROUPS={ wb:{ title:'המנהל האזרחי – בסיסים ברחבי יהודה ושומרון', anim:'../assets/ayosh.mp4',
+  desc:'מפקדת המנהל האזרחי ממוקמת באוגדת איו״ש, לצד 8 מת״קים (מנהלות תיאום וקישור) גזרתיים ברחבי יהודה ושומרון.' } };
+const WB_GREEN='#2e9e44';
+/* Standalone bases keep their own drawer; WB bases (group:'wb') share one grouped drawer.
+   WB locations are the publicly-known general areas of the Civil Administration HQ + 8 DCOs (מת"קים). */
+const bases=[
+ /* קואורדינטות מדויקות מתוך מפת ה-My Maps הרשמית "מפת בסיסי יחידת המתפ״ש" (KML), 2026-07-26 */
+ /* שמות רשמיים מתוך מסמך "בסיסים בהם ניתן לשרת"; label = שם קצר לתווית הפין במפה */
+ {name:'מטה מתפ״ש – הקריה', label:'מטה מתפ״ש', sector:'המטה', lng:34.7895675, lat:32.0741093, color:'#45b0c4', anim:'../assets/kria.mp4',
+  desc:'<b>מיקום</b> – בסיס הקריה, תל אביב.<br><b>אופי השירות</b> – בסיס פתוח (יומיות).'},
+ {name:'מנהלת התיאום והקישור עזה – מחנה שדה תימן', label:'מת״ק עזה', sector:'גזרת רצועת עזה', lng:34.7115772, lat:31.2939922, color:'#f5b21e', anim:'../assets/sde_teyman.mp4',
+  desc:'<b>מיקום</b> – מחנה שדה תימן, סמוך לעיר באר שבע.<br><b>אופי השירות</b> – בסיס סגור.'},
+ {name:'מת״ק צפוני – מחנה אוגדה 210', label:'מת״ק צפוני', sector:'רמת הגולן', lng:35.7406377, lat:33.0610014, color:'#ef4444', anim:'../assets/ayosh.mp4',
+  desc:'<b>מיקום</b> – מחנה אוגדה 210, רמת הגולן.<br><b>אופי השירות</b> – בסיס סגור.'},
+ {name:'בית הספר לתיאום וקישור – מחנה גדעונים', label:'מחנה גדעונים', sector:'בסיס ההכשרות', lng:34.8444866, lat:31.9696725, color:'#8b5cf6', anim:'../assets/sde_teyman.mp4',
+  desc:'<b>מיקום</b> – מחנה גדעונים, ראשון לציון.<br><b>אופי השירות</b> – בסיס סגור.'},
+ /* --- המנהל האזרחי (יו"ש): מפקדה + 8 מת"קים — כולם ירוקים, פותחים את אותה מגירה --- */
+ {name:'מפקדת המנהל האזרחי', group:'wb', svc:'בסיס סגור', lng:35.2231995, lat:31.9242096, color:WB_GREEN},
+ {name:'מת״ק מנשה',           group:'wb', svc:'בסיס סגור', lng:35.2120451, lat:32.5421575, color:WB_GREEN},
+ {name:'מת״ק אפרים',          group:'wb', svc:'בסיס סגור', lng:35.0022643, lat:32.1967369, color:WB_GREEN},
+ {name:'מת״ק שומרון',         group:'wb', svc:'בסיס סגור', lng:35.2755759, lat:32.1750212, color:WB_GREEN},
+ {name:'מת״ק עוטף ירושלים',   group:'wb', svc:'בסיס סגור', lng:35.2624181, lat:31.7989981, color:WB_GREEN},
+ {name:'מת״ק רמאללה',         group:'wb', svc:'בסיס סגור', lng:35.2223212, lat:31.9249274, color:WB_GREEN},
+ {name:'מת״ק עציון',          group:'wb', svc:'בסיס סגור', lng:35.1217286, lat:31.6467893, color:WB_GREEN},
+ {name:'מת״ק יהודה',          group:'wb', svc:'בסיס סגור', lng:35.1058636, lat:31.5018732, color:WB_GREEN},
+ {name:'מת״ק הבקעה',          group:'wb', svc:'בסיס סגור', lng:35.4427207, lat:31.8225518, color:WB_GREEN},
+];
+
+/* ---------- roles carousel (in-place flip card, no modal) — גרסה 1 ---------- */
+const rolesRail=document.getElementById('rolesRail');
+const PIN_SVG='<svg viewBox="0 0 12 16"><path d="M6 0C2.69 0 0 2.69 0 6c0 4.2 6 10 6 10s6-5.8 6-10c0-3.31-2.69-6-6-6zm0 8.2A2.2 2.2 0 1 1 6 3.8a2.2 2.2 0 0 1 0 4.4z"/></svg>';
+roles.forEach((r,i)=>{
+  const c=document.createElement('div');c.className='role-card';
+  const tagsHtml=r.tags.map(t=>`<span>${PIN_SVG}${t}</span>`).join('');
+  const descShort=r.B.replace(/[.\s]+$/,'');
+  c.innerHTML=`
+     <div class="rc-head">
+       <h3 class="rc-title">${r.name}</h3>
+       <p class="rc-desc">${descShort}<b class="rc-more">...קרא עוד</b></p>
+     </div>
+     <div class="rc-tags">${tagsHtml}</div>
+     <div class="rc-video">
+       <video class="rc-vid" src="${r.video}" poster="${r.poster}" preload="none" playsinline></video>
+       <div class="rc-play"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+       <div class="rc-cap">${r.cap}</div>
+       <div class="vp-bar"><i></i></div>
+     </div>
+     <div class="rc-back">
+       <button class="rc-close">✕</button>
+       <h3>${r.name}</h3>
+       <p>${r.C}</p>
+     </div>`;
+  const vid=c.querySelector('.rc-vid'), play=c.querySelector('.rc-play');
+  vid.addEventListener('play',()=>document.querySelectorAll('.rc-vid').forEach(o=>{if(o!==vid)o.pause();}));
+  wireVideo(vid, play, c.querySelector('.vp-bar'));
+  /* only "קרא עוד" flips to the description side — the rest of the face is the video */
+  c.querySelector('.rc-more').onclick=e=>{e.stopPropagation(); if(!vid.paused){ vid.pause(); } c.classList.add('flipped');};
+  c.querySelector('.rc-close').onclick=e=>{e.stopPropagation();c.classList.remove('flipped');};
+  rolesRail.appendChild(c);
+});
+buildDots('rolesDots',roles.length,'rolesRail');
+/* ---------- dots helper (גרסה 1) ---------- */
+function buildDots(dotsId,n,railId,onClick,onScroll){
+  const d=document.getElementById(dotsId);d.innerHTML='';
+  for(let i=0;i<n;i++){const b=document.createElement('i');if(i===0)b.className='on';
+    b.onclick=()=>{if(onClick)onClick(i);
+      if(railId){const r=document.getElementById(railId);r.scrollTo({left:-(i*r.children[0].offsetWidth+i*21),behavior:'smooth'});}};
+    d.appendChild(b);}
+  if(railId){const r=document.getElementById(railId);
+    r.addEventListener('scroll',()=>{const w=r.children[0].offsetWidth+21;
+      const idx=Math.round(Math.abs(r.scrollLeft)/w);markDots(dotsId,idx);if(onScroll)onScroll(idx);});}
+}
+function markDots(id,idx){[...document.getElementById(id).children].forEach((x,i)=>x.classList.toggle('on',i===idx));}
+
+/* bases — real vector map (Mapbox GL JS + the client token). Glyphs are self-hosted so RTL/Hebrew
+   labels render even inside constrained in-app webviews (Instagram/WhatsApp), where Mapbox's own
+   worker-side font fetch from api.mapbox.com can be blocked. */
+let map2=null, markers2=[];
+const IL_BOUNDS=[[34.05,30.85],[35.95,33.35]];
+mapboxgl.accessToken='pk.eyJ1IjoibGlvcmttb3ZlbzEyMzQiLCJhIjoiY21xcWd0djQ4MDQ0ZTJzcXZsNnBveHZydSJ9.-ANesy8sOPNF6TYeBlam5w';
+/* correct Hebrew (RTL) label rendering — locally hosted plugin so the worker can load it same-origin */
+try{ mapboxgl.setRTLTextPlugin('../assets/mapbox-gl-rtl-text.min.js', ()=>{}, true); }catch(e){}
+/* redirect Mapbox glyph (font) requests to our own origin for the exact stacks streets-v11 uses,
+   for the ranges we ship (Latin + Hebrew). Keeps RTL/Hebrew labels working inside webviews that
+   block the worker's cross-origin font fetch. */
+const LOCAL_RANGES=new Set(['0-255','256-511','1280-1535','8192-8447']);
+const GLYPH_STACKS={
+  'DIN Offc Pro Regular,Arial Unicode MS Regular':'reg',
+  'DIN Offc Pro Medium,Arial Unicode MS Regular':'med',
+  'DIN Offc Pro Bold,Arial Unicode MS Bold':'bold',
+  'DIN Offc Pro Italic,Arial Unicode MS Regular':'italic'
+};
+/* absolute base — the map worker (a blob: script) resolves relative URLs against itself, not the page */
+const GLYPH_ORIGIN=new URL('../assets/glyphs/',location.href).href;
+function glyphTransform(url,type){
+  if(type==='Glyphs'){
+    const mm=url.match(/([^/]+)\/(\d+-\d+)\.pbf/);
+    if(mm){ const folder=GLYPH_STACKS[decodeURIComponent(mm[1])];
+      if(folder && LOCAL_RANGES.has(mm[2])) return {url:GLYPH_ORIGIN+folder+'/'+mm[2]+'.pbf'}; }
+  }
+  return {url};
+}
+/* rough polygon of the Israel area (incl. יו״ש/עזה/גולן), excl. Lebanon/Jordan/Syria/Egypt/… */
+const ISRAEL_POLY={type:'Polygon',coordinates:[[
+ [35.10,33.12],[35.60,33.30],[35.78,33.05],[35.75,32.70],
+ [35.57,32.20],[35.50,31.75],[35.45,31.35],[35.42,31.00],
+ [35.15,30.75],[34.90,30.80],[34.50,31.10],[34.22,31.35],
+ [34.42,31.55],[34.75,32.30],[34.92,32.82],[35.10,33.12]
+]]};
+/* --- official IL border overlay ---------------------------------------------------------------
+   Mapbox Streets draws its own admin boundary LINES (per its US worldview): a solid line for
+   Israel–Syria and a separated/disputed Golan. We hide those 5 line layers and draw our own,
+   classified borders instead, matching the State-of-Israel depiction:
+     solid   = recognised borders (Egypt, Jordan incl. Jordan River, Lebanon)
+     purple  = Golan / 1974 disengagement line ("Purple Line") — Golan shown INSIDE Israel
+     green   = Green Line around יו"ש + the Gaza perimeter (provisional; navy dash, same hue as solid)
+     neighbor= thin, muted borders between the neighbouring states
+   Geometry derived from Natural Earth 1:10m (public domain), merged + classified by topology. */
+const IL_BORDER_ADMIN_LAYERS=['admin-0-boundary','admin-0-boundary-disputed','admin-0-boundary-bg','admin-1-boundary','admin-1-boundary-bg'];
+const IL_BORDERS={"type":"FeatureCollection","features":[{"type":"Feature","properties":{"cls":"green"},"geometry":{"type":"LineString","coordinates":[[34.2484,31.2114],[34.3159,31.2569],[34.3509,31.2893],[34.3458,31.3577],[34.3673,31.3928],[34.4804,31.4856],[34.556,31.5398],[34.4812,31.5831]]}},{"type":"Feature","properties":{"cls":"solid"},"geometry":{"type":"LineString","coordinates":[[35.1052,33.089],[35.1853,33.084],[35.2837,33.1012],[35.3058,33.0894],[35.3319,33.0572],[35.4016,33.0679],[35.4494,33.0852],[35.4801,33.0874],[35.5123,33.1474],[35.52,33.2222],[35.5495,33.281],[35.6046,33.2444],[35.6201,33.2695],[35.6521,33.2767],[35.6985,33.3227],[35.7437,33.3312],[35.7858,33.3579],[35.8211,33.4067]]}},{"type":"Feature","properties":{"cls":"purple"},"geometry":{"type":"LineString","coordinates":[[35.8211,33.4067],[35.8099,33.36],[35.7638,33.3344],[35.8021,33.3125],[35.7686,33.2727],[35.8036,33.2485],[35.8077,33.2017],[35.8302,33.19],[35.8334,33.1611],[35.8115,33.1119],[35.8458,33.0854],[35.859,32.9902],[35.8881,32.9449],[35.8497,32.8958],[35.8342,32.8279],[35.7576,32.7443]]}},{"type":"Feature","properties":{"cls":"solid"},"geometry":{"type":"LineString","coordinates":[[35.7576,32.7443],[35.6852,32.7112],[35.636,32.6791],[35.6122,32.6815],[35.5627,32.6442],[35.5744,32.5728],[35.5614,32.5192],[35.58,32.4977],[35.5725,32.4642],[35.552,32.4362],[35.5496,32.3985],[35.561,32.3847]]}},{"type":"Feature","properties":{"cls":"solid"},"geometry":{"type":"LineString","coordinates":[[35.4581,31.4919],[35.4529,31.4008],[35.4165,31.3318],[35.4223,31.303],[35.3957,31.2577],[35.4107,31.2046],[35.4362,31.1595],[35.4385,31.1037],[35.3916,31.0239],[35.3853,30.9633],[35.3349,30.9126],[35.3222,30.89],[35.3108,30.8133],[35.2861,30.7923],[35.2638,30.7198],[35.2053,30.6171],[35.14,30.4302],[35.14,30.4062],[35.1593,30.3756],[35.16,30.3475],[35.1418,30.314],[35.1248,30.2161],[35.1453,30.1549],[35.1453,30.1234],[35.129,30.0897],[35.0863,30.034],[35.0541,29.9234],[35.049,29.8423],[35.0025,29.7331],[34.9898,29.652],[34.967,29.6081],[34.9556,29.559]]}},{"type":"Feature","properties":{"cls":"green"},"geometry":{"type":"LineString","coordinates":[[35.561,32.3847],[35.4567,32.4076],[35.4069,32.4148],[35.4018,32.471],[35.3929,32.4945],[35.3631,32.5101],[35.2704,32.5105],[35.2086,32.5426],[35.1908,32.5417],[35.1517,32.5079],[35.0644,32.4631],[35.0447,32.4341],[35.0216,32.3446],[35.0007,32.3357],[34.9899,32.2785],[35.0111,32.2571],[35.0003,32.232],[34.9614,32.2016],[34.9582,32.1865],[34.9869,32.124],[34.9842,32.0896],[35.0072,32.0208],[34.9867,31.9672],[35.039,31.9086],[35.0343,31.8611],[34.9985,31.8538],[35.0016,31.8285],[35.0275,31.8327],[35.056,31.8533],[35.0881,31.8481],[35.0976,31.8313],[35.1739,31.8076],[35.1836,31.8251],[35.2158,31.8201],[35.2275,31.8503],[35.25,31.8444],[35.2628,31.7486],[35.238,31.7093],[35.2053,31.7232],[35.1794,31.7201],[35.149,31.7373],[35.0592,31.6768],[34.9736,31.6304],[34.9373,31.582],[34.9268,31.4944],[34.8817,31.4299],[34.8672,31.3964],[34.8788,31.3628],[34.9274,31.3449],[35.0402,31.3632],[35.1649,31.3623],[35.2233,31.381],[35.3323,31.4588],[35.3901,31.4871],[35.4581,31.4919]]}},{"type":"Feature","properties":{"cls":"solid"},"geometry":{"type":"LineString","coordinates":[[34.8867,29.4901],[34.8482,29.5696],[34.8501,29.6388],[34.8244,29.7417],[34.7414,29.9402],[34.735,30.0067],[34.5995,30.3445],[34.5338,30.4002],[34.5247,30.4211],[34.5362,30.4822],[34.5104,30.5133],[34.5022,30.5717],[34.4804,30.6512],[34.3295,30.9945],[34.2484,31.2114]]}},{"type":"Feature","properties":{"cls":"neighbor"},"geometry":{"type":"LineString","coordinates":[[36.56869144385028,34.3],[36.5799,34.2869],[36.5628,34.2629],[36.574,34.2297],[36.6041,34.1991],[36.5527,34.141],[36.4884,34.0886],[36.4752,34.0535],[36.4451,34.0461],[36.4122,34.0536],[36.3911,34.0447],[36.3578,34.0096],[36.318,33.9805],[36.2672,33.9104],[36.3111,33.872],[36.3676,33.8575],[36.3696,33.837],[36.3383,33.8212],[36.3006,33.8287],[36.2492,33.8497],[36.2166,33.8478],[36.1657,33.8298],[36.1383,33.8506],[36.1024,33.8323],[36.0504,33.8164],[36.0271,33.7843],[35.994,33.7607],[35.947,33.7008],[35.9472,33.6731],[35.9216,33.6403],[36.0129,33.608],[36.0385,33.5863],[36.0198,33.5526],[35.9803,33.5339],[35.9332,33.5278],[35.9354,33.4943],[35.9195,33.4624],[35.8885,33.4404],[35.8211,33.4067]]}},{"type":"Feature","properties":{"cls":"neighbor"},"geometry":{"type":"LineString","coordinates":[[37.6,32.74704725787632],[37.4152,32.6471],[37.1332,32.4945],[36.9801,32.41],[36.8194,32.3168],[36.7925,32.3135],[36.7286,32.3278],[36.6896,32.3197],[36.6535,32.3429],[36.4802,32.3608],[36.464,32.3694],[36.4076,32.3742],[36.3731,32.3864],[36.2853,32.4569],[36.2208,32.4946],[36.1774,32.5273],[36.0699,32.5166],[36.006,32.6079],[36.0036,32.6551],[35.9554,32.6574],[35.8957,32.7133],[35.7882,32.7344],[35.7576,32.7443]]}},{"type":"Feature","properties":{"cls":"neighbor"},"geometry":{"type":"MultiLineString","coordinates":[[[34.9494,29.3517],[35.4736,29.2721],[36.0164,29.19],[36.0695,29.2],[36.4771,29.4946],[36.7049,29.8312],[36.7562,29.8655],[37.2185,29.9491],[37.4702,29.9946],[37.4917,30.0112],[37.6,30.23993445378151]],[[37.6,30.885720590816025],[37.48,31.0073],[37.2198,31.2491],[36.9595,31.491],[37.455,31.6177],[37.6,31.65480595358224]]]}},{"type":"Feature","properties":{"cls":"solid"},"geometry":{"type":"LineString","coordinates":[[35.4581,31.4919],[35.4642,31.5686],[35.4801,31.6411],[35.5276,31.7351],[35.5594,31.7653],[35.5383,31.8193],[35.5491,31.8392],[35.5247,31.9192],[35.5406,31.932],[35.5355,31.9882],[35.5247,32.0117],[35.5228,32.0578],[35.5451,32.0868],[35.5352,32.1108],[35.5594,32.1551],[35.5552,32.1744],[35.5725,32.2376],[35.5565,32.3282],[35.561,32.3847]]}},{"type":"Feature","properties":{"cls":"solid"},"geometry":{"type":"LineString","coordinates":[[34.2003,31.3143],[34.2246,31.2757],[34.2484,31.2114]]}}]};
+/* curated major cities — geographic context only (not every town). Replaces Mapbox's own settlement
+   labels (hidden in localizeHe) so the set stays clean and controlled. rank = placement priority. */
+const IL_CITIES={type:'FeatureCollection',features:[
+ {type:'Feature',properties:{name:'ירושלים',rank:1},geometry:{type:'Point',coordinates:[35.2137,31.7683]}},
+ {type:'Feature',properties:{name:'תל אביב-יפו',rank:1},geometry:{type:'Point',coordinates:[34.7818,32.0853]}},
+ {type:'Feature',properties:{name:'חיפה',rank:1},geometry:{type:'Point',coordinates:[34.9896,32.7940]}},
+ {type:'Feature',properties:{name:'באר שבע',rank:1},geometry:{type:'Point',coordinates:[34.7913,31.2518]}},
+ {type:'Feature',properties:{name:'אילת',rank:1},geometry:{type:'Point',coordinates:[34.9482,29.5577]}},
+ {type:'Feature',properties:{name:'אשדוד',rank:2},geometry:{type:'Point',coordinates:[34.6553,31.8040]}},
+ {type:'Feature',properties:{name:'נתניה',rank:2},geometry:{type:'Point',coordinates:[34.8560,32.3215]}},
+ {type:'Feature',properties:{name:'ראשון לציון',rank:2},geometry:{type:'Point',coordinates:[34.8044,31.9730]}},
+ {type:'Feature',properties:{name:'אשקלון',rank:2},geometry:{type:'Point',coordinates:[34.5715,31.6688]}},
+ {type:'Feature',properties:{name:'טבריה',rank:2},geometry:{type:'Point',coordinates:[35.5312,32.7959]}},
+ {type:'Feature',properties:{name:'נצרת',rank:2},geometry:{type:'Point',coordinates:[35.3035,32.7020]}},
+ {type:'Feature',properties:{name:'צפת',rank:3},geometry:{type:'Point',coordinates:[35.4960,32.9650]}},
+ {type:'Feature',properties:{name:'קרית שמונה',rank:3},geometry:{type:'Point',coordinates:[35.5697,33.2079]}}
+]};
+/* Hebrew-only place names, restricted to the Israel polygon (drops all neighboring-country labels);
+   hide country/state/continent labels entirely. */
+function localizeHe(map){
+  if(!map.isStyleLoaded||!map.isStyleLoaded()) return;
+  if(map._heDone) return; map._heDone=true;
+  /* Mapbox Streets stores the native name in `name` — inside Israel that is Hebrew */
+  const heName=['coalesce',['get','name_he'],['get','name']];
+  (map.getStyle().layers||[]).forEach(l=>{
+    if(l.type!=='symbol') return;
+    if(l.id==='base-pins') return;   /* our own pins + their name labels — leave untouched */
+    if(/country|state|continent/i.test(l.id)){ try{map.setLayoutProperty(l.id,'visibility','none');}catch(e){} return; }
+    /* hide the white road-number / exit shields + motorway-junction boxes */
+    if(/shield|junction|motorway-junction/i.test(l.id)){ try{map.setLayoutProperty(l.id,'visibility','none');}catch(e){} return; }
+    /* hide Mapbox's own settlement labels — we render a curated major-cities layer instead (IL_CITIES) */
+    if(/^settlement/.test(l.id)){ try{map.setLayoutProperty(l.id,'visibility','none');}catch(e){} return; }
+    /* strip Mapbox's own marker glyphs (city / POI / natural / transit "dots") — keep the text labels */
+    if(l.id!=='base-pins' && l.layout && l.layout['icon-image']!==undefined){
+      try{ map.setPaintProperty(l.id,'icon-opacity',0); }catch(e){}
+    }
+    if(l.layout && l.layout['text-field']!==undefined){
+      try{ map.setLayoutProperty(l.id,'text-field',heName); }catch(e){}
+    }
+    if(l['source-layer']==='place_label' || /settlement|natural-point|water-point/i.test(l.id)){
+      try{ const ex=map.getFilter(l.id); const wf=['within',ISRAEL_POLY];
+        map.setFilter(l.id, ex ? ['all',ex,wf] : wf); }catch(e){}
+    }
+  });
+}
+/* Hide Mapbox's own admin boundary lines and draw our classified IL borders on top. Idempotent:
+   the hide is re-asserted on every call (cheap) because a style reload restores the layers. */
+function applyBorders(map){
+  if(!map.isStyleLoaded||!map.isStyleLoaded()) return;
+  IL_BORDER_ADMIN_LAYERS.forEach(id=>{ if(map.getLayer(id)){ try{map.setLayoutProperty(id,'visibility','none');}catch(e){} } });
+  if(map._ilbDone) return;
+  try{ if(!map.getSource('ilb')) map.addSource('ilb',{type:'geojson',data:IL_BORDERS}); }catch(e){ return; }
+  map._ilbDone=true;
+  /* place borders ABOVE roads/paths/routes but beneath text labels — insert before the FIRST
+     label (text) symbol layer (all road geometry sits below the label layers) */
+  let before; (map.getStyle().layers||[]).some(l=>{ if(l.type==='symbol' && l.layout && l.layout['text-field']!==undefined){ before=l.id; return true; } return false; });
+  const solidW =['interpolate',['linear'],['zoom'],6,0.7,10,1.5,14,2.4];
+  const dashW  =['interpolate',['linear'],['zoom'],6,0.9,10,1.7,14,2.7];
+  const NAVY='#213357';
+  const add=(id,filter,paint)=>{ if(map.getLayer(id)) return;
+    try{ map.addLayer({id,type:'line',source:'ilb',filter,layout:{'line-cap':'round','line-join':'round'},paint}, before); }catch(e){} };
+  /* thin muted borders between neighbouring states (context only) */
+  add('ilb-neighbor',['==',['get','cls'],'neighbor'],{'line-color':'#9aa3b2','line-opacity':0.7,'line-width':['interpolate',['linear'],['zoom'],6,0.5,12,1.1]});
+  /* State-of-Israel borders — incl. the Golan/Syria line — ONE colour (navy), SOLID */
+  add('ilb-solid',['match',['get','cls'],['solid','purple'],true,false],{'line-color':NAVY,'line-width':solidW});
+  /* יו"ש + עזה — same navy colour, DASHED (provisional) */
+  add('ilb-green',['==',['get','cls'],'green'],{'line-color':NAVY,'line-width':dashW,'line-dasharray':[2.8,1.6]});
+}
+/* curated major-city labels for geographic context — a small dot + Hebrew name. Kept BELOW the base
+   pins (inserted before 'base-pins') so the base markers always stay on top. */
+/* curated major-city context labels as DOM markers (mapboxgl.Marker). Uses the page's Assistant
+   font, so it renders reliably even in webviews where the map's own glyphs are blocked. */
+let cityMarkers=[];
+function addCities(map){
+  if(cityMarkers.length || typeof mapboxgl==='undefined') return;
+  IL_CITIES.features.forEach(function(f){
+    const el=document.createElement('div');
+    el.className='city-label';
+    el.textContent=f.properties.name;
+    cityMarkers.push(new mapboxgl.Marker({element:el,anchor:'left'})
+      .setLngLat(f.geometry.coordinates).addTo(map));
+  });
+}
+/* city names are geographic CONTEXT — hidden on the zoomed-out country view, revealed once you zoom in */
+const CITY_MIN_ZOOM=8.5;
+function updateCityVis(){ if(!map2) return; const show=map2.getZoom()>=CITY_MIN_ZOOM;
+  cityMarkers.forEach(function(m){ m.getElement().style.display = show ? '' : 'none'; }); }
+function pinEl(color){
+  const el=document.createElement('div');el.className='mpin';el.style.setProperty('--c',color);
+  el.innerHTML=`<svg viewBox="0 0 77 86" xmlns="http://www.w3.org/2000/svg"><path class="balloon" fill="#F8F9FA" d="M38.0654 8.714C54.671 8.714 65.418 21.91 65.418 38.385C65.418 47.767 61.62 54.216 56.694 59.233C54.223 61.751 51.466 63.909 48.751 65.897C46.056 67.87 43.358 69.704 41.099 71.521L41.02 71.594C39.402 73.349 36.729 73.349 35.11 71.594L35.033 71.522L34.13 70.809C31.983 69.147 29.581 67.493 27.203 65.751C24.468 63.747 21.725 61.6 19.28 59.105C14.41 54.134 10.714 47.771 10.714 38.385C10.714 21.91 21.46 8.714 38.0654 8.714Z"/><circle class="dot" cx="38" cy="38" r="20"/></svg>`;
+  return el;
+}
+/* ---- pins rendered INSIDE the GL canvas (a symbol layer) so they stay glued to the map while
+   panning / zooming — exactly like Google/Apple. No DOM-overlay swim or lag. ---- */
+const BALLOON_D="M38.0654 8.714C54.671 8.714 65.418 21.91 65.418 38.385C65.418 47.767 61.62 54.216 56.694 59.233C54.223 61.751 51.466 63.909 48.751 65.897C46.056 67.87 43.358 69.704 41.099 71.521L41.02 71.594C39.402 73.349 36.729 73.349 35.11 71.594L35.033 71.522L34.13 70.809C31.983 69.147 29.581 67.493 27.203 65.751C24.468 63.747 21.725 61.6 19.28 59.105C14.41 54.134 10.714 47.771 10.714 38.385C10.714 21.91 21.46 8.714 38.0654 8.714Z";
+const PIN_RATIO=2, PIN_W=72, PIN_H=80;                     /* @2x device px → displays at 36×40 css, like .mpin */
+function makePinImage(color,cb){
+  /* width/height are REQUIRED here: iOS/WebKit gives an SVG <img> zero intrinsic size when they're
+     absent, so drawImage() paints nothing → blank pin images → "no pins on the map". */
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="77" height="86" viewBox="0 0 77 86">'+
+    '<path fill="#F8F9FA" d="'+BALLOON_D+'"/>'+
+    '<circle cx="38" cy="38" r="20" fill="'+color+'"/></svg>';
+  var img=new Image();
+  img.onload=function(){
+    var c=document.createElement('canvas'); c.width=PIN_W; c.height=PIN_H;
+    var ctx=c.getContext('2d');
+    ctx.shadowColor='rgba(0,0,0,.3)'; ctx.shadowBlur=5*PIN_RATIO; ctx.shadowOffsetY=3*PIN_RATIO;
+    ctx.drawImage(img,0,0,PIN_W,PIN_H);
+    try{ cb(ctx.getImageData(0,0,PIN_W,PIN_H)); }catch(e){ cb(null); }
+  };
+  img.onerror=function(){ cb(null); };
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+var pinsGeo=null;
+function addBasePins(map){
+  function build(){
+    if(map.getSource('bases-src')) return;
+    if(!map.isStyleLoaded || !map.isStyleLoaded()) return;   /* wait for the style — load/styledata/idle retry */
+    var pending=bases.length;
+    bases.forEach(function(b,i){
+      makePinImage(b.color,function(imgData){
+        var id='pin-'+i;
+        try{ if(imgData && !map.hasImage(id)) map.addImage(id,imgData,{pixelRatio:PIN_RATIO}); }catch(e){}
+        if(--pending===0) place();
+      });
+    });
+    function place(){
+      if(map.getSource('bases-src')) return;
+      pinsGeo={type:'FeatureCollection',features:bases.map(function(b,i){ return {type:'Feature',id:i,
+        properties:{idx:i,icon:'pin-'+i,size:1,name:b.name,label:b.label||b.name},
+        geometry:{type:'Point',coordinates:[b.lng,b.lat]}}; })};
+      try{
+        map.addSource('bases-src',{type:'geojson',data:pinsGeo});
+        map.addLayer({id:'base-pins',type:'symbol',source:'bases-src',layout:{
+          'icon-image':['get','icon'],
+          'icon-anchor':'bottom',
+          'icon-allow-overlap':true,
+          'icon-ignore-placement':true,
+          'icon-size':['coalesce',['get','size'],1],    /* a feature PROPERTY — feature-state is NOT allowed in layout props */
+          /* base NAME under the pin (self-hosted glyphs → renders on-device even where webviews block Mapbox's) */
+          'text-field':['get','label'],
+          'text-font':['DIN Offc Pro Bold','Arial Unicode MS Bold'],
+          'text-size':['interpolate',['linear'],['zoom'],6,10.5,11,13],
+          'text-anchor':'top','text-offset':[0,0.55],
+          'text-allow-overlap':false,'text-optional':true
+        },paint:{
+          'text-color':'#213357','text-halo-color':'#ffffff','text-halo-width':1.6
+        }});
+      }catch(e){ window.__pinsErr=String(e); }
+    }
+  }
+  build();                              /* run now if the style is already up … */
+  map.on('load',build);                 /* … and retry whenever it becomes ready (each guarded) */
+  map.on('styledata',build);
+  map.on('idle',build);
+}
+/* selected-pin "pop" — animate the feature's `size` property (setData is cheap: 5 tiny features) */
+var selIdx=-1, pinRAF=0;
+var easeBack=function(t){ var c=1.70158; return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2); };
+function setPinSize(i,s){ if(!pinsGeo||!map2) return;
+  try{ pinsGeo.features[i].properties.size=s; var src=map2.getSource('bases-src'); if(src) src.setData(pinsGeo); }catch(e){} }
+function tweenPin(i,from,to,ms,ease){
+  var t0=null; cancelAnimationFrame(pinRAF);
+  function step(ts){ if(t0===null)t0=ts; var t=Math.min(1,(ts-t0)/ms); setPinSize(i,from+(to-from)*ease(t));
+    if(t<1) pinRAF=requestAnimationFrame(step); }
+  pinRAF=requestAnimationFrame(step);
+}
+function selectPin(i){
+  if(selIdx===i) return;
+  if(selIdx>=0) setPinSize(selIdx,1);
+  selIdx=i; tweenPin(i,1,1.18,260,easeBack);
+}
+function clearPin(){ if(selIdx>=0){ tweenPin(selIdx,1.18,1,180,easeOutCubic); selIdx=-1; } }
+function initMap2(){
+  if(map2 || typeof mapboxgl==='undefined') return;
+  map2=new mapboxgl.Map({container:'mapC2', style:'mapbox://styles/mapbox/streets-v11',
+    bounds:IL_BOUNDS, fitBoundsOptions:{padding:50}, minZoom:6.5, maxZoom:15,
+    dragRotate:false, pitchWithRotate:false, projection:'mercator', attributionControl:true,
+    /* Google/Apple-like glide — inertia that carries a touch longer & settles softer */
+    dragPan:{linearity:0.3, maxSpeed:1400, deceleration:2200},
+    transformRequest:glyphTransform});
+  map2.touchZoomRotate.disableRotation();
+  map2.addControl(new mapboxgl.NavigationControl({showCompass:false}), 'top-left');
+  addBasePins(map2);
+  addCities(map2);
+  map2.on('zoom',updateCityVis); updateCityVis();
+  /* one map click handler: hit-test the pins layer (with a little touch tolerance) → open, else close */
+  map2.on('click',function(e){
+    var x=e.point.x, y=e.point.y, f=[];
+    try{ f=map2.queryRenderedFeatures([[x-11,y-11],[x+11,y+11]],{layers:['base-pins']}); }catch(err){}
+    if(f.length){ var i=f[0].properties.idx; openBase(i); flyToBase(bases[i]); }
+    else closeBase();
+  });
+  map2.on('mouseenter','base-pins',function(){ map2.getCanvas().style.cursor='pointer'; });
+  map2.on('mouseleave','base-pins',function(){ map2.getCanvas().style.cursor=''; });
+  map2.on('styledata',()=>{localizeHe(map2);applyBorders(map2);});
+  map2.on('load',()=>{localizeHe(map2);applyBorders(map2);});
+  map2.on('idle',()=>{localizeHe(map2);applyBorders(map2);});
+  window.__m2=map2;
+  pumpMap(map2);
+}
+/* Apply Hebrew labels once the style is ready, and nudge a repaint (some webviews stall the first paint). */
+function pumpMap(map){
+  [150,500,1100,2000,3200,4800,6500].forEach(ms=>setTimeout(()=>{
+    try{ localizeHe(map); applyBorders(map); map.resize(); }catch(e){}
+  },ms));
+}
+const easeOutCubic=t=>1-Math.pow(1-t,3);
+/* current sheet peek height (matches the CSS var, which shrinks on short screens) */
+function peekPx(){ try{ return parseInt(getComputedStyle(document.getElementById('baseSheet')).getPropertyValue('--peek'),10)||340; }catch(e){ return 340; } }
+/* pan the tapped pin into the strip ABOVE the sheet (like Google/Apple: the pin never hides behind the card) */
+function flyToBase(b){ if(!map2) return;
+  try{ map2.easeTo({center:[b.lng,b.lat], zoom:Math.max(map2.getZoom(),12),
+    padding:{bottom:peekPx()+24}, duration:700, easing:easeOutCubic, essential:true}); }catch(e){}}
+/* render the grouped accordion (all bases of a group), with base index `activeI` expanded */
+function renderGroupAcc(groupKey, activeI){
+  const acc=document.getElementById('bsAcc');
+  const rows=bases.map((b,idx)=>({b,idx})).filter(o=>o.b.group===groupKey).map(o=>{
+    const open=o.idx===activeI;
+    return `<div class="acc-row ${open?'open':'closed'}" data-idx="${o.idx}">
+      <div class="acc-box">
+        <button class="acc-head" onclick="wbSelect(${o.idx})">${o.b.name}</button>
+        <div class="acc-body"><div><p><b>אופי השירות</b> – ${o.b.svc}</p></div></div>
+      </div>
+    </div>`;
+  }).join('');
+  acc.innerHTML=rows;
+}
+/* pick another base inside the open grouped drawer: expand it, collapse the rest, and jump the map */
+function wbSelect(idx){
+  const acc=document.getElementById('bsAcc');
+  let active=null;
+  [...acc.querySelectorAll('.acc-row')].forEach(r=>{ const on=(+r.getAttribute('data-idx'))===idx;
+    r.classList.toggle('open',on); r.classList.toggle('closed',!on); if(on) active=r; });
+  selectPin(idx); flyToBase(bases[idx]);
+  if(active){ try{ active.querySelector('.acc-head').scrollIntoView({block:'nearest',behavior:'smooth'}); }catch(e){} }
+}
+function openBase(i){const b=bases[i];
+  const sh=document.getElementById('baseSheet');
+  const desc=document.getElementById('bsDesc'), acc=document.getElementById('bsAcc');
+  const v=document.getElementById('bsVid');
+  if(b.group){                                   /* grouped drawer: title + accordion + one shared animation */
+    const g=BASE_GROUPS[b.group];
+    document.getElementById('bsName').textContent=g.title;
+    if(g.desc){ desc.style.display=''; desc.innerHTML=g.desc; } else { desc.style.display='none'; }
+    acc.style.display=''; renderGroupAcc(b.group,i);
+    if(v.getAttribute('src')!==g.anim){ v.src=g.anim; }
+  } else {                                        /* standalone drawer (unchanged behaviour) */
+    document.getElementById('bsName').textContent=b.name;
+    acc.style.display='none'; acc.innerHTML='';
+    desc.style.display=''; desc.innerHTML=b.desc;
+    if(v.getAttribute('src')!==b.anim){ v.src=b.anim; }
+  }
+  v.play().catch(()=>{});
+  sh.classList.remove('full'); sh.classList.add('open');
+  selectPin(i);}
+function closeBase(){document.getElementById('baseSheet').classList.remove('open','full');
+  try{document.getElementById('bsVid').pause();}catch(e){}
+  clearPin();
+  /* pull the map back out to the whole-country view so every pin is pickable again */
+  try{ map2 && map2.easeTo({padding:{bottom:0},duration:0,essential:true});
+       map2 && map2.fitBounds(IL_BOUNDS,{padding:50,duration:700,essential:true}); }catch(e){}}
+
+/* drag the sheet up/down like Google/Apple Maps: distance OR a quick flick snaps it; a tap expands.
+   tracks pointer velocity so a short fast swipe still opens/closes, and rubber-bands past fully-open. */
+(function(){
+  var sh=document.getElementById('baseSheet');
+  var grabY=0, startTop=0, rest=0, dragging=false, startFull=false, moved=0;
+  var lastY=0, lastT=0, vy=0;                        /* vy: px per ms, + = downward */
+  function xShift(){ return window.matchMedia('(max-width:699px)').matches ? '0' : '-50%'; }
+  function now(){ return (window.performance&&performance.now)?performance.now():Date.now(); }
+  sh.addEventListener('pointerdown',function(e){
+    if(e.target.closest('.base-close')) return;
+    if(sh.scrollTop>0) return;                      /* once scrolled, the inner scroll wins */
+    dragging=true; moved=0; grabY=e.clientY;
+    lastY=e.clientY; lastT=now(); vy=0;
+    startTop=sh.getBoundingClientRect().top;
+    rest=window.innerHeight-sh.getBoundingClientRect().height;   /* top position when fully open */
+    startFull=sh.classList.contains('full');
+    sh.style.transition='none';
+    try{ sh.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  sh.addEventListener('pointermove',function(e){
+    if(!dragging) return;
+    moved=e.clientY-grabY;
+    var t=now(), dt=t-lastT; if(dt>0){ vy=(e.clientY-lastY)/dt; lastY=e.clientY; lastT=t; }
+    var raw=startTop+moved;
+    var top=raw<rest ? rest+(raw-rest)*0.28 : raw;   /* rubber-band if pulled past fully-open */
+    sh.style.transform='translate('+xShift()+','+(top-rest)+'px)';
+  });
+  function end(){
+    if(!dragging) return; dragging=false;
+    sh.style.transition=''; sh.style.transform='';
+    var flickUp=vy<-0.5, flickDown=vy>0.5;           /* >500px/s counts as a flick */
+    if(flickUp || moved<-40) sh.classList.add('full');                       /* up */
+    else if(flickDown || moved>70){ if(startFull) sh.classList.remove('full'); else closeBase(); }  /* down */
+    else if(Math.abs(moved)<6 && !startFull) sh.classList.add('full');       /* tap */
+  }
+  sh.addEventListener('pointerup',end);
+  sh.addEventListener('pointercancel',end);
+})();
+
+/* ---------- sticky scroll-spy tabs (click = scroll to section; scroll = mark current) ---------- */
+const scroller=document.getElementById('scroll');
+const tabs=[...document.querySelectorAll('.tab')];
+function setActiveTab(id){ tabs.forEach(t=>t.classList.toggle('on', t.dataset.target===id)); }
+tabs.forEach(t=>t.onclick=()=>{
+  const el=document.getElementById(t.dataset.target);
+  if(t.dataset.target!=='s-bases') closeBase();
+  setActiveTab(t.dataset.target);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+});
+/* init the map lazily the first time the bases section approaches, then keep it correctly sized */
+let mapInit=false;
+function ensureMap(){ if(mapInit) return; mapInit=true; initMap2();
+  setTimeout(()=>{try{map2&&map2.resize();}catch(e){}},60);
+  setTimeout(()=>{try{map2&&map2.resize();}catch(e){}},400); }
+/* scroll-spy: the section crossing the viewport centre owns the active tab */
+const spy=new IntersectionObserver((entries)=>{
+  entries.forEach(en=>{ if(en.isIntersecting) setActiveTab(en.target.id); });
+},{root:scroller, rootMargin:'-50% 0px -49% 0px', threshold:0});
+['s-roles','s-bases','s-service'].forEach(id=>{ const el=document.getElementById(id); if(el) spy.observe(el); });
+/* preload + resize the map as the bases section comes near */
+new IntersectionObserver((e)=>{ if(e.some(x=>x.isIntersecting)) ensureMap(); },
+  {root:scroller, rootMargin:'300px 0px 300px 0px'}).observe(document.getElementById('s-bases'));
+
+/* ---------- service tracks + timeline (rail of stage cards + stepper) — גרסה 1 ---------- */
+/* main track = מסלול הגיוס והשירות (4 שלבים). טקסטים מתוך מסמך התוכן, סבב 2. */
+const tlSteps=[{n:1,label:'שיבוץ למתפ״ש'},{n:2,label:'טירונות'},{n:3,label:'קורס תיאום וקישור'},{n:4,label:'שיבוץ לתפקיד'}];
+const tlCards=[
+ {no:'01',title:'שיבוץ למתפ״ש',text:'קבלת השיבוץ ליחידה. מכאן מתחיל המסלול שלכם במתפ״ש.',imgs:['../assets/tl1a.jpg','../assets/tl1b.jpg','../assets/tl1c.jpg']},
+ {no:'02',title:'טירונות',text:'הכשרה בת כ-3 שבועות במחנה גדעונים. במהלך הטירונות תהפכו מאזרחים לחיילים, תלמדו את ערכי צה״ל ומיומנויות צבאיות בסיסיות, ותעברו היכרות ראשונית עם היחידה.',imgs:['../assets/tl2a.jpg','../assets/tl2b.jpg','../assets/tl2c.jpg']},
+ {no:'03',title:'קורס תיאום וקישור',text:'הכשרה בת כ-6 שבועות במחנה גדעונים. במהלך הקורס תכירו את פעילות היחידה ואת הזירה הפלסטינית, תרכשו בסיס בערבית מדוברת ותיחשפו לאפשרויות השיבוץ השונות שלכם בסיומו.',imgs:['../assets/tl3a.jpg','../assets/tl3b.jpg','../assets/tl3c.jpg']},
+ {no:'04',title:'שיבוץ לתפקיד',text:'שיבוץ לאחד מתחומי הפעילות של היחידה ובהם תיאום אזרחי, תיאום ביטחוני, תשתיות, מידע ומחקר, קשרי חוץ, דוברות והסברה ועוד.',imgs:['../assets/tl4a.jpg','../assets/tl4b.jpg','../assets/tl4c.jpg']}
+];
+/* extra tracks (מסלולים נוספים) — each is a single info card, no stepper. keyed by toggle label. */
+const trackCards={
+ 'קצונה':[{title:'יציאה לקצונה',text:'במתפ״ש קיימת אפשרות לצאת לקצונה במהלך השירות, במסלול המיועד לחיילים וחיילות המעוניינים להמשיך לשירות קבע. המסלול כולל מיונים, קורס קצינים בבה״ד 1 והשלמה חיילית ייעודית למתפ״ש שמתקיימת גם היא בבית הספר לתיאום וקישור במחנה גדעונים.'}],
+ 'יעודי לקצונה':[{title:'מסלול ייעודי לקצונה',text:'מסלול ייחודי המיועד למועמדים שאותרו עוד לפני גיוסם כבעלי פוטנציאל פיקודי גבוה, וקיבלו שיבוץ למסלול זה. החניכים עוברים הכשרה מקצועית בבית הספר לתיאום וקישור, משתבצים בשטח לתקופת התנסות ביחידה, ולאחר מכן יוצאים לקורס קצינים. בסיום המסלול משתבצים בתפקידי קצונה במגוון תחומי הליבה של היחידה כבר במהלך השנה הראשונה לשירות — הדרך המהירה ביותר להפוך לקצין תיאום וקישור במתפ״ש.'}],
+ 'מסלול עמית':[{title:'מסלול עמ״ית',text:'מיועד למועמדים בעלי רקע מתקדם בשפה הערבית (5 יח״ל). המסלול כולל הכשרה מועצמת בערבית מדוברת וספרותית, ומיועד למשרתים שישתלבו בתפקידים שבהם השפה הערבית מהווה חלק מרכזי מהעשייה.'}]
+};
+const tlRail=document.getElementById('tlRail');
+const stp=document.getElementById('stepper');
+let slideTimers=[];
+function clearSlides(){ slideTimers.forEach(clearInterval); slideTimers=[]; }
+function tlCardEl(inner){ const el=document.createElement('div');el.className='role-card';
+  el.style.cssText='aspect-ratio:auto;background:none;box-shadow:none;flex:0 0 300px;overflow:visible';
+  el.innerHTML='<div class="tl-card">'+inner+'</div>'; return el; }
+function buildMainTrack(){
+  clearSlides();
+  stp.style.display=''; stp.innerHTML='';
+  tlSteps.forEach((s)=>{ const el=document.createElement('div');el.className='step'+(s.n===1?' on':'');
+    el.innerHTML=`<div class="num">${s.n}</div><small>${s.label}</small>`;
+    el.onclick=()=>goTL(s.n-1); stp.appendChild(el); });
+  tlRail.innerHTML='';
+  tlCards.forEach(c=>{ const slides=c.imgs.map((src,k)=>`<img class="tl-slide${k===0?' on':''}" src="${src}" alt="">`).join('');
+    tlRail.appendChild(tlCardEl(`<div class="big">${c.no}</div><h3>${c.title}</h3><p>${c.text}</p><div class="ph">${slides}</div>`)); });
+  document.querySelectorAll('#tlRail .ph').forEach((ph,n)=>{ const imgs=[...ph.querySelectorAll('.tl-slide')];
+    if(imgs.length<2) return; let i=0;
+    slideTimers.push(setInterval(()=>{ imgs[i].classList.remove('on'); i=(i+1)%imgs.length; imgs[i].classList.add('on'); },3200+n*260)); });
+  tlRail.scrollLeft=0; updateStepper(0);
+}
+function buildInfoTrack(cards){
+  clearSlides();
+  stp.style.display='none';
+  tlRail.innerHTML='';
+  cards.forEach(c=>{ tlRail.appendChild(tlCardEl(`<h3>${c.title}</h3><p>${c.text}</p>`)); });
+  tlRail.scrollLeft=0;
+}
+document.querySelectorAll('#svcToggle button').forEach(b=>{
+  b.onclick=()=>{ document.querySelectorAll('#svcToggle button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+    const key=b.textContent.trim();
+    if(trackCards[key]) buildInfoTrack(trackCards[key]); else buildMainTrack(); };
+});
+buildMainTrack();
+tlRail.addEventListener('scroll',()=>{ if(stp.style.display==='none'||!tlRail.children.length) return;
+  const w=tlRail.children[0].offsetWidth+21; updateStepper(Math.round(Math.abs(tlRail.scrollLeft)/w));});
+function goTL(i){const r=tlRail;r.scrollTo({left:-(i*r.children[0].offsetWidth+i*21),behavior:'smooth'});}
+function updateStepper(i){[...stp.children].forEach((el,idx)=>el.classList.toggle('on',idx===i));}
+
+
+/* ---------- boot hand-off (reference: brand.dropbox.com) ---------- */
+(function(){
+  var boot=document.getElementById('boot'), bl=document.getElementById('bootLogo'),
+      nav=document.getElementById('navLogo');
+  if(!boot||!bl||!nav){ if(nav){nav.classList.add('landed');nav.style.opacity='1';} return; }
+  var still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.body.style.overflow='hidden';
+  /* inline the SVG — CSS animations do not run inside an <img> */
+  fetch('../assets/logo-intro.svg').then(function(r){return r.text();})
+   .then(function(t){ bl.innerHTML=t; start(); })
+   .catch(function(){ nav.classList.add('landed'); nav.style.opacity='1'; boot.remove(); document.body.style.overflow=''; });
+  function start(){
+  setTimeout(function(){
+    var a=bl.getBoundingClientRect(), b=nav.getBoundingClientRect();
+    bl.style.transform='translate('+((b.left+b.width/2)-(a.left+a.width/2))+'px,'
+      +((b.top+b.height/2)-(a.top+a.height/2))+'px) scale('+(b.width/a.width)+')';
+    boot.classList.add('lift');
+    setTimeout(function(){                 /* crossfade the flying emblem into the real nav logo */
+      nav.classList.add('landed'); nav.style.opacity='1';   /* inline beats the cascade */
+      bl.style.opacity='0'; boot.classList.add('gone');
+      document.body.style.overflow='';
+      setTimeout(function(){ boot.remove(); },420);
+    }, still?60:420);
+  }, still?250:1500);                      /* the SVG draw+paint runs ~1.5s */
+  }
+})();
+
+/* ---------- side menu ---------- */
+(function(){
+  var m=document.getElementById('sideMenu'), b=document.querySelector('header>.burger'), x=document.getElementById('smClose');
+  if(!m||!b) return;
+  function open(){ m.classList.add('open'); document.body.style.overflow='hidden'; }
+  function close(){ m.classList.remove('open'); document.body.style.overflow=''; }
+  b.onclick=open; if(x) x.onclick=close;
+  m.querySelectorAll('.sm-list a').forEach(function(a){ a.addEventListener('click',function(){
+    var t=a.getAttribute('data-tab');
+    if(t){ var tab=document.querySelector('.tab[data-tab="'+t+'"]'); if(tab) tab.click(); }
+    setTimeout(close,80); }); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') close(); });
+})();
+</script>
+</body>
+</html>

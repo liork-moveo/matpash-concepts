@@ -11,8 +11,8 @@
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 <style>
   :root{
-    /* PALETTE — primary + black + white + gray (excl. maps/pins/logos): #266594, #000, #fff, gray.
-       ALL text is black (#000) or white (#fff). Primary #266594 = non-text accents; gray = neutral hairlines/fills. */
+    /* PALETTE — black/white + primary + secondary (excl. maps/pins/logos): #fff, #B3C9DA, #266594, #000.
+       ALL text is black (#000) or white (#fff). Primary #266594 = non-text accents; #B3C9DA = its light "off" tone. */
     --navy:#000000;      /* text ink → black */
     --navy-deep:#000000;
     --sand:#f8f9fa;
@@ -21,7 +21,7 @@
     --muted:#000000;
     --line:#000000;
     --accent:#266594;    /* PRIMARY brand colour — non-text elements only (indicators, fills, icons) */
-    --teal-light:#D4D7DA;   /* neutral light gray — hairlines / inactive chip borders / muted fills */
+    --teal-light:#B3C9DA;   /* secondary "off" tone — light tint of the primary #266594 */
     --on-dark:#f8f9fa;
     --pin-teal:#45b0c4;--pin-green:#1f7a5c;--pin-yellow:#f5b21e;
     --shadow:0 8px 22px -12px rgba(27,53,87,.22);   /* tight halo — hugs the card so the bg stays clean #F2F4F5 */
@@ -54,8 +54,8 @@
   .logo-c{height:48.73px;width:48.73px;object-fit:contain}
   /* centre the emblem on the phone screen, not between the burger and the social icons */
   header>.logo-c{position:absolute;left:50%;transform:translateX(-50%)}
-  .burger{flex:0 0 auto;width:22px;height:16px;display:flex;flex-direction:column;justify-content:space-between;position:relative;z-index:2}
-  .burger span{display:block;width:100%;height:2px;background:#000;border-radius:2px}   /* 3 identical black bars, explicit width/height so it renders on every device (incl. iPhone 15 Pro Max) */
+  .burger{width:19.9px;height:14px;display:flex;flex-direction:column;justify-content:space-between}
+  .burger span{height:2px;background:var(--ink);border-radius:2px}
 
   /* HERO */
   .hero{height:100%;position:relative;display:flex;flex-direction:column;justify-content:flex-end;
@@ -68,9 +68,9 @@
   .hero .eyebrow{background:none;color:#ffffff;font-size:14px;font-weight:400;letter-spacing:0.56px;line-height:1.6;
     padding:0;margin-bottom:8px}
   /* hero typography per Figma 1975-635: 55px title, line-height .85, only "מתפ״ש" bold */
-  .hero h1{font-size:52px;font-weight:400;line-height:0.85;width:338px;max-width:none}   /* Display */
+  .hero h1{font-size:55px;font-weight:400;line-height:0.85;width:338px;max-width:none}
   .hero h1 b{font-weight:700}
-  .hero p{font-size:20px;line-height:1.2;margin-top:25px;opacity:.95;max-width:332px}   /* Lead */
+  .hero p{font-size:22px;line-height:1.2;margin-top:25px;opacity:.95;max-width:332px}
   .hero p b{font-weight:700}
   .scroll-hint{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:3;color:var(--on-dark);opacity:.85;animation:bob 1.8s infinite}
   @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
@@ -81,7 +81,7 @@
      a rounded capsule that floats over the scroll (no full-width bar, no underline),
      with a brighter glass pill that slides behind the active tab. Glass = blur+saturate+rim sheen. */
   .tabs{position:sticky;top:10px;z-index:55;width:-webkit-fit-content;width:fit-content;max-width:calc(100% - 24px);
-    margin:56px auto 10px;display:flex;gap:4px;padding:5px;border-radius:9999px;
+    margin:10px auto;display:flex;gap:4px;padding:5px;border-radius:9999px;
     background:rgba(255,255,255,0.5);
     -webkit-backdrop-filter:blur(20px) saturate(180%);
     backdrop-filter:blur(20px) saturate(180%);
@@ -109,53 +109,47 @@
   /* content-height (NOT full screen) so the sections above & below peek in, Wiz-style; wide text, roomy padding */
   .about{background:var(--accent);position:relative;
     display:flex;flex-direction:column;align-items:center;justify-content:center;padding:84px 26px 92px}
-  .about-text{max-width:none;width:100%;color:#fff;font-size:20px;font-weight:500;line-height:1.42;letter-spacing:-0.3px;text-align:center}   /* Lead */
-  /* "עוד עלינו" CTA — white pill on the blue panel, opens the full about page */
-  .about-cta{margin-top:28px;background:#fff;color:var(--accent);font-size:16px;font-weight:700;
-    border-radius:9999px;padding:13px 34px;box-shadow:0 6px 18px -8px rgba(0,0,0,.35);cursor:pointer}
-  .about-cta:active{opacity:.85}
+  .about-text{max-width:none;width:100%;color:#fff;font-size:27px;font-weight:500;line-height:1.42;letter-spacing:-0.3px;text-align:center}
   .about-more{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:#fff;opacity:.9;background:none;border:0;cursor:pointer}
   /* scroll-margin clears the full sticky tabs bar (~61px) so a tab-click never hides the section title */
   /* clear separation between sections (~48–64px is the mobile norm for major breaks) */
-  /* Lemonade-style alternating bands: equal generous vertical padding, each section its own bg colour.
-     roles = gray, map = white, service = gray → clean colour change at every boundary. */
-  .sec{padding:52px 20px;scroll-margin-top:72px}
+  .sec{padding:32px 20px 48px;scroll-margin-top:72px}
   .sec.nopad{padding:0;scroll-margin-top:72px}
-  #s-roles{background:#F2F4F5}
-  #s-service{background:#F2F4F5}
-  .sec-title{font-size:28px;font-weight:700;text-align:center;color:var(--navy);margin:0 0 18px;line-height:1.05}
-  #s-roles .sec-title{line-height:.92}   /* roles title per Figma 1975-684 */
-  #s-bases .sec-title{padding-top:6px;margin:0 0 14px}   /* map section header ("איפה משרתים?") */
+  .sec-title{font-size:34px;font-weight:700;text-align:center;color:var(--navy);margin:0 0 26px;line-height:.95}
+  #s-roles .sec-title{font-size:22px;line-height:.92}   /* roles title per Figma 1975-684 */
   /* ---------- roles carousel (גרסה 1) ---------- */
   /* rail sits inside the section's 20px padding → content box = screen − 40px, IDENTICAL to the map (margin:0 20px).
      card flex:0 0 100% therefore equals the map width exactly. no negative-margin bleed = no width surprises. */
-  .rail{display:flex;gap:21px;overflow-x:auto;scroll-snap-type:x mandatory;
-    padding:4px 0 6px;margin:0 -20px;padding-inline:43.5px;scrollbar-width:none}
+  .rail{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;
+    padding:4px 0 6px;scrollbar-width:none}
   .rail::-webkit-scrollbar{display:none}
   /* white content card (Figma 1956-216): title → desc(+read-more) → region pills → video w/ caption */
   /* all cards span EXACTLY the same width as the map (screen − 40px, 20px each side); snap start = flush edge, no peek at rest */
-  /* video-first card (גישה 1 / concept-1): full-bleed video, title + teaser + "קרא עוד" overlaid at the bottom */
-  .role-card{flex:0 0 288px;scroll-snap-align:center;position:relative;border-radius:20px;
-    overflow:hidden;aspect-ratio:288/512;background:var(--accent);box-shadow:var(--shadow)}
-  .rc-face{position:absolute;inset:0}
-  .rc-face video{width:100%;height:100%;object-fit:cover;display:block}
-  .rc-face .grad{position:absolute;inset:0;background:linear-gradient(180deg,transparent 42%,rgba(10,26,45,.92));transition:opacity .3s}
-  /* while playing: fade the dark gradient + title/teaser so the video's own (burned-in) subtitles are fully visible */
-  .role-card.playing .grad{opacity:0}
-  .role-card.playing .rc-meta h3,.role-card.playing .rc-short{opacity:0;pointer-events:none}
-  .rc-meta h3,.rc-short{transition:opacity .3s}
-  .rc-play{position:absolute;inset:0;margin:auto;width:48px;height:48px;border-radius:50%;
+  .role-card{flex:0 0 100%;scroll-snap-align:start;position:relative;border-radius:20px;
+    overflow:hidden;height:524px;background:#fff;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;align-items:center;padding:22px 18px 18px}
+  .rc-head{width:100%;text-align:right}
+  .rc-title{font-size:18px;font-weight:700;line-height:1.15;color:var(--navy);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  /* fixed 2-line description → every card shows the same text height, so the video below is IDENTICAL in size */
+  .rc-desc{position:relative;margin-top:8px;font-size:15px;line-height:1.35;color:rgba(0,0,0,.72);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;height:2.7em}
+  /* "קרא עוד" pinned to the end of line 2 (RTL = bottom-left), white mask hides the truncated text behind it */
+  .rc-more{position:absolute;inset-inline-end:0;bottom:0;font-weight:700;color:var(--navy);
+    background:#fff;padding-inline-start:6px;cursor:pointer;white-space:nowrap}
+  .rc-tags{display:flex;gap:6px;flex-wrap:nowrap;justify-content:flex-start;width:100%;margin:12px 0;overflow:hidden}
+  .rc-tags span{display:inline-flex;align-items:center;gap:5px;background:#f1f4f8;border-radius:100px;
+    padding:6px 13px;font-size:13px;font-weight:400;letter-spacing:.4px;color:var(--navy);white-space:nowrap}
+  .rc-tags span svg{width:9px;height:13px;fill:var(--accent);flex-shrink:0}
+  .rc-video{position:relative;flex:1;min-height:0;width:100%;border-radius:14px;overflow:hidden;background:#000}
+  .rc-video video{width:100%;height:100%;object-fit:cover}
+  .rc-play{position:absolute;inset:0;margin:auto;width:52px;height:52px;border-radius:50%;
     background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;transition:opacity .25s}
   .rc-play svg{fill:var(--accent);margin-inline-start:3px}
-  .rc-meta{position:absolute;bottom:0;inset-inline:0;padding:18px 20px;color:#fff;z-index:2;text-align:right}
-  .rc-meta h3{font-size:22px;font-weight:700;line-height:1.2}
-  /* teaser is ONE line: short text + "…" then the "קרא עוד" button, all on a single row.
-     text truncates with an ellipsis if ever too long, so a word never breaks mid-way. */
-  .rc-short{font-size:14px;opacity:.9;line-height:1.35;margin-top:4px;overflow:hidden}
-  .rc-more{font-size:14px;font-weight:700;text-decoration:underline;cursor:pointer;white-space:nowrap;color:#fff}
-  .role-card .vp-bar{position:relative;height:3px;border-radius:3px;background:rgba(255,255,255,.32);
-    margin-top:12px;direction:ltr;cursor:pointer;touch-action:none;z-index:3}
-  .vp-bar i{position:absolute;top:0;bottom:0;left:0;width:0;background:#fff;border-radius:3px}
+  .rc-cap{position:absolute;left:0;right:0;bottom:0;padding:24px 14px 20px;
+    background:linear-gradient(180deg,transparent,rgba(18,39,64,.85));
+    color:#fff;font-size:14px;font-weight:600;text-align:center;pointer-events:none}
+  .role-card .vp-bar{position:absolute;left:10px;right:10px;bottom:8px;z-index:3}
   /* fullscreen ("expand to story") button + modal */
   .rc-expand{position:absolute;top:10px;right:10px;z-index:4;width:32px;height:32px;border-radius:50%;
     background:rgba(0,0,0,.42);border:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -167,39 +161,34 @@
     background:rgba(255,255,255,.18);color:#fff;border:0;font-size:20px;cursor:pointer;
     display:flex;align-items:center;justify-content:center}
   /* full description reveal — a white overlay so the slider card keeps a fixed size */
-  /* "קרא עוד" inner card — WHITE with black text, keeps the location tags */
-  .role-card .rc-back{position:absolute;inset:0;background:#fff;color:#000;z-index:5;
-    padding:44px 20px 20px;display:none;flex-direction:column}
-  .role-card.flipped .rc-face{display:none}
+  /* "קרא עוד" inner card — BLUE with white text, keeps the location tags */
+  .role-card .rc-back{position:absolute;inset:0;background:var(--accent);color:#fff;z-index:5;
+    padding:22px 20px 22px;display:none;flex-direction:column}
   .role-card.flipped .rc-back{display:flex}
   .rc-close{position:absolute;top:12px;left:12px;width:32px;height:32px;z-index:6;
-    display:flex;align-items:center;justify-content:center;font-size:18px;color:#000;
-    background:rgba(0,0,0,.06);border-radius:50%;cursor:pointer}
-  .rc-back h3{font-size:22px;font-weight:700;line-height:1.2;text-align:right;margin:0 0 10px;color:#000}
-  .rc-back p{font-size:16px;line-height:1.42;text-align:right;overflow-y:auto;color:#000;flex:1;min-height:0}   /* Body */
-  .rc-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;flex:0 0 auto}
-  /* location tags: allow long labels (e.g. "המנהל האזרחי באיו״ש") to wrap onto 2 lines instead of clipping */
-  .rc-tags span{display:inline-flex;align-items:center;gap:5px;background:#F2F4F5;border-radius:14px;
-    padding:6px 12px;font-size:12px;font-weight:400;color:#000;white-space:normal;line-height:1.25;max-width:100%}
-  .rc-tags span svg{width:9px;height:13px;flex-shrink:0}
+    display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;
+    background:rgba(255,255,255,.18);border-radius:50%;cursor:pointer}
+  .rc-back h3{font-size:22px;font-weight:700;line-height:1.2;text-align:right;margin:0 0 10px;color:#fff}
+  .rc-back p{font-size:15px;line-height:1.42;text-align:right;overflow-y:auto;color:#fff;flex:1;min-height:0}
+  /* tags flush to the bottom edge (equal gap to the title-at-top gap) */
+  .rc-back .rc-tags{justify-content:flex-start;margin:14px 0 0;flex:0 0 auto}
+  .rc-back .rc-tags span{background:rgba(255,255,255,.2);color:#fff}
   .dots{display:flex;gap:7px;justify-content:center;margin-top:16px}
   .dots i{width:8.86px;height:8.86px;border-radius:50%;background:var(--line);opacity:.35;transition:.3s;cursor:pointer}
   .dots i.on{background:var(--accent);opacity:1;width:19.44px;border-radius:5px}
   /* ---------- bases map (in linear scroll) ---------- */
   /* tall map that spans most of the screen, leaving only a small peek of the next section's title
      so the user knows to scroll on. the drawer lives INSIDE this box (position:absolute). */
-  #s-bases{background:#fff;padding:52px 0}   /* WHITE band for the map section (Lemonade-style alternation) */
-  /* map keeps ONE fixed (large) height — lvh is the STABLE large-viewport unit, so it never resizes
-     while scrolling (dvh was the culprit that grew/shrank the map as the browser toolbar hid/showed).
-     vh first as a fallback for older engines, lvh overrides where supported. */
-  #s-bases .map-full{height:calc(100vh - 230px);height:calc(100lvh - 230px);
-    border-radius:var(--radius);margin:0 20px;width:auto}
+  #s-bases{padding-top:40px}
+  #s-service{padding-top:72px}   /* bigger breathing room between the map and the recruitment section (like roles→map) */
+  /* smaller map: the next section (service toggle pills) peeks below so it's clearly scrollable */
+  #s-bases .map-full{height:calc(100dvh - 57px - 46px - 80px);border-radius:var(--radius);margin:0 20px;width:auto}
   /* hint = small pill overlay at the bottom-center of the map; the drawer slides up over it when open */
-  #s-bases .map-hint{position:absolute;bottom:56px;left:50%;transform:translateX(-50%);margin:0;z-index:5;
+  #s-bases .map-hint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);margin:0;z-index:5;
     background:rgba(255,255,255,.92);padding:6px 14px;border-radius:100px;font-size:12px;white-space:nowrap;
     box-shadow:0 2px 8px rgba(0,0,0,.12);pointer-events:none}
   /* recenter button — resets the map to its initial country view */
-  .map-recenter{position:absolute;bottom:12px;left:12px;z-index:6;width:38px;height:38px;border-radius:10px;
+  .map-recenter{position:absolute;top:12px;right:12px;z-index:6;width:38px;height:38px;border-radius:10px;
     background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.18);border:0;cursor:pointer;color:var(--navy);
     display:flex;align-items:center;justify-content:center}
   .map-recenter svg{width:20px;height:20px}
@@ -213,30 +202,18 @@
      inactive = white + hairline; active = light-blue fill #B6D2FF, no border; text always black. */
   .toggle button,.wb-tab{flex:0 0 auto;white-space:nowrap;text-align:center;cursor:pointer;
     background:#fff;color:#000;border:1px solid var(--teal-light);border-radius:9999px;
-    padding:7px 16px;font-weight:600;font-size:14px;line-height:1.2}   /* Small */
+    padding:7px 16px;font-weight:600;font-size:15px;line-height:1.2}
   .toggle button.on,.wb-tab.on{background:var(--accent);color:#fff;border-color:transparent}
   /* service pills: bleed to screen edges, sit close to the cards below */
   .toggle{margin:0 -20px 8px;padding:0 20px 2px}
   /* WB drawer tabs: bleed to the drawer edges */
-  .wb-tabs{margin:0 -22px 16px;padding:0 22px;touch-action:pan-x}   /* horizontal tab scroll still works even though the drawer blocks vertical touch */
-  /* service (גיוס) rail: each card = the MAP width exactly (screen − 40px, no peek).
-     override the roles-rail peek geometry; gap 14px matches the stepper-scroll maths in JS. */
-  #tlRail{margin:0;padding:0 0 6px;padding-inline:0;gap:14px}
-  .tl-card{background:#fff;color:var(--navy);border-radius:20px;padding:22px;position:relative;overflow:hidden;
+  .wb-tabs{margin:2px -22px 14px;padding:0 22px}
+  .tl-card{background:#fff;color:var(--navy);border-radius:20px;padding:22px 22px;position:relative;overflow:hidden;
     width:100%;height:100%;display:flex;flex-direction:column}
-  /* fixed header zone (number + title, or title only) → the image below is IDENTICAL in size on every card */
-  .tl-head{flex:0 0 auto;min-height:92px;display:flex;flex-direction:column;justify-content:flex-end}
-  .tl-head-info{min-height:0}   /* info tracks (עמית/קצונה/ייעודי) have no number → title sits at the TOP (number's position), no gap */
   .tl-card .big{font-size:60px;font-weight:700;line-height:.92;text-align:right;color:var(--navy)}
-  .tl-card h3{font-size:22px;font-weight:700;line-height:1.2;margin:2px 0 0;text-align:right}
-  /* body text: exactly 5 lines by default (reserved height), clamped with "קרא עוד" when longer */
-  .tl-text{font-size:16px;line-height:1.45;text-align:right;color:var(--navy);margin-top:8px;overflow:hidden;min-height:calc(1.45em * 3)}
-  .tl-card.expanded .tl-text{overflow:visible;min-height:0}
-  /* inline read-more: whole word + "…" + button on the SAME last line (JS trims by whole words, never mid-word) */
-  .rm-ell{white-space:nowrap}
-  .rm-more{font-size:14px;font-weight:700;color:var(--accent);text-decoration:underline;cursor:pointer;white-space:nowrap;background:none;border:0;padding:0}
-  /* image fills the remaining space → same size when text is 5 lines; SHRINKS when "קרא עוד" opens the full text */
-  .tl-card .ph{flex:1 1 auto;min-height:48px;margin-top:12px;border-radius:11px;overflow:hidden;position:relative}
+  .tl-card h3{font-size:24px;font-weight:700;line-height:1.2;margin:2px 0 8px;text-align:right}
+  .tl-card p{font-size:16px;line-height:1.2;text-align:right;margin-bottom:16px}
+  .tl-card .ph{margin-top:auto;border-radius:11px;overflow:hidden;aspect-ratio:284.7/189.83;position:relative;flex:0 0 auto}
   .tl-card .ph img{width:100%;height:100%;object-fit:cover}
   .tl-card .ph .tl-slide{position:absolute;inset:0;opacity:0;transition:opacity .9s ease}
   .tl-card .ph .tl-slide.on{opacity:1}
@@ -252,12 +229,9 @@
   .step .dot-icon svg{width:0;height:0;opacity:0;transition:opacity .18s}
   .step small{font-size:13px;text-align:center;color:var(--navy);font-weight:400;line-height:1.15}
   .step.on small{font-weight:700}
-  .step.on .dot-icon{width:38px;height:38px;background:#fff;border-width:1.5px;border-color:var(--accent);color:var(--accent)}   /* selected = blue STROKE, not a full-blue fill; same 1.5px as the line + small dots */
+  .step.on .dot-icon{width:38px;height:38px;background:#fff;border-width:2px;border-color:var(--accent);color:var(--accent)}   /* selected = blue STROKE, not a full-blue fill */
   .step.on .dot-icon svg{width:20px;height:20px;opacity:1}
-  .page-end{height:0}   /* no extra gap below the footer */
-  /* main-page footer — identical buttons to the menu footer (.sm-social/.sm-ic/.sm-wa), laid out the same way */
-  .site-foot{display:flex;align-items:center;justify-content:space-between;padding:22px 22px 14px;
-    border-top:1px solid var(--teal-light);background:var(--sand)}
+  .page-end{height:60px}
   /* whatsapp icon in the nav bar (same size as ig/tt) */
   /* .wa-ic sized by the shared .h-social svg rule (uniform height) */
   @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -308,59 +282,45 @@
   #p-bases{padding:0}
   #p-bases.on{display:flex;flex-direction:column;height:100%}
   /* no touch-action:none — cooperativeGestures lets one-finger touches scroll the page through the map */
-  .map-full{position:relative;flex:1;min-height:0;overflow:hidden;background:#F2F4F5}
+  .map-full{position:relative;flex:1;min-height:0;overflow:hidden;background:#eef3e8}
   /* hide the Mapbox wordmark — the required attribution stays in the (i) info control */
   .mapboxgl-ctrl-logo{display:none!important}
   .mapgl{position:absolute;inset:0;width:100%;height:100%}
-  /* DON'T set position here — Mapbox's own .mapboxgl-marker{position:absolute} must win, else the
-     block wrapper stretches to the map width and the anchor shifts every pin sideways. */
-  .mpin-wrap{cursor:pointer;--c:#2e9e44;--balloon:#F8F9FA}
+  .mpin-wrap{position:relative;cursor:pointer;--c:#2e9e44;--balloon:#F8F9FA}
   .mpin{width:36px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.3));line-height:0;transform-origin:bottom center;transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
   .mpin svg{display:block;width:100%;height:auto}
   .mpin .dot{fill:var(--c)}
   .mpin .balloon{fill:var(--balloon)}
   .mpin-wrap.sel .mpin{transform:scale(1.18)}   /* selected pop */
-  .mpin-lbl{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;white-space:nowrap;
-    font-size:14px;font-weight:700;line-height:1.1;color:#213357;
+  .mpin-lbl{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:1px;white-space:nowrap;
+    font-size:12px;font-weight:700;line-height:1.1;color:#213357;
     text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff,0 0 3px #fff;pointer-events:none}
   .mpin-wrap.wb.dim{--c:#7cc48c;--balloon:#c2c9c6}   /* non-selected West-Bank pins: lighter green + grey balloon */
-  .map-hint{flex:0 0 auto;text-align:center;color:var(--muted);font-size:13px;padding:12px 20px;margin:0}   /* Caption */
+  .map-hint{flex:0 0 auto;text-align:center;color:var(--muted);font-size:13.5px;padding:12px 20px;margin:0}
   /* curated city context labels (DOM markers — use page fonts, no map glyphs needed) */
   .city-label{display:flex;align-items:center;gap:4px;pointer-events:none;white-space:nowrap;
     font-family:'Assistant',system-ui,sans-serif;font-weight:700;font-size:12.5px;color:#2b3a52;
     text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff,0 0 3px #fff}
   .city-label::before{content:"";flex:0 0 auto;width:5px;height:5px;border-radius:50%;
     background:#5b6577;box-shadow:0 0 0 1.5px #fff}
-  /* settlement labels (איו"ש) — a LOWER tier than bases/cities: smaller, regular weight, muted grey +
-     a tiny hollow marker (like POIs/"cafes" vs prominent city labels). clear visual hierarchy. */
-  .settle-label{display:flex;align-items:center;gap:4px;pointer-events:none;white-space:nowrap;
-    font-family:'Assistant',system-ui,sans-serif;font-weight:400;font-size:11px;color:#7a8699;
-    text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff}
-  .settle-label::before{content:"";flex:0 0 auto;width:5px;height:5px;border-radius:50%;
-    background:#fff;box-shadow:0 0 0 1.4px #9aa3b2}
 
   /* base bottom sheet */
   /* drawer lives INSIDE the map box (absolute), so it's visually tied to the map and scrolls with it */
-  .base-sheet{--peek:40svh;position:absolute;left:0;right:0;bottom:0;transform:translateY(110%);width:100%;z-index:90;
-    background:#F2F4F5;border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding:44px 22px 24px;
-    transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s linear .52s;height:100%;overflow-y:auto;cursor:pointer;visibility:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
-  /* drawer height = MAP height, so peek/full are a fixed % of the map — identical on every device.
-     peek: translateY(45%) → drawer covers the bottom 55%, map strip = top 45% (pin always fits & centres). */
-  .base-sheet.open{transform:translateY(66%);visibility:visible;
-    transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s}
+  .base-sheet{--peek:350px;position:absolute;left:0;right:0;bottom:0;transform:translateY(100%);width:100%;z-index:90;
+    background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding:44px 22px 24px;
+    transition:transform .52s cubic-bezier(.32,.72,0,1);max-height:100%;overflow-y:auto;cursor:pointer}
+  .base-sheet.open{transform:translateY(calc(100% - var(--peek)))}   /* peek reveals the top of the drawer */
   .base-sheet.open.full{transform:translateY(0)}
-  /* --peek is svh-based (≈1/3 of the screen) so the map stays ~2/3 visible on every device */
+  @media (max-height:720px){ .base-sheet{--peek:310px} }
+  @media (max-height:600px){ .base-sheet{--peek:260px} }
   /* fixed 44px top zone holds the handle + close, so content never sits under the X */
   .handle{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:44px;height:5px;border-radius:3px;background:#d8dbde;margin:0}
-  .base-sheet h3{font-size:22px;font-weight:700;color:var(--navy);line-height:1.2;margin-bottom:16px}
-  .base-sheet p{font-size:16px;color:var(--navy);line-height:1.4;margin-top:0}
+  .base-sheet h3{font-size:24px;font-weight:700;color:var(--navy);line-height:1.2}
+  .base-sheet p{font-size:16px;color:var(--navy);line-height:1.3;margin-top:8px}
   .base-sheet p b{color:var(--navy);font-weight:700}
   .base-sheet .render{margin-top:16px;border-radius:20px;overflow:hidden;aspect-ratio:16/10}
   .base-sheet .render img,.base-sheet .render video{width:100%;height:100%;object-fit:cover;display:block}
-  /* close button — Google-Maps size: a clear ~40px white circle with a bold X */
-  .base-close{position:absolute;top:10px;left:14px;width:40px;height:40px;border-radius:50%;background:#fff;
-    box-shadow:0 1px 5px rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;
-    font-size:22px;line-height:1;color:var(--navy);z-index:6;cursor:pointer}
+  .base-close{position:absolute;top:9px;left:16px;width:30px;height:30px;border-radius:50%;background:#f1f4f8;display:flex;align-items:center;justify-content:center;z-index:2;cursor:pointer}
 
   /* SERVICE TIMELINE */
   /* the four tracks share the screen width — no scrolling, nothing clipped off-screen */
@@ -435,13 +395,11 @@
   .sm-list{margin-top:25px;display:flex;flex-direction:column;padding:0 10px}
   .sm-list a{height:58px;margin-bottom:11px;display:flex;align-items:center;justify-content:center;
     font-size:22px;font-weight:700;color:var(--ink);text-decoration:none;text-align:center}
-  /* home-page SECTION links are lighter (regular weight) than the internal-page links (bold) */
-  .sm-list a.sm-sec{font-weight:400}
   .sm-list a:active{opacity:.6}
   .sm-foot{margin-top:auto;padding:0 22px 14px;display:flex;align-items:center;justify-content:space-between}
   /* menu footer buttons = liquid glass (same recipe as the main tabs); no stroke */
   .sm-wa{display:inline-flex;align-items:center;gap:5px;border-radius:9999px;
-    height:53.7px;padding:0 22px;text-decoration:none;color:var(--ink);font-size:14px;font-weight:600;
+    height:53.7px;padding:0 22px;text-decoration:none;color:var(--ink);font-size:15px;font-weight:600;
     background:rgba(255,255,255,0.5);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);
     box-shadow:0 8px 24px -6px rgba(27,53,87,.22), inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 0 .5px rgba(255,255,255,.5)}
   .sm-wa svg{width:32px;height:32px;flex:0 0 32px}
@@ -462,28 +420,11 @@
     cursor:pointer;display:flex;align-items:center;justify-content:center}
   .ap-body{flex:1;overflow-y:auto;padding:6px 30px 44px;text-align:center;-webkit-overflow-scrolling:touch}
   .ap-title{font-size:28px;font-weight:700;margin-bottom:20px}
-  .ap-body p{font-size:16px;font-weight:500;line-height:1.5;letter-spacing:-0.3px;margin-bottom:15px}   /* Body */
-  /* FAQ internal page — classic accordion in our design language (gray bg, black text, accent chevron) */
-  .faq-page{position:fixed;top:0;bottom:0;left:50%;width:100%;max-width:375px;transform:translate(-50%,100%);
-    z-index:130;background:#F2F4F5;color:#000;display:flex;flex-direction:column;visibility:hidden;
-    transition:transform .4s cubic-bezier(.4,0,.2,1)}
-  .faq-page.open{transform:translate(-50%,0);visibility:visible}
-  .faq-page .ap-close{color:#000;background:rgba(0,0,0,.06)}
-  .faq-body{flex:1;overflow-y:auto;padding:6px 22px 44px;-webkit-overflow-scrolling:touch}
-  .faq-title{font-size:28px;font-weight:700;color:var(--navy);text-align:center;margin:6px 0 22px}   /* H2 */
-  .faq-item{border-bottom:1px solid var(--teal-light)}
-  .faq-q{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;
-    padding:20px 2px;text-align:right;font-size:18px;font-weight:700;color:#000;cursor:pointer;background:none;line-height:1.3}   /* H3-ish */
-  .faq-q .chev{flex:0 0 auto;width:16px;height:16px;transition:transform .25s;color:var(--accent)}
-  .faq-item.open .chev{transform:rotate(180deg)}
-  .faq-a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease}
-  .faq-item.open .faq-a{grid-template-rows:1fr}
-  .faq-a>div{overflow:hidden}
-  .faq-a p{font-size:16px;line-height:1.55;color:#000;opacity:.82;padding:0 2px 20px;text-align:right}   /* Body */
+  .ap-body p{font-size:17px;font-weight:500;line-height:1.5;letter-spacing:-0.3px;margin-bottom:15px}
   /* mobile overrides last so they win the cascade over the component rules above */
   @media (max-width:699px){
     body{background:#F2F4F5}
-    .phone,.sheet,.side-menu,.about-page,.faq-page{max-width:none}
+    .phone,.sheet,.side-menu,.about-page{max-width:none}
     .phone{box-shadow:none}
     /* true edge-to-edge: no centring maths, so no sliver of the page shows at the sides */
     .sheet{left:0;width:100vw;transform:translate(0,100%)}
@@ -492,8 +433,6 @@
     .side-menu.open{transform:none}
     .about-page{left:0;transform:translate(0,100%)}
     .about-page.open{transform:translate(0,0)}
-    .faq-page{left:0;transform:translate(0,100%)}
-    .faq-page.open{transform:translate(0,0)}
   }
 </style>
 </head>
@@ -506,11 +445,11 @@
       <button class="sm-close" id="smClose" aria-label="סגירת תפריט"><span></span><span></span><span></span></button>
     </div>
     <nav class="sm-list">
-      <a href="#" data-page="about">מי אנחנו?</a>
-      <a href="#" data-page="faq">תשובות לשאלות שלכם</a>
-      <a class="sm-sec" href="#" data-tab="roles">הזדמנויות השיבוץ</a>
-      <a class="sm-sec" href="#" data-tab="bases">איפה משרתים?</a>
-      <a class="sm-sec" href="#" data-tab="service">מסלולי הגיוס והשירות</a>
+      <a href="#" data-page="about">על המתפ״ש</a>
+      <a href="#" onclick="return false">תשובות לשאלות שלכם</a>
+      <a href="#" data-tab="roles">הזדמנויות השיבוץ</a>
+      <a href="#" data-tab="bases">מיקומי בסיסים</a>
+      <a href="#" data-tab="service">גיוס, הכשרה ומסלולי שירות</a>
     </nav>
     <div class="sm-foot">
       <div class="sm-social">
@@ -525,21 +464,12 @@
   <div class="about-page" id="aboutPage">
     <div class="ap-head"><button class="ap-close" id="apClose" aria-label="סגירה">✕</button></div>
     <div class="ap-body">
-      <h2 class="ap-title">מי אנחנו?</h2>
+      <h2 class="ap-title">על המתפ״ש</h2>
       <p>מתאם פעולות הממשלה בשטחים (מתפ״ש) היא יחידה ייחודית בצה״ל הכפופה ישירות לשר הביטחון ובראשה עומד אלוף החבר בפורום מטכ״ל. היחידה אחראית על תיאום ויישום המדיניות האזרחית של מדינת ישראל ביהודה ושומרון, ברצועת עזה ובמרחבים נוספים בצפון, ופועלת בשיתוף מערכת הביטחון, משרדי הממשלה, ארגונים בינלאומיים וגורמים נוספים בארץ ובעולם.</p>
       <p>יחידת המתפ״ש נמצאת בלב העשייה בזירות הרגישות, המורכבות והמשמעותיות ביותר של מדינת ישראל. היחידה מהווה מוקד ידע לאומי בנוגע לזירה הפלסטינית ואמונה על מגוון רחב של תהליכי תיאום וקישור המסייעים לשמירה על ביטחון המדינה, להרחבת חופש הפעולה של צה״ל ולקידום האינטרסים של ישראל מול גורמים אזוריים ובינלאומיים.</p>
       <p>השירות במתפ״ש כולל המון הזדמנויות המאפשרות לכל חייל להשתלב בתחום פעילות שונה בהתאם לשיבוצו ולצרכי היחידה. חיילי ומפקדי היחידה משרתים במגוון רחב של תחומים ובהם תיאום אזרחי, תיאום ביטחוני, תשתיות, קשרי חוץ, מידע ומחקר ועוד.</p>
-      <p>השירות במתפ״ש מאפשר להכיר מקרוב את המציאות באזור, להבין את האתגרים הביטחוניים והאזרחיים של מדינת ישראל, לעבוד מול מגוון רחב של אנשים וארגונים ולרכוש ידע וכלים שילוו אתכם גם בהמשך הדרך. במהלך ההכשרה לומדים ערבית מדוברת, מכירים את הזירה לעומק ורוכשים ידע ומיומנויות מקצועיות הנדרשים לתפקיד.</p>
+      <p>השירות במתפ״ש מאפשר להכיר מקרוב את המציאות באזור, להבין את האתגרים הביטחוניים והאזרחיים של מדינת ישראל, לעבוד מול מגוון רחב של אנשים וארגונים ולרכוש ידע וכלים שילוו אתכם גם בהמשך הדרך. במהלך ההכשרה לומדים ערבית מדוברת, מכירים את הזירה לעומק ורוכשים ידע ומיומנויות מקצועיות הנדרשות לתפקיד.</p>
       <p>בסיסי היחידה פרוסים ביהודה ושומרון, בגבול רצועת עזה, בגזרה הצפונית, בבסיס ההכשרות במחנה גדעונים ובמטה היחידה בקריה.</p>
-    </div>
-  </div>
-
-  <!-- FAQ — internal page ("תשובות לשאלות שלכם"), opened from the menu -->
-  <div class="faq-page" id="faqPage">
-    <div class="ap-head"><button class="ap-close" id="faqClose" aria-label="סגירה">✕</button></div>
-    <div class="faq-body">
-      <h2 class="faq-title">שאלות ותשובות</h2>
-      <div class="faq-list" id="faqList"></div>
     </div>
   </div>
 
@@ -573,8 +503,8 @@
 
   <!-- EMPTY placeholder section (Lior fills later) -->
   <section class="about" id="s-empty">
-    <p class="about-text">מתאם פעולות הממשלה בשטחים היא יחידה ייחודית בצה״ל אשר אחראית על תיאום ויישום המדיניות האזרחית של מדינת ישראל ביהודה ושומרון, ברצועת עזה ובמרחבים נוספים בצפון. השירות ביחידה כולל מגוון הזדמנויות להשפיע בזירות המשמעותיות והרגישות ביותר&nbsp;במדינה.</p>
-    <button class="about-cta" onclick="openAboutPage()">עוד עלינו</button>
+    <p class="about-text">מתאם פעולות הממשלה בשטחים היא יחידה ייחודית בצה״ל אשר אחראית על תיאום ויישום המדיניות האזרחית של מדינת ישראל ביהודה ושומרון, ברצועת עזה ובמרחבים נוספים בצפון. השירות ביחידה כולל מגוון הזדמנויות להשפיע בזירות המשמעותיות והרגישות ביותר במדינה.</p>
+    <button class="about-more" aria-label="המשך לתוכן" onclick="document.getElementById('s-roles').scrollIntoView({behavior:'smooth'})"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
   </section>
 
   <!-- STICKY SCROLL-SPY TABS -->
@@ -594,10 +524,10 @@
 
   <!-- BASES — the new map (drawer lives INSIDE .map-full) -->
   <section class="sec nopad" id="s-bases">
-    <h2 class="sec-title">איפה משרתים?</h2>
     <div class="map-full">
       <div id="mapC2" class="mapgl"></div>
       <button class="map-recenter" onclick="resetMapView()" aria-label="מרכוז המפה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="7"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/></svg></button>
+      <p class="map-hint">לחצו על סימון בסיס כדי לצפות בפרטים</p>
       <!-- BASE DRAWER — anchored to the bottom of the map box -->
       <div class="base-sheet" id="baseSheet">
         <button class="base-close" onclick="closeBase()">✕</button>
@@ -612,18 +542,15 @@
 
   <!-- SERVICE — timeline (גרסה 1) -->
   <section class="sec" id="s-service">
-    <h2 class="sec-title">מסלולי הגיוס והשירות</h2>
     <div class="toggle" id="svcToggle">
       <button class="on">גיוס ושירות</button>
-      <button>מסלול עמית</button>
-      <button>יעודי לקצונה</button>
       <button>קצונה</button>
+      <button>יעודי לקצונה</button>
+      <button>מסלול עמית</button>
     </div>
     <div class="rail" id="tlRail"></div>
     <div class="stepper" id="stepper"></div>
   </section>
-  <!-- SITE FOOTER — same social + "דברו איתנו" buttons as the menu footer (cloned at runtime, identical design) -->
-  <footer class="site-foot" id="siteFoot"></footer>
   <div class="page-end" aria-hidden="true"></div>
   </div><!-- /scroll -->
 
@@ -678,9 +605,9 @@ const roles=[
   B:'אוספים מידע ומנתחים ארועים ותהליכים בזירה הפלסטינית.',
   C:'ביום יום מאתרים מידע ברשתות החברתיות, אתרי חדשות ופלטפורמות דיגיטליות בערבית ובמקורות נוספים או חוקרים נושאים הקשורים לחברה, כלכלה וההנהגה הפלסטינית. את המידע הזה מנתחים, מעבדים ומייצרים ממנו דוחות שעוזרים למפקדים לקבל החלטות. העבודה מתבצעת בשיתוף פעולה עם השב"כ ומשרד הביטחון.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ. ידע קודם בערבית מהווה יתרון.'},
  {name:'קשרי חוץ', icon:'kishrei', poster:'../assets/r-kishrei.jpg', video:'../assets/r-kishrei.mp4', cap:'הפנים הבינלאומיות', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
-  B:'עוסקים בתיאום וקישור ישירות מול מגוון רחב של ארגונים בינלאומיים, נציגי ממשלות זרות, שגרירויות וגורמים נוספים בקהילה הבינלאומית הפועלים באזור.',
+  B:'עוסקים בתיאום וקישור ישירות מול מול מגוון רחב של ארגונים בינלאומיים, נציגי ממשלות זרות, שגרירויות וגורמים נוספים בקהילה הבינלאומית הפועלים באזור.',
   C:'ביום יום מקיימים פגישות עבודה, מובילים תיאומים, משתפים בהערכות מצב משותפות ולוקחים חלק בקידום פרויקטים ותהליכים המתבצעים בשטח. העבודה מאפשרת היכרות עם עולם קשרי החוץ והעבודה הבינלאומית של מדינת ישראל, ותורמת לחיזוק מעמדה וללגיטימציה שלה מול הקהילה הבינלאומית. אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ. ידע קודם באנגלית ברמה גבוהה מהווה יתרון.'},
- {name:'תיאום אזרחי', icon:'ezrahi', poster:'../assets/r-ezrahi-v2.jpg', video:'../assets/r-ezrahi-v2.mp4', cap:'הגשר לאוכלוסייה', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
+ {name:'תיאום אזרחי', icon:'ezrahi', poster:'../assets/r-ezrahi.jpg', video:'../assets/r-ezrahi.mp4', cap:'הגשר לאוכלוסייה', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
   B:'עוסקים במגוון רחב של נושאים אזרחיים בזירה הפלסטינית, ובהם תיעוד ומרשם, מעברים, כלכלה, קידום פרויקטים אזרחיים ותחומים נוספים הנמצאים בליבת העשייה של מתפ"ש.',
   C:'ביום יום מטפלים בסוגיות אזרחיות שונות, עוקבים אחר ההתפתחויות בשטח, מסייעים בקידום פרויקטים ותהליכים אזרחיים ומקיימים קשר שוטף עם גורמים מקצועיים במערכת הביטחון ומחוצה לה. העבודה מאפשרת היכרות מעמיקה עם העשייה האזרחית של מתפ"ש, ומהווה חלק בלתי נפרד מהמאמץ הביטחוני הרחב של מדינת ישראל.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
  {name:'דוברות והסברה', icon:'dovrut', poster:'../assets/r-dovrut.jpg', video:'../assets/r-dovrut.mp4', cap:'הקול של היחידה', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
@@ -688,16 +615,16 @@ const roles=[
   C:'ביום יום עובדים מול עיתונאים וכלי תקשורת, מנסחים הודעות לתקשורת ומענים לשאילתות של כתבים, מלווים אירועים ופעילויות בשטח ולוקחים חלק בקמפיינים הסברתיים. העבודה מאפשרת היכרות עם עולם התקשורת, הדיגיטל וההסברה, ומהווה חלק מרכזי במאמצי היחידה לחיזוק הלגיטימציה של מדינת ישראל. מדובר באחד ממסלולי השירות הייחודיים במתפ"ש, אליו נבחרים מספר מצומצם של חיילים לאחר ההכשרה.'},
  {name:'תשתיות', icon:'tashtiot', poster:'../assets/r-tashtiot.jpg', video:'../assets/r-tashtiot.mp4', cap:'בונים את המרחב', tags:['איו״ש','רצועת עזה'], tagsVerified:true,
   B:'עוסקים במגוון תחומים הקשורים לפיתוח המרחב, ובהם בנייה, תחבורה, מים, אנרגיה ותחומים נוספים המהווים חלק משמעותי מפעילות היחידה ביהודה ושומרון וברצועת עזה.',
-  C:'ביום יום מלווים ומקדמים פרויקטים תשתיתיים בעבודה מול משרדי ממשלה וגורמי מקצוע, מתאמים תהליכים מול גורמים שונים ולוקחים חלק בפעילויות פיקוח ואכיפה לצד כוחות צה״ל ומשטרת ישראל. העבודה מאפשרת היכרות עם תחום תוכן ייחודי, ומשלבת בין עשייה מקצועית, עבודות מטה ופעילות בשטח. אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
+  C:'ביום יום מלווים ומקדמים פרויקטים תשתיתיים בעבודה מול משרדי ממשלה וגורמי מקצוע, מתאמים תהליכים מול גורמים שונים ולוקחים חלק בפעילויות פיקוח ואכיפה לצד כוחות צה״ל ומשטרת ישראל. העבודה מאפשרת היכרות עם אחד מתחומי הליבה של פעילות מתפ"ש ביהודה ושומרון, ותורמת לשמירה על שגרת הפעילות המבצעית של צה"ל במרחב. אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
  {name:'תיאום ביטחוני', icon:'bithoni', poster:'../assets/r-bithoni.jpg', video:'../assets/r-bithoni.mp4', cap:'ממשק מול השטח', tags:['איו״ש'], tagsVerified:true,
-  B:'עוסקים בתיאום והקישור בין צה"ל לבין מנגנוני הביטחון הפלסטיניים ביהודה ושומרון.',
+  B:'עוסקים בקיום התיאום והקישור בין צה"ל לבין מנגנוני הביטחון הפלסטיניים ביהודה ושומרון.',
   C:'ביום יום מקיימים תיאומים שוטפים מול גורמי הביטחון בזירה, מסייעים בקישור בין כוחות צה"ל לבין הגורמים הפלסטיניים ולוקחים חלק בעבודות מטה שונות. העבודה מאפשרת היכרות עם אחד מתחומי הליבה של פעילות מתפ"ש ביהודה ושומרון, ותורמת לשמירה על שגרת הפעילות המבצעית של צה"ל במרחב.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
  {name:'פיקוד והדרכה', icon:'pikud', poster:'../assets/r-pikud.jpg', video:'../assets/r-pikud.mp4', cap:'מכשירים את הדור הבא', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
   B:'עוסקים בהכשרת דור העתיד של חיילי וקציני יחידת המתפ"ש, ובהקניית הידע המקצועי והיכולות הנדרשים לשירותם ביחידה.',
-  C:'ביום יום, <b>בתפקידי הפיקוד</b> מובילים את תהליך ההכשרה של החניכים, מלווים אותם לאורך הקורס והטירונות ומסייעים בפיתוח הידע, המיומנויות והערכים הנדרשים לשירות ביחידה. <b>בתפקידי ההדרכה</b> אחראים על לימוד השפה הערבית או האנגלית ומקנים לחניכים את הידע הנדרש לקראת תפקידם. העבודה מעניקה הזדמנות להוביל, לחנוך ולהדריך חיילים, וללוות אותם בצעדיהם הראשונים ביחידה. מדובר במסלול שירות ייחודי במתפ"ש, אליו נבחרים מספר מצומצם של חיילים בסוף ההכשרה.'},
+  C:'ביום יום, <b>בתפקידי הפיקוד</b> מובילים את תהליך ההכשרה של החניכים, מלווים אותם לאורך הקורס והטירונות ומסייעים בפיתוח הידע, המיומנויות והערכים הנדרשים לשירות ביחידה, <b>ובתפקידי ההדרכה</b> אחראים על לימוד השפה הערבית או האנגלית ומקנים לחניכים את הידע הנדרש לקראת תפקידם. העבודה מעניקה הזדמנות להוביל, לחנוך ולהדריך חיילים, וללוות אותם בצעדיהם הראשונים ביחידה. מדובר במסלול שירות ייחודי במתפ"ש, אליו נבחרים מספר מצומצם של חיילים בסוף ההכשרה.'},
  {name:'מבצעים', icon:'mivtzaim', poster:'../assets/r-mivtzaim.jpg', video:'../assets/r-mivtzaim.mp4', cap:'לב הפעילות בזמן אמת', tags:['מטה','רצועת עזה','איו״ש'], tagsVerified:false,
-  B:'עוסקים בריכוז ותכלול האירועים המבצעיים בזמן אמת ועוקבים אחר הפעילות השוטפת של היחידה בחדר המבצעים (החמ"ל).',
-  C:'ביום יום קולטים ומעבירים דיווחים בזמן אמת, עוקבים אחר אירועים והתפתחויות בשטח ומסייעים בתיאום בין גורמים שונים ביחידה ובמערכת הביטחון. העבודה מאפשרת היכרות עם מגוון תחומי הפעילות של מתפ"ש ועם המתרחש בזירות השונות בזמן אמת, ומהווה חלק מרכזי בניהול הפעילות השוטפת של היחידה.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
+  B:'עוסקים בריכוז וניהול כל האירועים והמידע בחדר המבצעים (החמ"ל) וניהול הפעילות בגזרה בזמן אמת.',
+  C:'ביום יום קולטים ומעבירים דיווחים בזמן אמת, עוקבים אחר אירועים והתפתחויות בשטח ומסייעים בתיאום בין גורמים שונים ביחידה ובמערכת הביטחון. העבודה מאפשרת היכרות עם מגוון תחומי הפעילות של מתפ"ש ועם המתרחש בזירה בזמן אמת, ומהווה חלק מרכזי בניהול הפעילות השוטפת של היחידה.<br><br>אופי התפקיד יכול להשתנות בהתאם למקום השיבוץ.'},
 ];
 /* role display order per client (2026-07-26) */
 roles.sort(function(a,b){var ord=['תיאום אזרחי','מידע ומחקר','מבצעים','קשרי חוץ','תשתיות','תיאום ביטחוני','פיקוד והדרכה','דוברות והסברה'];return ord.indexOf(a.name)-ord.indexOf(b.name);});
@@ -720,12 +647,12 @@ const bases=[
  {name:'בית הספר לתיאום וקישור – מחנה גדעונים', label:'מחנה גדעונים', sector:'בסיס ההכשרות', lng:34.8444866, lat:31.9696725, color:'#EA7B28', anim:'../assets/sde_teyman.mp4',
   desc:'<b>מיקום</b> – מחנה גדעונים, ראשון לציון.<br><b>אופי השירות</b> – בסיס סגור.'},
  /* --- המנהל האזרחי (יו"ש): מפקדה + 8 מת"קים — כולם ירוקים, פותחים את אותה מגירה --- */
- {name:'מפקדת המנהל האזרחי', label:'מפקדת המנהל האזרחי / מת״ק רמאללה', group:'wb', svc:'בסיס סגור', lng:35.2231995, lat:31.9242096, color:WB_GREEN},
+ {name:'מפקדת המנהל האזרחי', group:'wb', svc:'בסיס סגור', lng:35.2231995, lat:31.9242096, color:WB_GREEN},
  {name:'מת״ק מנשה',           group:'wb', svc:'בסיס סגור', lng:35.2120451, lat:32.5421575, color:WB_GREEN},
  {name:'מת״ק אפרים',          group:'wb', svc:'בסיס סגור', lng:35.0022643, lat:32.1967369, color:WB_GREEN},
  {name:'מת״ק שומרון',         group:'wb', svc:'בסיס סגור', lng:35.2755759, lat:32.1750212, color:WB_GREEN},
  {name:'מת״ק עוטף ירושלים',   group:'wb', svc:'בסיס סגור', lng:35.2624181, lat:31.7989981, color:WB_GREEN},
- {name:'מת״ק רמאללה',         group:'wb', svc:'בסיס סגור', nolbl:true, lng:35.2298000, lat:31.9205000, color:WB_GREEN},   /* same real place as the HQ — a 2nd close pin, label merged into the HQ's ("… / מת״ק רמאללה") */
+ {name:'מת״ק רמאללה',         group:'wb', svc:'בסיס סגור', lng:35.2223212, lat:31.9249274, color:WB_GREEN},
  {name:'מת״ק עציון',          group:'wb', svc:'בסיס סגור', lng:35.1217286, lat:31.6467893, color:WB_GREEN},
  {name:'מת״ק יהודה',          group:'wb', svc:'בסיס סגור', lng:35.1058636, lat:31.5018732, color:WB_GREEN},
  {name:'מת״ק הבקעה',          group:'wb', svc:'בסיס סגור', lng:35.4427207, lat:31.8225518, color:WB_GREEN},
@@ -734,52 +661,39 @@ const bases=[
 /* ---------- roles carousel (in-place flip card, no modal) — גרסה 1 ---------- */
 const rolesRail=document.getElementById('rolesRail');
 /* each region tag's location-pin takes that sector's map colour (איו״ש=green, עזה=desert-yellow, מטה=sea-teal) */
-/* location tags on the role "read-more" card — display label + pin colour, keyed by the short code in role.tags */
-const TAG_META={
- 'מטה':{label:'מטה (קריה)', color:'#45b0c4'},
- 'רצועת עזה':{label:'מת״ק עזה', color:'#f5b21e'},
- 'איו״ש':{label:'המנהל האזרחי באיו״ש', color:'#2e9e44'},
- 'צפוני':{label:'מת״ק צפוני', color:'#7E5C9E'}
-};
+const TAG_COLORS={'איו״ש':'#2e9e44','רצועת עזה':'#f5b21e','מטה':'#45b0c4'};
 function pinSvg(col){return '<svg viewBox="0 0 12 16" style="fill:'+col+'"><path d="M6 0C2.69 0 0 2.69 0 6c0 4.2 6 10 6 10s6-5.8 6-10c0-3.31-2.69-6-6-6zm0 8.2A2.2 2.2 0 1 1 6 3.8a2.2 2.2 0 0 1 0 4.4z"/></svg>';}
 roles.forEach((r,i)=>{
   const c=document.createElement('div');c.className='role-card';
-  const tagsHtml=r.tags.map(t=>{const m=TAG_META[t]||{label:t,color:'#266594'};return `<span>${pinSvg(m.color)}${m.label}</span>`;}).join('');
-  const teaser=(r.B||r.cap).replace(/[.\s]+$/,'');
+  const tagsHtml=r.tags.map(t=>`<span>${pinSvg(TAG_COLORS[t]||'#266594')}${t}</span>`).join('');
+  const descShort=r.B.replace(/[.\s]+$/,'');
   c.innerHTML=`
-     <div class="rc-face">
+     <div class="rc-head">
+       <h3 class="rc-title">${r.name}</h3>
+       <p class="rc-desc">${descShort}<b class="rc-more">...קרא עוד</b></p>
+     </div>
+     <div class="rc-tags">${tagsHtml}</div>
+     <div class="rc-video">
        <video class="rc-vid" src="${r.video}" poster="${r.poster}" preload="none" playsinline></video>
-       <div class="grad"></div>
        <button class="rc-expand" aria-label="מסך מלא"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H4v4M16 3h4v4M8 21H4v-4M16 21h4v-4"/></svg></button>
        <div class="rc-play"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-       <div class="rc-meta">
-         <h3>${r.name}</h3>
-         <p class="rc-short"><span class="rm-txt">${teaser}</span><span class="rm-ell">…</span>&nbsp;<span class="rc-more">קרא עוד</span></p>
-         <div class="vp-bar"><i></i></div>
-       </div>
+       <div class="vp-bar"><i></i></div>
      </div>
      <div class="rc-back">
        <button class="rc-close">✕</button>
        <h3>${r.name}</h3>
-       <p>${r.B}<br><br>${r.C}</p>
+       <p>${r.C}</p>
        <div class="rc-tags">${tagsHtml}</div>
      </div>`;
   const vid=c.querySelector('.rc-vid'), play=c.querySelector('.rc-play');
   vid.addEventListener('play',()=>document.querySelectorAll('.rc-vid').forEach(o=>{if(o!==vid)o.pause();}));
-  /* fade the gradient + title while playing so burned-in subtitles stay readable */
-  vid.addEventListener('play',()=>c.classList.add('playing'));
-  vid.addEventListener('pause',()=>c.classList.remove('playing'));
-  vid.addEventListener('ended',()=>c.classList.remove('playing'));
   wireVideo(vid, play, c.querySelector('.vp-bar'));
   c.querySelector('.rc-expand').onclick=e=>{e.stopPropagation(); openVideoModal(r.video, vid.currentTime, vid);};
   /* only "קרא עוד" flips to the description side — the rest of the face is the video */
   c.querySelector('.rc-more').onclick=e=>{e.stopPropagation(); if(!vid.paused){ vid.pause(); } c.classList.add('flipped');};
   c.querySelector('.rc-close').onclick=e=>{e.stopPropagation();c.classList.remove('flipped');};
-  c.querySelector('.rc-short')._full=teaser;
   rolesRail.appendChild(c);
 });
-/* trim each teaser to a single line (whole words) + "… קרא עוד"; the button always shows (it flips to the full text) */
-requestAnimationFrame(function(){ document.querySelectorAll('#rolesRail .rc-short').forEach(function(box){ clampWithMore(box, box._full||'', 1, true); }); });
 buildDots('rolesDots',roles.length,'rolesRail');
 /* ---------- fullscreen video modal (expand a role video to full screen, X to return) ---------- */
 function openVideoModal(src,time,srcVid){
@@ -800,18 +714,15 @@ function closeVideoModal(){
   if(x) x.onclick=closeVideoModal;
   document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeVideoModal(); }); })();
 /* ---------- dots helper (גרסה 1) ---------- */
-/* measure the REAL card pitch (card width + gap) from the DOM → dots track correctly at ANY width/gap */
-function railPitch(r){ const k=r.children; if(!k.length) return 1;
-  if(k.length<2) return k[0].offsetWidth||1;
-  return Math.abs(k[1].offsetLeft-k[0].offsetLeft)||k[0].offsetWidth||1; }
 function buildDots(dotsId,n,railId,onClick,onScroll){
   const d=document.getElementById(dotsId);d.innerHTML='';
   for(let i=0;i<n;i++){const b=document.createElement('i');if(i===0)b.className='on';
     b.onclick=()=>{if(onClick)onClick(i);
-      if(railId){const r=document.getElementById(railId);r.scrollTo({left:-(i*railPitch(r)),behavior:'smooth'});}};
+      if(railId){const r=document.getElementById(railId);r.scrollTo({left:-(i*r.children[0].offsetWidth+i*14),behavior:'smooth'});}};
     d.appendChild(b);}
   if(railId){const r=document.getElementById(railId);
-    r.addEventListener('scroll',()=>{const idx=Math.round(Math.abs(r.scrollLeft)/railPitch(r));markDots(dotsId,idx);if(onScroll)onScroll(idx);});}
+    r.addEventListener('scroll',()=>{const w=r.children[0].offsetWidth+14;
+      const idx=Math.round(Math.abs(r.scrollLeft)/w);markDots(dotsId,idx);if(onScroll)onScroll(idx);});}
 }
 function markDots(id,idx){[...document.getElementById(id).children].forEach((x,i)=>x.classList.toggle('on',i===idx));}
 
@@ -820,12 +731,6 @@ function markDots(id,idx){[...document.getElementById(id).children].forEach((x,i
    worker-side font fetch from api.mapbox.com can be blocked. */
 let map2=null, markers2=[];
 const IL_BOUNDS=[[34.05,30.85],[35.95,33.35]];
-/* initial + recenter view: tight around the MATPASH bases (all visible at once), zoomed in from the
-   whole-country view. buffer leaves room for pins + labels so nothing sits on the edge. */
-function basesBounds(){ var mnx=Infinity,mny=Infinity,mxx=-Infinity,mxy=-Infinity;
-  bases.forEach(function(b){ if(b.lng<mnx)mnx=b.lng; if(b.lng>mxx)mxx=b.lng; if(b.lat<mny)mny=b.lat; if(b.lat>mxy)mxy=b.lat; });
-  var px=0.14, py=0.16;
-  return [[mnx-px,mny-py],[mxx+px,mxy+py]]; }
 mapboxgl.accessToken='pk.eyJ1IjoibGlvcmttb3ZlbzEyMzQiLCJhIjoiY21xcWd0djQ4MDQ0ZTJzcXZsNnBveHZydSJ9.-ANesy8sOPNF6TYeBlam5w';
 /* correct Hebrew (RTL) label rendering — locally hosted plugin so the worker can load it same-origin */
 try{ mapboxgl.setRTLTextPlugin(new URL('../assets/mapbox-gl-rtl-text.min.js', location.href).href, ()=>{}, true); }catch(e){}
@@ -884,27 +789,6 @@ const IL_CITIES={type:'FeatureCollection',features:[
  {type:'Feature',properties:{name:'צפת',rank:3},geometry:{type:'Point',coordinates:[35.4960,32.9650]}},
  {type:'Feature',properties:{name:'קרית שמונה',rank:3},geometry:{type:'Point',coordinates:[35.5697,33.2079]}}
 ]};
-/* Jewish settlements in יו"ש — geographic context near the WB bases; used to frame WB pins on zoom-in
-   (the big Israeli cities above are NOT used for איו"ש). shown only when zoomed in. */
-const WB_SETTLEMENTS=[
- {name:'אריאל',lng:35.1750,lat:32.1056},
- {name:'קרני שומרון',lng:35.0958,lat:32.1741},
- {name:'אלפי מנשה',lng:35.0090,lat:32.1660},
- {name:'עמנואל',lng:35.1330,lat:32.1614},
- {name:'אלון מורה',lng:35.3200,lat:32.2200},
- {name:'שקד',lng:35.2050,lat:32.4470},
- {name:'מבוא דותן',lng:35.2000,lat:32.4630},
- {name:'בית אל',lng:35.2210,lat:31.9440},
- {name:'עפרה',lng:35.2620,lat:31.9560},
- {name:'שילה',lng:35.2894,lat:32.0556},
- {name:'מודיעין עילית',lng:35.0430,lat:31.9330},
- {name:'מעלה אדומים',lng:35.2983,lat:31.7726},
- {name:'מצפה יריחו',lng:35.3500,lat:31.8300},
- {name:'ביתר עילית',lng:35.1150,lat:31.6997},
- {name:'אפרת',lng:35.1497,lat:31.6547},
- {name:'קרית ארבע',lng:35.1120,lat:31.5326},
- {name:'מעלה אפרים',lng:35.4000,lat:32.0700},
-];
 /* Hebrew-only place names, restricted to the Israel polygon (drops all neighboring-country labels);
    hide country/state/continent labels entirely. */
 function localizeHe(map){
@@ -967,25 +851,14 @@ function addCities(map){
     const el=document.createElement('div');
     el.className='city-label';
     el.textContent=f.properties.name;
-    cityMarkers.push(new mapboxgl.Marker({element:el,anchor:'right'})
+    cityMarkers.push(new mapboxgl.Marker({element:el,anchor:'left'})
       .setLngLat(f.geometry.coordinates).addTo(map));
   });
 }
 /* city names are geographic CONTEXT — hidden on the zoomed-out country view, revealed once you zoom in */
-const LABEL_ZOOM=8.8;   /* boundary: below = "zoomed out" (central cities, NO base names); at/above = "zoomed in" (full base names). lowered so names appear earlier */
-function updateCityVis(){ if(!map2) return;   /* central/major cities stay visible at EVERY zoom (geographic context) */
-  cityMarkers.forEach(function(m){ m.getElement().style.display = ''; }); }
-/* Jewish-settlement context labels (איו"ש) — appear only when zoomed in (e.g. after tapping a WB base) */
-let settleMarkers=[];
-function addSettlements(map){
-  if(settleMarkers.length || typeof mapboxgl==='undefined') return;
-  WB_SETTLEMENTS.forEach(function(s){
-    const el=document.createElement('div'); el.className='settle-label'; el.textContent=s.name;
-    settleMarkers.push(new mapboxgl.Marker({element:el,anchor:'right'}).setLngLat([s.lng,s.lat]).addTo(map));
-  });
-}
-function updateSettleVis(){ if(!map2) return; const show=map2.getZoom()>=LABEL_ZOOM;   /* WB settlements appear when ZOOMED IN */
-  settleMarkers.forEach(function(m){ m.getElement().style.display = show ? '' : 'none'; }); }
+const CITY_MIN_ZOOM=8.5;
+function updateCityVis(){ if(!map2) return; const show=map2.getZoom()>=CITY_MIN_ZOOM;
+  cityMarkers.forEach(function(m){ m.getElement().style.display = show ? '' : 'none'; }); }
 function pinEl(color){
   const el=document.createElement('div');el.className='mpin';el.style.setProperty('--c',color);
   el.innerHTML=`<svg viewBox="0 0 77 86" xmlns="http://www.w3.org/2000/svg"><path class="balloon" fill="#F8F9FA" d="M38.0654 8.714C54.671 8.714 65.418 21.91 65.418 38.385C65.418 47.767 61.62 54.216 56.694 59.233C54.223 61.751 51.466 63.909 48.751 65.897C46.056 67.87 43.358 69.704 41.099 71.521L41.02 71.594C39.402 73.349 36.729 73.349 35.11 71.594L35.033 71.522L34.13 70.809C31.983 69.147 29.581 67.493 27.203 65.751C24.468 63.747 21.725 61.6 19.28 59.105C14.41 54.134 10.714 47.771 10.714 38.385C10.714 21.91 21.46 8.714 38.0654 8.714Z"/><circle class="dot" cx="38" cy="38" r="20"/></svg>`;
@@ -1002,7 +875,7 @@ function baseMarkerEl(b){
   wrap.style.setProperty('--c', b.color);
   wrap.innerHTML='<div class="mpin"><svg viewBox="0 0 77 86" xmlns="http://www.w3.org/2000/svg">'+
     '<path class="balloon" d="'+BALLOON_D+'"/><circle class="dot" cx="38" cy="38" r="20"/></svg></div>'+
-    (b.nolbl?'':'<div class="mpin-lbl">'+(b.label||b.name)+'</div>');   /* nolbl: pin without its own label (shares a neighbour's merged label) */
+    '<div class="mpin-lbl">'+(b.label||b.name)+'</div>';
   return wrap;
 }
 function addBasePins(map){
@@ -1011,15 +884,9 @@ function addBasePins(map){
     var el=baseMarkerEl(b);
     el.addEventListener('click', function(e){ e.stopPropagation(); openBase(i); flyToBase(bases[i]); });
     var m=new mapboxgl.Marker({element:el, anchor:'bottom'}).setLngLat([b.lng,b.lat]).addTo(map);
-    baseMarkers.push({el:el, marker:m, full:(b.label||b.name)});
+    baseMarkers.push({el:el, marker:m});
   });
-  updateBaseLabels();
 }
-/* base NAMES show ONLY when zoomed in (full name); when zoomed out the names are hidden and the
-   central cities provide the context instead. */
-function updateBaseLabels(){ if(!map2) return; var zin = map2.getZoom() >= LABEL_ZOOM;
-  baseMarkers.forEach(function(mk){ var lbl=mk.el.querySelector('.mpin-lbl'); if(!lbl) return;
-    lbl.style.display = zin ? '' : 'none'; lbl.textContent = mk.full; }); }
 /* dim every NON-selected West-Bank pin (lighter green + grey balloon) so the tapped one stands out */
 function updateWbPins(){
   var sel=bases[selIdx], dim=!!(sel && sel.group==='wb');
@@ -1038,10 +905,10 @@ function clearPin(){ selIdx=-1; baseMarkers.forEach(function(mk){ mk.el.classLis
 function initMap2(){
   if(map2 || typeof mapboxgl==='undefined') return;
   map2=new mapboxgl.Map({container:'mapC2', style:'mapbox://styles/mapbox/streets-v11',
-    bounds:basesBounds(), fitBoundsOptions:{padding:{top:100,bottom:30,left:30,right:30}}, minZoom:6.5, maxZoom:15,
+    bounds:IL_BOUNDS, fitBoundsOptions:{padding:50}, minZoom:6.5, maxZoom:15,
     dragRotate:false, pitchWithRotate:false, projection:'mercator', attributionControl:true,
-    /* one finger = scroll the PAGE (map never traps the scroll); two fingers = pan the map.
-       this is the behaviour the client wants back: reaching the map while scrolling never gets stuck. */
+    /* one finger = scroll the page; two fingers = move the map (same UX as Google Maps embeds).
+       this is Mapbox's built-in fix for "map traps the scroll" on mobile. */
     cooperativeGestures:true,
     locale:{'CooperativeGesturesHandler.MobileMessage':'הזיזו את המפה בשתי אצבעות',
             'CooperativeGesturesHandler.DesktopMessage':'לחצו Ctrl + גלילה כדי לשנות זום'},
@@ -1049,15 +916,10 @@ function initMap2(){
     dragPan:{linearity:0.3, maxSpeed:1400, deceleration:2200},
     transformRequest:glyphTransform});
   map2.touchZoomRotate.disableRotation();
-  /* keep the GL canvas exactly filling its container at all times → no greenish "hole" where the
-     canvas is shorter than the box (fires on lvh changes, layout shifts, orientation, font load). */
-  if(window.ResizeObserver){ try{ new ResizeObserver(function(){ try{ map2&&map2.resize(); }catch(e){} })
-      .observe(document.getElementById('mapC2')); }catch(e){} }
-  map2.addControl(new mapboxgl.NavigationControl({showCompass:false}), 'bottom-right');
+  map2.addControl(new mapboxgl.NavigationControl({showCompass:false}), 'top-left');
   addBasePins(map2);
   addCities(map2);
-  addSettlements(map2);
-  map2.on('zoom',function(){ updateCityVis(); updateSettleVis(); updateBaseLabels(); }); updateCityVis(); updateSettleVis(); updateBaseLabels();
+  map2.on('zoom',updateCityVis); updateCityVis();
   /* DOM pin markers handle their own click (→ open); a click on the empty map closes the drawer */
   map2.on('click',function(){ closeBase(); });
   map2.on('styledata',()=>{localizeHe(map2);applyBorders(map2);});
@@ -1074,10 +936,7 @@ function pumpMap(map){
 }
 const easeOutCubic=t=>1-Math.pow(1-t,3);
 /* current sheet peek height (matches the CSS var, which shrinks on short screens) */
-/* resolve --peek to REAL pixels (it's svh-based now, so parseInt on the raw value would give "34") —
-   a probe element that inherits --peek and reports its offsetHeight gives the true peek height. */
-/* drawer coverage at peek = 55% of the map height (fixed %, so it's IDENTICAL on every device) */
-function peekPx(){ var m=document.getElementById('mapC2'); return Math.round((m?m.offsetHeight:700)*0.34); }
+function peekPx(){ try{ return parseInt(getComputedStyle(document.getElementById('baseSheet')).getPropertyValue('--peek'),10)||340; }catch(e){ return 340; } }
 /* pan the tapped pin into the strip ABOVE the sheet (like Google/Apple: the pin never hides behind the card) */
 function nearestCity(b){
   var best=null, bd=Infinity, fs=(IL_CITIES&&IL_CITIES.features)||[];
@@ -1085,41 +944,27 @@ function nearestCity(b){
     var dx=co[0]-b.lng, dy=co[1]-b.lat, d=dx*dx+dy*dy; if(d<bd){ bd=d; best=co; } }
   return best;
 }
-/* nearest Jewish settlement (איו"ש) — used to frame WB bases (the big Israeli cities are NOT used there) */
-function nearestSettlement(b){
-  var best=null, bd=Infinity;
-  for(var i=0;i<WB_SETTLEMENTS.length;i++){ var s=WB_SETTLEMENTS[i];
-    var dx=s.lng-b.lng, dy=s.lat-b.lat, d=dx*dx+dy*dy; if(d<bd){ bd=d; best=[s.lng,s.lat]; } }
-  return best;
-}
-/* zoom-in on a tapped pin: centre the PIN exactly, then zoom OUT just enough that the nearest reference
-   is visible (big city for standard bases, Jewish settlement for איו"ש). drawer stays ~1/3 (bottom padding). */
+/* frame the pin TOGETHER with its nearest major city (may shift off-centre) so both are always visible */
 function flyToBase(b){ if(!map2) return;
-  /* drawer takes ~2/3 (peek), map ~1/3. centre the PIN exactly in the visible map strip
-     (between the sticky tabs at the top and the drawer at the bottom) via easeTo padding. */
-  var padT=92;                                   /* clears the floating tabs */
-  var mapEl=document.getElementById('mapC2'), mapH=mapEl?mapEl.offsetHeight:700;
-  var padB=Math.min(peekPx()+16, mapH-padT-150);  /* keep a ≥150px map band so the pin (balloon+label) is always fully visible & centred */
-  var z = b.group ? 12.2 : 11;
-  try{ map2.easeTo({center:[b.lng,b.lat], zoom:z, padding:{top:padT,bottom:padB,left:0,right:0},
-        duration:700, easing:easeOutCubic, essential:true}); }catch(e){}}
+  var c=nearestCity(b), padB=peekPx()+24;
+  try{
+    if(c){
+      var sw=[Math.min(b.lng,c[0]),Math.min(b.lat,c[1])], ne=[Math.max(b.lng,c[0]),Math.max(b.lat,c[1])];
+      map2.fitBounds([sw,ne],{padding:{top:56,left:56,right:56,bottom:padB},maxZoom:10.5,duration:750,easing:easeOutCubic,essential:true});
+    } else {
+      map2.easeTo({center:[b.lng,b.lat], zoom:9.3, padding:{bottom:padB}, duration:700, easing:easeOutCubic, essential:true});
+    }
+  }catch(e){}}
 /* render the grouped accordion (all bases of a group), with base index `activeI` expanded */
 /* grouped drawer = ONE entity (המנהל האזרחי) across many bases → tab bar on top, selected base's
    title+text+video below (same layout as a standalone base). No long list, relevant base always on top. */
 /* per the content file the only per-base detail is the character (בסיס סגור/פתוח) */
-function wbDesc(b){ return '<b>מיקום</b> – מפקדת המנהל האזרחי הממוקמת באוגדת איו״ש או באחד מ-8 המת״קים (מנהלת תיאום וקישור) הגזרתיים (מנשה, אפרים, שומרון, עוטף ירושלים, רמאללה, עציון, יהודה והבקעה).<br><b>אופי השירות</b> – בסיס סגור.'; }
-function scrollWbActive(){ const a=document.querySelector('#bsTabs .wb-tab.on'), row=document.getElementById('bsTabs');
-  /* centre the active tab by scrolling the ROW only — scrollIntoView also scrolls the PAGE vertically,
-     which yanks the map mid-animation and leaves the tapped pin off-centre */
-  if(!a||!row) return;
-  const ra=a.getBoundingClientRect(), rr=row.getBoundingClientRect();
-  const delta=(ra.left+ra.width/2)-(rr.left+rr.width/2);
-  try{ row.scrollBy({left:delta,behavior:'smooth'}); }catch(e){ row.scrollLeft+=delta; } }
+function wbDesc(b){ return '<b>אופי השירות</b> – '+b.svc+'.'; }
+function scrollWbActive(){ const a=document.querySelector('#bsTabs .wb-tab.on');
+  if(a){ try{ a.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'}); }catch(e){} } }
 function renderWbTabs(groupKey, activeI){
   const tabs=document.getElementById('bsTabs');
-  tabs.innerHTML=bases.map((b,idx)=>({b,idx})).filter(o=>o.b.group===groupKey)
-    .sort((x,y)=>y.b.lat-x.b.lat)   /* geographic order: north → south (incl. the HQ itself) */
-    .map(o=>
+  tabs.innerHTML=bases.map((b,idx)=>({b,idx})).filter(o=>o.b.group===groupKey).map(o=>
     `<button class="wb-tab${o.idx===activeI?' on':''}" data-idx="${o.idx}" onclick="wbSelect(${o.idx})">${o.b.name}</button>`
   ).join('');
   scrollWbActive();
@@ -1134,7 +979,6 @@ function wbSelect(idx){
 }
 function openBase(i){const b=bases[i];
   const sh=document.getElementById('baseSheet');
-  sh.style.transition=''; sh.style.transform='';   /* clear the forced-closed transform so the .open class can drive it open */
   const desc=document.getElementById('bsDesc'), tabs=document.getElementById('bsTabs');
   const v=document.getElementById('bsVid');
   if(b.group){                                   /* grouped drawer: primary title → tabs (base names) → character */
@@ -1150,23 +994,14 @@ function openBase(i){const b=bases[i];
     if(v.getAttribute('src')!==b.anim){ v.src=b.anim; }
   }
   v.play().catch(()=>{});
-  sh.classList.remove('full');
-  sh.classList.add('open');
+  sh.classList.remove('full'); sh.classList.add('open');
   selectPin(i);}
-function closeBase(){var sh=document.getElementById('baseSheet');
-  sh.classList.remove('open','full');
-  sh.style.transition=''; sh.style.transform='translateY(110%)';   /* FORCE fully hidden, overriding any leftover drag transform */
+function closeBase(){document.getElementById('baseSheet').classList.remove('open','full');
   try{document.getElementById('bsVid').pause();}catch(e){}
   clearPin();
-  /* pull the map back out to the whole-country view so every pin is pickable again.
-     setPadding (immediate) — an easeTo(duration:0) here gets cancelled by the fitBounds that follows,
-     leaving stale bottom padding = the "leftover gap" after closing */
-  try{ map2 && map2.setPadding({top:0,bottom:0,left:0,right:0}); }catch(e){}
-  try{ map2 && map2.resize(); }catch(e){}
-  try{ /* frame ALL bases (incl. the far-north מת״ק צפוני); top padding keeps the northern pin clear of the tabs */
-       map2 && map2.fitBounds(basesBounds(),{padding:{top:100,bottom:30,left:30,right:30},duration:700,essential:true}); }catch(e){}
-  /* once the sheet finished sliding away, make sure the canvas fills the whole box (no leftover strip) */
-  setTimeout(function(){ try{ map2 && map2.resize(); }catch(e){} }, 600);}
+  /* pull the map back out to the whole-country view so every pin is pickable again */
+  try{ map2 && map2.easeTo({padding:{bottom:0},duration:0,essential:true});
+       map2 && map2.fitBounds(IL_BOUNDS,{padding:50,duration:700,essential:true}); }catch(e){}}
 /* recenter button — same as closing: return to the initial whole-country view */
 function resetMapView(){ closeBase(); }
 
@@ -1174,54 +1009,37 @@ function resetMapView(){ closeBase(); }
    tracks pointer velocity so a short fast swipe still opens/closes, and rubber-bands past fully-open. */
 (function(){
   var sh=document.getElementById('baseSheet');
-  var grabY=0, grabX=0, base=0, dragging=false, moved=0;
+  var grabY=0, grabX=0, base=0, dragging=false, startFull=false, moved=0;
   var lastY=0, lastT=0, vy=0;                        /* vy: px per ms, + = downward */
   function now(){ return (window.performance&&performance.now)?performance.now():Date.now(); }
-  function peek(){ return peekPx(); }
-  function curTy(){                                  /* current translateY in px — whoever set it (class, drag, mid-flight) */
-    var t=getComputedStyle(sh).transform;
-    if(!t||t==='none') return 0;
-    var m=t.match(/matrix3d\(([^)]+)\)/);
-    if(m) return parseFloat(m[1].split(',')[13])||0;
-    m=t.match(/matrix\(([^)]+)\)/);
-    if(m) return parseFloat(m[1].split(',')[5])||0;
-    return 0;
-  }
+  function peek(){ return parseInt(getComputedStyle(sh).getPropertyValue('--peek'),10)||300; }
   sh.addEventListener('pointerdown',function(e){
     if(e.target.closest('.base-close')) return;
     if(e.target.closest('.wb-tabs')) return;        /* let the tab row scroll horizontally on its own */
+    if(sh.scrollTop>0) return;                      /* once scrolled, the inner scroll wins */
     dragging=true; moved=0; grabY=e.clientY; grabX=e.clientX;
     lastY=e.clientY; lastT=now(); vy=0;
-    /* ONE continuous gesture: sheet offset minus inner scroll (drag past the top keeps going as content scroll) */
-    base=Math.max(0,curTy())-sh.scrollTop;
+    /* translateY baseline: full = 0, peek = sheetHeight − peek (matches the CSS translateY convention) */
+    base = sh.classList.contains('full') ? 0 : Math.max(0, sh.offsetHeight - peek());
+    startFull=sh.classList.contains('full');
     sh.style.transition='none';
-    if(e.cancelable) e.preventDefault();            /* no text-selection / native drag leaking out of the sheet */
     try{ sh.setPointerCapture(e.pointerId); }catch(err){}
   });
   sh.addEventListener('pointermove',function(e){
     if(!dragging) return;
     moved=e.clientY-grabY;
     var t=now(), dt=t-lastT; if(dt>0){ vy=(e.clientY-lastY)/dt; lastY=e.clientY; lastT=t; }
-    var p=base+moved;                                /* + = sheet pushed down, − = content scrolled up */
-    var maxScroll=Math.max(0,sh.scrollHeight-sh.clientHeight);
-    if(p<-maxScroll) p=-maxScroll;                   /* HARD stop at the end of the content (Google-style) */
-    sh.style.transform='translateY('+Math.max(0,p)+'px)';   /* VERTICAL ONLY — never sideways */
-    sh.scrollTop=Math.max(0,-p);                     /* past fully-open the same drag scrolls the content */
+    var off=base+moved;
+    if(off<0) off=off*0.28;                          /* rubber-band past fully-open */
+    sh.style.transform='translateY('+off+'px)';      /* VERTICAL ONLY — never sideways */
   });
   function end(){
     if(!dragging) return; dragging=false;
-    sh.style.transition='';
-    var p=base+moved;
-    var off=Math.max(0,p);
-    var peekOff=Math.max(0,sh.offsetHeight-peek()); /* translateY of the initial peek position */
+    sh.style.transition=''; sh.style.transform='';
     var flickUp=vy<-0.5, flickDown=vy>0.5;           /* >500px/s counts as a flick */
-    if(sh.scrollTop>0){ sh.style.transform=''; sh.classList.add('full'); return; }     /* content is scrolled → stay fully open */
-    if(flickDown || off>peekOff+70){ closeBase(); return; }                       /* dropped well below the peek → close */
-    if(Math.abs(moved)<6){ sh.style.transform=''; sh.classList.add('full'); return; }  /* tap = expand */
-    if(flickUp || off<24){ sh.style.transform=''; sh.classList.add('full'); return; }  /* flick up / reached the top */
-    sh.classList.remove('full');
-    if(off>=peekOff){ sh.style.transform=''; }       /* a bit below the peek → settle back at the peek */
-    else sh.style.transform='translateY('+off+'px)'; /* FREE position — the sheet stays exactly where the user left it */
+    if(flickUp || moved<-40) sh.classList.add('full');                       /* up */
+    else if(flickDown || moved>70){ if(startFull) sh.classList.remove('full'); else closeBase(); }  /* down */
+    else if(Math.abs(moved)<6 && !startFull) sh.classList.add('full');       /* tap */
   }
   sh.addEventListener('pointerup',end);
   sh.addEventListener('pointercancel',end);
@@ -1280,58 +1098,24 @@ const BOOK_ICON='<svg viewBox="9 9 25 25" fill="none" stroke="currentColor" stro
 const HAND_ICON='<svg viewBox="9 9 25 25" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7284 29.516L19.1428 28.5731V25.7443L22.9144 24.8014V21.9727L14.4281 23.387L13.9812 27.6302L14.8996 32.3448"/><path d="M23.8574 32.3454V31.4024L26.6862 29.988L27.6291 25.2734"/><path d="M21.9716 22.1298L22.443 11.6001L20.0857 10.6572L18.6713 21.0294L17.257 10.6572L14.8997 12.0716L15.3919 23.2264"/><path d="M21.9714 25.0363V28.5722L25.7431 27.1579V20.0859H22.0723"/><path d="M25.7432 21.0283H28.5719V24.8L25.7432 26.2144"/></svg>';
 const STEP_ICONS=[ENV_ICON, TENT_ICON, BOOK_ICON, HAND_ICON];
 const tlCards=[
- {no:'01',title:'שיבוץ למתפ״ש',text:'קבלת שיבוץ ליחידה ממיטב טרם הגיוס או שיבוץ על ידי קצין מיון במהלך שרשרת החיול.',imgs:['../assets/tl1a.jpg','../assets/tl1b.jpg','../assets/tl1c.jpg']},
- {no:'02',title:'טירונות (02 מורחב)',text:'הכשרה בת כ-3 שבועות במחנה גדעונים. במהלך הטירונות תלמדו את ערכי צה״ל ומיומנויות צבאיות בסיסיות, ותעברו היכרות ראשונית עם היחידה. כחלק מטירונות 02 מורחב, תעברו סדנה של הכרת הנשק, ירי במטווחים, אימוני כושר גופני וקרב מגע, סדנת שטח הכוללת שדאות ולינה בשטח ותרגולים נוספים שיכינו אתכם למצבי חירום שונים.',imgs:['../assets/tl2a.jpg','../assets/tl2b.jpg','../assets/tl2c.jpg']},
- {no:'03',title:'קורס תיאום וקישור',text:'הכשרה בת כ-7 שבועות במחנה גדעונים. במהלך הקורס תחשפו לפעילות היחידה ותלמדו על עשיית החיילים בתפקידים השונים. כחלק מהכשרה תלמדו על ההיסטוריה של הזירה הפלסטינית, תרכשו ידע בסיסי בשפה הערבית המדוברת ותתנסו במשימות מקצועיות אליהן תדרשו בתפקידכם. הקורס כולל סיורים בשטח ובבסיסי היחידה, הרצאות חוץ והעשרה, התנסויות מעשיות, אימונים גופניים, לינה בשטח ועוד.',imgs:['../assets/tl3a.jpg','../assets/tl3b.jpg','../assets/tl3c.jpg']},
- {no:'04',title:'שיבוץ לתפקיד',text:'בסיום הקורס תקבלו שיבוץ לתפקיד באחד מתחומי הפעילות של היחידה ובהם תיאום אזרחי, תיאום ביטחוני, תשתיות, מידע ומחקר, קשרי חוץ, דוברות והסברה ועוד. השיבוץ נקבע בהתאם לכישורים שלכם, ההישגים שלכם בקורס, חוות דעת של המפקדים וצרכי היחידה.',imgs:['../assets/tl4a.jpg','../assets/tl4b.jpg','../assets/tl4c.jpg']}
+ {no:'01',title:'שיבוץ למתפ״ש',text:'קבלת השיבוץ ליחידה. מכאן מתחיל המסלול שלכם במתפ״ש.',imgs:['../assets/tl1a.jpg','../assets/tl1b.jpg','../assets/tl1c.jpg']},
+ {no:'02',title:'טירונות',text:'הכשרה בת כ-3 שבועות במחנה גדעונים. במהלך הטירונות תהפכו מאזרחים לחיילים, תלמדו את ערכי צה״ל ומיומנויות צבאיות בסיסיות, ותעברו היכרות ראשונית עם היחידה.',imgs:['../assets/tl2a.jpg','../assets/tl2b.jpg','../assets/tl2c.jpg']},
+ {no:'03',title:'קורס תיאום וקישור',text:'הכשרה בת כ-6 שבועות במחנה גדעונים. במהלך הקורס תכירו את פעילות היחידה ואת הזירה הפלסטינית, תרכשו בסיס בערבית מדוברת ותיחשפו לאפשרויות השיבוץ השונות שלכם בסיומו.',imgs:['../assets/tl3a.jpg','../assets/tl3b.jpg','../assets/tl3c.jpg']},
+ {no:'04',title:'שיבוץ לתפקיד',text:'שיבוץ לאחד מתחומי הפעילות של היחידה ובהם תיאום אזרחי, תיאום ביטחוני, תשתיות, מידע ומחקר, קשרי חוץ, דוברות והסברה ועוד.',imgs:['../assets/tl4a.jpg','../assets/tl4b.jpg','../assets/tl4c.jpg']}
 ];
 /* extra tracks (מסלולים נוספים) — each is a single info card, no stepper. keyed by toggle label. */
 const trackCards={
- 'קצונה':[{title:'יציאה לקצונה',text:'במתפ״ש קיימת אפשרות לצאת לקצונה במהלך השירות במסלול המיועד לחיילים וחיילות המעוניינים להמשיך לשירות קבע. המסלול כולל מיונים, קורס קצינים בבה״ד 1 והשלמה חיילית ייעודית למתפ״ש שמתקיימת גם היא בבית הספר לתיאום וקישור במחנה גדעונים.',imgs:['../assets/tl2a.jpg','../assets/tl2b.jpg','../assets/tl2c.jpg']}],
- 'יעודי לקצונה':[{title:'מסלול ייעודי לקצונה',text:'מסלול ייחודי המיועד למועמדים שאותרו ומוינו עוד לפני גיוסם כבעלי פוטנציאל פיקודי גבוה, וקיבלו שיבוץ למסלול זה. החניכים במסלול עוברים הכשרה מקצועית בבית הספר לתיאום וקישור, משתבצים בשטח לתקופת התנסות ביחידה ולאחר מכן יוצאים לקורס קצינים. בסיום המסלול משתבצים בתפקידי קצונה במגוון תחומי הליבה של היחידה כבר במהלך השנה הראשונה לשירות. המסלול מהווה את הדרך המהירה ביותר להפוך לקצין תיאום וקישור במתפ״ש.',imgs:['../assets/tl4a.jpg','../assets/tl4b.jpg','../assets/tl4c.jpg']}],
- 'מסלול עמית':[{title:'מסלול עמית',text:'מיועד למועמדים בעלי רקע מתקדם בשפה הערבית (5 יח״ל) שאותרו לתפקיד עוד לפני גיוסם, וקיבלו שיבוץ לתפקיד זה. המסלול כולל הכשרה מועצמת בערבית מדוברת וספרותית, ומיועד למשרתים שישתלבו בתפקידים שבהם השפה הערבית מהווה חלק מרכזי מהעשייה.',imgs:['../assets/tl3a.jpg','../assets/tl3b.jpg','../assets/tl3c.jpg']}]
+ 'קצונה':[{title:'יציאה לקצונה',text:'במתפ״ש קיימת אפשרות לצאת לקצונה במהלך השירות, במסלול המיועד לחיילים וחיילות המעוניינים להמשיך לשירות קבע. המסלול כולל מיונים, קורס קצינים בבה״ד 1 והשלמה חיילית ייעודית למתפ״ש שמתקיימת גם היא בבית הספר לתיאום וקישור במחנה גדעונים.'}],
+ 'יעודי לקצונה':[{title:'מסלול ייעודי לקצונה',text:'מסלול ייחודי המיועד למועמדים שאותרו עוד לפני גיוסם כבעלי פוטנציאל פיקודי גבוה, וקיבלו שיבוץ למסלול זה. החניכים עוברים הכשרה מקצועית בבית הספר לתיאום וקישור, משתבצים בשטח לתקופת התנסות ביחידה, ולאחר מכן יוצאים לקורס קצינים. בסיום המסלול משתבצים בתפקידי קצונה במגוון תחומי הליבה של היחידה כבר במהלך השנה הראשונה לשירות — הדרך המהירה ביותר להפוך לקצין תיאום וקישור במתפ״ש.'}],
+ 'מסלול עמית':[{title:'מסלול עמ״ית',text:'מיועד למועמדים בעלי רקע מתקדם בשפה הערבית (5 יח״ל). המסלול כולל הכשרה מועצמת בערבית מדוברת וספרותית, ומיועד למשרתים שישתלבו בתפקידים שבהם השפה הערבית מהווה חלק מרכזי מהעשייה.'}]
 };
 const tlRail=document.getElementById('tlRail');
 const stp=document.getElementById('stepper');
 let slideTimers=[];
 function clearSlides(){ slideTimers.forEach(clearInterval); slideTimers=[]; }
 function tlCardEl(inner){ const el=document.createElement('div');el.className='role-card';
-  el.style.cssText='aspect-ratio:auto;background:none;box-shadow:none;flex:0 0 100%;height:480px;overflow:hidden';
+  el.style.cssText='aspect-ratio:auto;background:none;box-shadow:none;flex:0 0 100%;height:420px;overflow:visible';
   el.innerHTML='<div class="tl-card">'+inner+'</div>'; return el; }
-/* trim box text to WHOLE words so "word… <more>" fits within `lines` visible lines (never cuts a word).
-   box contains: <span class="rm-txt"> <span class="rm-ell">…</span> &nbsp; <more>.  returns true if it truncated. */
-function clampWithMore(box, full, lines, alwaysMore){
-  var txt=box.querySelector('.rm-txt'), ell=box.querySelector('.rm-ell'), more=box.querySelector('.rm-more, .rc-more');
-  if(!txt) return false;
-  var lh=parseFloat(getComputedStyle(box).lineHeight); if(!lh||isNaN(lh)) lh=parseFloat(getComputedStyle(box).fontSize)*1.4;
-  var maxH=Math.round(lh*lines)+2;
-  if(ell) ell.style.display='none'; if(more) more.style.display='none';
-  txt.textContent=full;
-  var pmh=box.style.maxHeight, pov=box.style.overflow;
-  box.style.maxHeight=maxH+'px'; box.style.overflow='hidden';
-  if(box.scrollHeight<=maxH){ box.style.maxHeight=pmh; box.style.overflow=pov; if(more&&alwaysMore) more.style.display=''; return false; }
-  if(ell) ell.style.display=''; if(more) more.style.display='';
-  var words=full.split(/\s+/), lo=1, hi=words.length, best=1;
-  while(lo<=hi){ var mid=(lo+hi)>>1; txt.textContent=words.slice(0,mid).join(' ');
-    if(box.scrollHeight<=maxH){ best=mid; lo=mid+1; } else { hi=mid-1; } }
-  txt.textContent=words.slice(0,best).join(' ');
-  box.style.maxHeight=pmh; box.style.overflow=pov;
-  return true;
-}
-/* service cards: 3-line clamp with inline "קרא עוד" → expands full text (image shrinks) + "הצג פחות" */
-function setupReadMore(){ requestAnimationFrame(function(){
-  document.querySelectorAll('#tlRail .tl-card').forEach(function(card){
-    var box=card.querySelector('.tl-text'); if(!box) return;
-    var full=box._full||'', more=box.querySelector('.rm-more'), ell=box.querySelector('.rm-ell'), txt=box.querySelector('.rm-txt');
-    card.classList.remove('expanded');
-    var trunc=clampWithMore(box, full, 3, false);
-    if(trunc && more){ more.textContent='קרא עוד';
-      more.onclick=function(){ var ex=card.classList.toggle('expanded');
-        if(ex){ txt.textContent=full; if(ell) ell.style.display='none'; more.style.display=''; more.textContent='הצג פחות'; }
-        else { clampWithMore(box, full, 3, false); more.textContent='קרא עוד'; } };
-    }
-  });
-}); }
 function buildMainTrack(){
   clearSlides();
   stp.style.display=''; stp.innerHTML='';
@@ -1340,25 +1124,18 @@ function buildMainTrack(){
     el.onclick=()=>goTL(idx); stp.appendChild(el); });
   tlRail.innerHTML='';
   tlCards.forEach(c=>{ const slides=c.imgs.map((src,k)=>`<img class="tl-slide${k===0?' on':''}" src="${src}" alt="">`).join('');
-    const el=tlCardEl(`<div class="tl-head"><div class="big">${c.no}</div><h3>${c.title}</h3></div><div class="tl-text"><span class="rm-txt">${c.text}</span><span class="rm-ell">…</span>&nbsp;<button class="rm-more"></button></div><div class="ph">${slides}</div>`);
-    el.querySelector('.tl-text')._full=c.text; tlRail.appendChild(el); });
+    tlRail.appendChild(tlCardEl(`<div class="big">${c.no}</div><h3>${c.title}</h3><p>${c.text}</p><div class="ph">${slides}</div>`)); });
   document.querySelectorAll('#tlRail .ph').forEach((ph,n)=>{ const imgs=[...ph.querySelectorAll('.tl-slide')];
     if(imgs.length<2) return; let i=0;
     slideTimers.push(setInterval(()=>{ imgs[i].classList.remove('on'); i=(i+1)%imgs.length; imgs[i].classList.add('on'); },3200+n*260)); });
-  tlRail.scrollLeft=0; updateStepper(0); setupReadMore();
+  tlRail.scrollLeft=0; updateStepper(0);
 }
 function buildInfoTrack(cards){
   clearSlides();
   stp.style.display='none';
   tlRail.innerHTML='';
-  cards.forEach(c=>{ const slides=(c.imgs||[]).map((src,k)=>`<img class="tl-slide${k===0?' on':''}" src="${src}" alt="">`).join('');
-    const ph = slides ? `<div class="ph">${slides}</div>` : '';
-    const el=tlCardEl(`<div class="tl-head tl-head-info"><h3>${c.title}</h3></div><div class="tl-text"><span class="rm-txt">${c.text}</span><span class="rm-ell">…</span>&nbsp;<button class="rm-more"></button></div>${ph}`);
-    el.querySelector('.tl-text')._full=c.text; tlRail.appendChild(el); });
-  document.querySelectorAll('#tlRail .ph').forEach((ph,n)=>{ const imgs=[...ph.querySelectorAll('.tl-slide')];
-    if(imgs.length<2) return; let i=0;
-    slideTimers.push(setInterval(()=>{ imgs[i].classList.remove('on'); i=(i+1)%imgs.length; imgs[i].classList.add('on'); },3200+n*260)); });
-  tlRail.scrollLeft=0; setupReadMore();
+  cards.forEach(c=>{ tlRail.appendChild(tlCardEl(`<h3>${c.title}</h3><p>${c.text}</p>`)); });
+  tlRail.scrollLeft=0;
 }
 document.querySelectorAll('#svcToggle button').forEach(b=>{
   b.onclick=()=>{ document.querySelectorAll('#svcToggle button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
@@ -1410,39 +1187,15 @@ function updateStepper(i){[...stp.children].forEach((el,idx)=>el.classList.toggl
   var ap=document.getElementById('aboutPage'), apx=document.getElementById('apClose');
   function openAbout(){ if(ap){ ap.classList.add('open'); document.body.style.overflow='hidden'; } }
   function closeAbout(){ if(ap){ ap.classList.remove('open'); document.body.style.overflow=''; } }
-  window.openAboutPage=openAbout;   /* used by the "עוד עלינו" CTA in the short about section */
   if(apx) apx.onclick=closeAbout;
-  /* FAQ internal page */
-  var fp=document.getElementById('faqPage'), fpx=document.getElementById('faqClose');
-  function openFaq(){ if(fp){ fp.classList.add('open'); document.body.style.overflow='hidden'; } }
-  function closeFaq(){ if(fp){ fp.classList.remove('open'); document.body.style.overflow=''; } }
-  if(fpx) fpx.onclick=closeFaq;
   m.querySelectorAll('.sm-list a').forEach(function(a){ a.addEventListener('click',function(){
     var t=a.getAttribute('data-tab'), s=a.getAttribute('data-scroll'), p=a.getAttribute('data-page');
     if(t){ var tab=document.querySelector('.tab[data-tab="'+t+'"]'); if(tab) tab.click(); }
     else if(s){ var el=document.getElementById(s); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
     else if(p==='about'){ openAbout(); }
-    else if(p==='faq'){ openFaq(); }
     setTimeout(close,80); }); });
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ close(); closeAbout(); closeFaq(); } });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ close(); closeAbout(); } });
 })();
-/* FAQ content — PLACEHOLDER (accurate summaries from the content file) until the final Q&A copy arrives */
-const FAQ=[
- {q:'מה זה מתפ״ש?', a:'מתאם פעולות הממשלה בשטחים (מתפ״ש) היא יחידה ייחודית בצה״ל, האחראית על תיאום ויישום המדיניות האזרחית של מדינת ישראל ביהודה ושומרון, ברצועת עזה ובמרחבים נוספים בצפון.'},
- {q:'אילו תפקידים יש ביחידה?', a:'השירות ביחידה כולל מגוון תחומים: תיאום אזרחי, תיאום ביטחוני, תשתיות, קשרי חוץ, מידע ומחקר, דוברות והסברה, מבצעים ופיקוד והדרכה.'},
- {q:'איך נראה מסלול הגיוס?', a:'שיבוץ למתפ״ש ← טירונות ← קורס תיאום וקישור ← שיבוץ לתפקיד. בנוסף קיימים מסלולים ייעודיים (מסלול עמ״ית, מסלול ייעודי לקצונה) ואפשרות לצאת לקצונה במהלך השירות.'},
- {q:'היכן ממוקמים הבסיסים?', a:'בסיסי היחידה פרוסים ביהודה ושומרון, בגבול רצועת עזה, בגזרה הצפונית, בבסיס ההכשרות במחנה גדעונים ובמטה היחידה בקריה.'},
- {q:'האם ניתן לצאת לקצונה?', a:'כן. קיימת אפשרות לצאת לקצונה במהלך השירות, וכן מסלול ייעודי לקצונה למועמדים שאותרו כבעלי פוטנציאל פיקודי גבוה כבר לפני גיוסם.'},
-];
-(function(){ var list=document.getElementById('faqList'); if(!list) return;
-  FAQ.forEach(function(f){ var it=document.createElement('div'); it.className='faq-item';
-    it.innerHTML='<button class="faq-q">'+f.q+'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><div class="faq-a"><div><p>'+f.a+'</p></div></div>';
-    it.querySelector('.faq-q').onclick=function(){ it.classList.toggle('open'); };
-    list.appendChild(it); });
-})();
-/* clone the menu-footer buttons into the main-page footer so they stay byte-identical in design */
-(function(){ var f=document.getElementById('siteFoot'), src=document.querySelector('#sideMenu .sm-foot');
-  if(f&&src) f.innerHTML=src.innerHTML; })();
 </script>
 </body>
 </html>
