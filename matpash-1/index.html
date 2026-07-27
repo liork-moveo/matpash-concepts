@@ -192,7 +192,7 @@
   /* map keeps ONE fixed (large) height — lvh is the STABLE large-viewport unit, so it never resizes
      while scrolling (dvh was the culprit that grew/shrank the map as the browser toolbar hid/showed).
      vh first as a fallback for older engines, lvh overrides where supported. */
-  #s-bases .map-full{height:calc(100vh - 57px - 46px - 44px);height:calc(100lvh - 57px - 46px - 44px);
+  #s-bases .map-full{height:calc(100vh - 230px);height:calc(100lvh - 230px);
     border-radius:var(--radius);margin:0 20px;width:auto}
   /* hint = small pill overlay at the bottom-center of the map; the drawer slides up over it when open */
   #s-bases .map-hint{position:absolute;bottom:56px;left:50%;transform:translateX(-50%);margin:0;z-index:5;
@@ -254,7 +254,7 @@
   .step.on small{font-weight:700}
   .step.on .dot-icon{width:38px;height:38px;background:#fff;border-width:1.5px;border-color:var(--accent);color:var(--accent)}   /* selected = blue STROKE, not a full-blue fill; same 1.5px as the line + small dots */
   .step.on .dot-icon svg{width:20px;height:20px;opacity:1}
-  .page-end{height:60px}
+  .page-end{height:60px;background:var(--sand)}   /* same light tone as the footer → the footer reads as ONE colour */
   /* main-page footer — identical buttons to the menu footer (.sm-social/.sm-ic/.sm-wa), laid out the same way */
   .site-foot{display:flex;align-items:center;justify-content:space-between;padding:22px;
     border-top:1px solid var(--teal-light);background:var(--sand)}
@@ -341,12 +341,12 @@
 
   /* base bottom sheet */
   /* drawer lives INSIDE the map box (absolute), so it's visually tied to the map and scrolls with it */
-  .base-sheet{--peek:34svh;position:absolute;left:0;right:0;bottom:0;transform:translateY(110%);width:100%;z-index:90;
+  .base-sheet{--peek:64svh;position:absolute;left:0;right:0;bottom:0;transform:translateY(110%);width:100%;z-index:90;
     background:#F2F4F5;border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding:44px 22px 24px;
     transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s linear .52s;max-height:100%;overflow-y:auto;cursor:pointer;visibility:hidden}
   /* closed = translated fully out AND visibility:hidden (after the slide) → disappears completely, Google-Maps style */
-  .base-sheet.open{transform:translateY(calc(100% - var(--peek)));visibility:visible;
-    transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s}   /* peek reveals the top of the drawer */
+  .base-sheet.open{transform:translateY(max(0px, calc(100% - var(--peek))));visibility:visible;
+    transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s}   /* max(0…) → never rises above the map's bottom edge (no detach) even when content < peek */
   .base-sheet.open.full{transform:translateY(0)}
   /* --peek is svh-based (≈1/3 of the screen) so the map stays ~2/3 visible on every device */
   /* fixed 44px top zone holds the handle + close, so content never sits under the X */
@@ -966,7 +966,7 @@ function addCities(map){
     const el=document.createElement('div');
     el.className='city-label';
     el.textContent=f.properties.name;
-    cityMarkers.push(new mapboxgl.Marker({element:el,anchor:'left'})
+    cityMarkers.push(new mapboxgl.Marker({element:el,anchor:'right'})
       .setLngLat(f.geometry.coordinates).addTo(map));
   });
 }
@@ -980,7 +980,7 @@ function addSettlements(map){
   if(settleMarkers.length || typeof mapboxgl==='undefined') return;
   WB_SETTLEMENTS.forEach(function(s){
     const el=document.createElement('div'); el.className='settle-label'; el.textContent=s.name;
-    settleMarkers.push(new mapboxgl.Marker({element:el,anchor:'left'}).setLngLat([s.lng,s.lat]).addTo(map));
+    settleMarkers.push(new mapboxgl.Marker({element:el,anchor:'right'}).setLngLat([s.lng,s.lat]).addTo(map));
   });
 }
 function updateSettleVis(){ if(!map2) return; const show=map2.getZoom()>=LABEL_ZOOM;   /* WB settlements appear when ZOOMED IN */
@@ -1077,7 +1077,9 @@ const easeOutCubic=t=>1-Math.pow(1-t,3);
    a probe element that inherits --peek and reports its offsetHeight gives the true peek height. */
 function peekPx(){ try{ var sh=document.getElementById('baseSheet');
   var p=document.createElement('div'); p.style.cssText='position:absolute;left:-9999px;top:0;width:1px;height:var(--peek)';
-  sh.appendChild(p); var h=p.offsetHeight; sh.removeChild(p); return h||300;
+  sh.appendChild(p); var pk=p.offsetHeight; sh.removeChild(p);
+  /* actual visible coverage = min(peek, content) — the drawer never covers more than its own content */
+  return Math.min(pk||300, sh.scrollHeight||pk||300)||300;
 }catch(e){ return 300; } }
 /* pan the tapped pin into the strip ABOVE the sheet (like Google/Apple: the pin never hides behind the card) */
 function nearestCity(b){
@@ -1096,18 +1098,14 @@ function nearestSettlement(b){
 /* zoom-in on a tapped pin: centre the PIN exactly, then zoom OUT just enough that the nearest reference
    is visible (big city for standard bases, Jewish settlement for איו"ש). drawer stays ~1/3 (bottom padding). */
 function flyToBase(b){ if(!map2) return;
-  var padB=peekPx()+24, padT=92;   /* padT clears the floating sticky tabs so the pin is never hidden behind them */
-  var ref = b.group ? nearestSettlement(b) : nearestCity(b);
-  try{
-    if(ref){
-      /* symmetric box around the pin → the pin stays dead-centre BETWEEN the tabs (top) and drawer (bottom) */
-      var dLng=Math.max(Math.abs(b.lng-ref[0]),0.02)*1.25, dLat=Math.max(Math.abs(b.lat-ref[1]),0.02)*1.25;
-      var sw=[b.lng-dLng,b.lat-dLat], ne=[b.lng+dLng,b.lat+dLat];
-      map2.fitBounds([sw,ne],{padding:{top:padT,left:40,right:40,bottom:padB},maxZoom:13,duration:750,easing:easeOutCubic,essential:true});
-    } else {
-      map2.easeTo({center:[b.lng,b.lat], zoom:11, padding:{top:padT,bottom:padB}, duration:700, easing:easeOutCubic, essential:true});
-    }
-  }catch(e){}}
+  /* drawer takes ~2/3 (peek), map ~1/3. centre the PIN exactly in the visible map strip
+     (between the sticky tabs at the top and the drawer at the bottom) via easeTo padding. */
+  var padT=92;                                   /* clears the floating tabs */
+  var mapEl=document.getElementById('mapC2'), mapH=mapEl?mapEl.offsetHeight:700;
+  var padB=Math.min(peekPx()+16, mapH-padT-90);  /* keep at least a ~90px band so the pin isn't over-zoomed-out */
+  var z = b.group ? 12.2 : 11;
+  try{ map2.easeTo({center:[b.lng,b.lat], zoom:z, padding:{top:padT,bottom:padB,left:0,right:0},
+        duration:700, easing:easeOutCubic, essential:true}); }catch(e){}}
 /* render the grouped accordion (all bases of a group), with base index `activeI` expanded */
 /* grouped drawer = ONE entity (המנהל האזרחי) across many bases → tab bar on top, selected base's
    title+text+video below (same layout as a standalone base). No long list, relevant base always on top. */
