@@ -13,6 +13,7 @@
   :root{
     /* PALETTE — primary + black + white + gray (excl. maps/pins/logos): #266594, #000, #fff, gray.
        ALL text is black (#000) or white (#fff). Primary #266594 = non-text accents; gray = neutral hairlines/fills. */
+    --sec-gap:22px;      /* ONE title→content gap for the three home sections; 32px on desktop (client, 2026-08-04) */
     --navy:#000000;      /* text ink → black */
     --navy-deep:#000000;
     --sand:#f8f9fa;
@@ -127,9 +128,9 @@
   .sec.nopad{padding:0;scroll-margin-top:126px}
   #s-roles{background:#F2F4F5}
   #s-service{background:#F2F4F5}
-  .sec-title{font-size:28px;font-weight:700;text-align:center;color:var(--navy);margin:0 0 18px;line-height:1.05}
+  .sec-title{font-size:28px;font-weight:700;text-align:center;color:var(--navy);margin:0 0 var(--sec-gap);line-height:1.05}
   #s-roles .sec-title{line-height:.92}   /* roles title per Figma 1975-684 */
-  #s-bases .sec-title{padding-top:6px;margin:0 0 14px}   /* map section header ("איפה משרתים?") */
+  #s-bases .sec-title{padding-top:0;margin:0 0 var(--sec-gap)}   /* map section header ("איפה משרתים?") — same gap as the others */
   /* ---------- roles carousel (גרסה 1) ---------- */
   /* rail sits inside the section's 20px padding → content box = screen − 40px, IDENTICAL to the map (margin:0 20px).
      card flex:0 0 100% therefore equals the map width exactly. no negative-margin bleed = no width surprises. */
