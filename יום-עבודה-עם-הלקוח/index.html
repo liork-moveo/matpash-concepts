@@ -281,7 +281,7 @@
   .tl-card .big{font-size:60px;font-weight:700;line-height:.92;text-align:right;color:var(--navy)}
   .tl-card h3{font-size:22px;font-weight:700;line-height:1.2;margin:2px 0 0;text-align:right}
   /* body text: exactly 5 lines by default (reserved height), clamped with "קרא עוד" when longer */
-  .tl-text{font-size:16px;line-height:1.45;text-align:right;color:var(--navy);margin-top:8px;overflow:hidden;min-height:calc(1.45em * 3)}
+  .tl-text{font-size:16px;line-height:1.45;text-align:right;color:var(--navy);margin-top:8px;overflow:hidden;min-height:calc(1.45em * 3);text-wrap:pretty}
   .tl-card.expanded .tl-text{overflow:visible;min-height:0}
   /* inline read-more: whole word + "…" + button on the SAME last line (JS trims by whole words, never mid-word) */
   .rm-ell{white-space:nowrap}
@@ -734,6 +734,10 @@
     .hero p{font-size:22px;max-width:560px}
     .hero .eyebrow{font-size:16px}
     .sec-title{font-size:44px}
+    /* ONE title→content gap across the three home sections (client, 2026-08-04): they were 18 / 14 / 26 */
+    :root{--sec-gap:32px}
+    #s-roles .sec-title,#s-bases .sec-title{margin-bottom:var(--sec-gap)}
+    #s-bases .sec-title{padding-top:0}   /* its 6px top pad skewed the rhythm */
     #s-roles .sec-title br{display:none}   /* one line on desktop (client, 2026-08-03); the space after the <br> keeps the words apart */
     .ap-title,.faq-title{font-size:44px}
     /* Wiz-quote treatment (client, 2026-08-03, wiz.io/about reference): the statement stays CENTRED
@@ -925,7 +929,7 @@
     /* --svc-pad = the page inset (vw-based: the scroller has no scrollbar, so vw == its width) */
     #s-service{--svc-pad:max(20px,calc((100vw - 1240px)/2));--svc-menu:238px;   /* 220 menu + 18 gap */
       display:grid;grid-template-columns:minmax(180px,220px) minmax(0,1fr);
-      grid-template-areas:"title title" "menu content";column-gap:18px;row-gap:26px;
+      grid-template-areas:"title title" "menu content";column-gap:18px;row-gap:var(--sec-gap);
       align-items:start;padding-inline:var(--svc-pad)}
     #s-service .sec-title{grid-area:title;margin-bottom:0}
     #svcToggle{grid-area:menu;display:flex;flex-direction:column;align-items:flex-start;
@@ -958,7 +962,7 @@
       grid-template-rows:auto auto;grid-template-areas:"head ph" "text ph";
       align-content:center;align-items:start}
     .tl-wide .tl-text{font-size:17px;line-height:1.72;margin-top:12px;margin-bottom:0;
-      max-width:none;min-height:0;overflow:visible}
+      max-width:none;min-height:0;overflow:visible;text-wrap:pretty}   /* pretty: the browser also avoids short last lines */
     .tl-wide .ph{grid-area:ph;height:250px;min-height:0;margin-top:0;align-self:center}
     /* the 4 stages step through one after another, so the number, title and first text line must land
        on the SAME Y every time (client, 2026-08-03): anchor the group to the top, filler row below,
@@ -2009,13 +2013,13 @@ const tlCards=[
  {no:'01',title:'שיבוץ למתפ״ש',text:'קבלת שיבוץ ליחידה ממיטב טרם הגיוס או שיבוץ על ידי קצין מיון במהלך שרשרת החיול',imgs:SVC('shibutz',8)},
  {no:'02',title:'טירונות (02 מורחב)',text:'טירונות 02 מורחב במשך כ-3 שבועות במחנה גדעונים. במהלך הטירונות תלמדו את ערכי צה״ל ומיומנויות צבאיות בסיסיות, ותעברו היכרות ראשונית עם היחידה. כחלק מטירונות 02 מורחב, תעברו סדנה של הכרת הנשק, ירי במטווחים, אימוני כושר גופני וקרב מגע, סדנת שטח הכוללת שדאות ולינה בשטח ותרגולים נוספים שיכינו אתכם למצבי חירום שונים',imgs:SVC('tironut',12)},
  {no:'03',title:'קורס תיאום וקישור',text:'הכשרה בת כ-7 שבועות במחנה גדעונים. במהלך הקורס תחשפו לפעילות היחידה ותלמדו על עשיית החיילים בתפקידים השונים. כחלק מהכשרה תלמדו על ההיסטוריה של הזירה הפלסטינית, תרכשו ידע בסיסי בשפה הערבית המדוברת ותתנסו במשימות מקצועיות אליהן תדרשו בתפקידכם. הקורס כולל סיורים בשטח ובבסיסי היחידה, הרצאות חוץ והעשרה, התנסויות מעשיות, אימונים גופניים, לינה בשטח ועוד',imgs:SVC('kurs',8)},
- {no:'04',title:'שיבוץ לתפקיד',text:'בסיום הקורס תקבלו שיבוץ לתפקיד באחד מתחומי הפעילות של היחידה ובהם תיאום אזרחי, תיאום ביטחוני, תשתיות, מידע ומחקר, קשרי חוץ, דוברות והסברה ועוד. השיבוץ נקבע בהתאם לכישורים שלכם, ההישגים שלכם בקורס, חוות דעת של המפקדים וצרכי היחידה',imgs:SVC('tafkid',11)}
+ {no:'04',title:'שיבוץ לתפקיד',text:'בסיום הקורס תקבלו שיבוץ לתפקיד באחד מתחומי הפעילות של היחידה ובהם תיאום אזרחי, תיאום ביטחוני, תשתיות, מידע ומחקר, קשרי חוץ ועוד. השיבוץ נקבע בהתאם לכישורים שלכם, ההישגים שלכם בקורס, חוות דעת של המפקדים וצרכי היחידה',imgs:SVC('tafkid',11)}
 ];
 /* extra tracks (מסלולים נוספים) — each is a single info card, no stepper. keyed by toggle label. */
 const trackCards={
  'יציאה לקצונה':[{title:'יציאה לקצונה',text:'במתפ״ש קיימת אפשרות לצאת לקצונה במהלך השירות במסלול המיועד לחיילים וחיילות המעוניינים להמשיך לשירות קבע. המסלול כולל מיונים, קורס קצינים בבה״ד 1 והשלמה חיילית ייעודית למתפ״ש שמתקיימת גם היא בבית הספר לתיאום וקישור במחנה גדעונים',imgs:['../assets-client-day/svc/svc-ktzuna-01.jpg']}],
- 'מסלול ייעודי לקצונה':[{title:'מסלול ייעודי לקצונה',text:'מסלול ייחודי המיועד למועמדים שאותרו ומוינו עוד לפני גיוסם כבעלי פוטנציאל פיקודי גבוה, וקיבלו שיבוץ למסלול זה. החניכים במסלול עוברים הכשרה מקצועית בבית הספר לתיאום וקישור, משתבצים בשטח לתקופת התנסות ביחידה ולאחר מכן יוצאים לקורס קצינים. בסיום המסלול משתבצים בתפקידי קצונה במגוון תחומי הליבה של היחידה כבר במהלך השנה הראשונה לשירות. המסלול מהווה את הדרך המהירה ביותר להפוך לקצין תיאום וקישור במתפ״ש',imgs:['../assets-client-day/svc/svc-yeudi-01.jpg']}],
- 'מש״ק עמית':[{title:'מש״ק עמית',text:'מיועד למועמדים בעלי רקע מתקדם בשפה הערבית (5 יח״ל) שאותרו לתפקיד עוד לפני גיוסם, וקיבלו שיבוץ לתפקיד זה. המסלול כולל הכשרה מועצמת בערבית מדוברת וספרותית, ומיועד למשרתים שישתלבו בתפקידים שבהם השפה הערבית מהווה חלק מרכזי מהעשייה',imgs:['../assets-client-day/svc/svc-amit-01.jpg']}]
+ 'מסלול ייעודי לקצונה':[{title:'מסלול ייעודי לקצונה',bold:'וקיבלו שיבוץ למסלול זה.',text:'מסלול ייחודי המיועד למועמדים שאותרו ומוינו עוד לפני גיוסם כבעלי פוטנציאל פיקודי גבוה, וקיבלו שיבוץ למסלול זה. החניכים במסלול עוברים הכשרה מקצועית בבית הספר לתיאום וקישור, משתבצים בשטח לתקופת התנסות ביחידה ולאחר מכן יוצאים לקורס קצינים. בסיום המסלול משתבצים בתפקידי קצונה במגוון תחומי הליבה של היחידה כבר במהלך השנה הראשונה לשירות. המסלול מהווה את הדרך המהירה ביותר להפוך לקצין תיאום וקישור במתפ״ש',imgs:['../assets-client-day/svc/svc-yeudi-01.jpg']}],
+ 'מש״ק עמית':[{title:'מש״ק עמית',bold:'וקיבלו שיבוץ לתפקיד זה.',text:'מיועד למועמדים בעלי רקע מתקדם בשפה הערבית (5 יח״ל) שאותרו לתפקיד עוד לפני גיוסם, וקיבלו שיבוץ לתפקיד זה. המסלול כולל הכשרה מועצמת בערבית מדוברת וספרותית, ומיועד למשרתים שישתלבו בתפקידים שבהם השפה הערבית מהווה חלק מרכזי מהעשייה',imgs:['../assets-client-day/svc/svc-amit-01.jpg']}]
 };
 const tlRail=document.getElementById('tlRail');
 const stp=document.getElementById('stepper');
@@ -2052,7 +2056,7 @@ function setupReadMore(){ requestAnimationFrame(function(){
     card.classList.remove('expanded');
     /* desktop strip cards show the FULL stage text — no clamping, no "קרא עוד" (client, 2026-08-03) */
     if(card.closest('.tl-quad, .tl-strip-item, .tl-wide')){
-      if(txt) txt.textContent=full;
+      if(txt) txt.innerHTML=box._html||full;   /* innerHTML so an emphasised sentence stays bold */
       if(ell) ell.style.display='none';
       if(more) more.style.display='none';
       return;
@@ -2061,7 +2065,7 @@ function setupReadMore(){ requestAnimationFrame(function(){
     var trunc=clampWithMore(box, full, lines, false);
     if(trunc && more){ more.textContent='קרא עוד';
       more.onclick=function(){ var ex=card.classList.toggle('expanded');
-        if(ex){ txt.textContent=full; if(ell) ell.style.display='none'; more.style.display=''; more.textContent='הצג פחות'; }
+        if(ex){ txt.innerHTML=box._html||full; if(ell) ell.style.display='none'; more.style.display=''; more.textContent='הצג פחות'; }   /* bold survives the expand */
         else { clampWithMore(box, full, lines, false); more.textContent='קרא עוד'; } };
     }
   });
@@ -2074,8 +2078,8 @@ function buildMainTrack(){
     el.onclick=()=>goTL(idx); stp.appendChild(el); });
   tlRail.innerHTML='';
   tlCards.forEach(c=>{ const slides=c.imgs.map((src,k)=>`<img class="tl-slide${k===0?' on':''}" src="${src}" alt="">`).join('');
-    const el=tlCardEl(`<div class="tl-head"><div class="big">${c.no}</div><h3>${c.title}</h3></div><div class="tl-text"><span class="rm-txt">${c.text}</span><span class="rm-ell">…</span>&nbsp;<button class="rm-more"></button></div><div class="ph">${slides}</div>`);
-    el.querySelector('.tl-text')._full=c.text; tlRail.appendChild(el); });
+    const el=tlCardEl(`<div class="tl-head"><div class="big">${c.no}</div><h3>${c.title}</h3></div><div class="tl-text"><span class="rm-txt">${svcBold(c)}</span><span class="rm-ell">…</span>&nbsp;<button class="rm-more"></button></div><div class="ph">${slides}</div>`);
+    svcSetFull(el.querySelector('.tl-text'),c); tlRail.appendChild(el); });
   document.querySelectorAll('#tlRail .ph').forEach((ph,n)=>{ const imgs=[...ph.querySelectorAll('.tl-slide')];
     if(imgs.length<2) return; let i=0;
     slideTimers.push(setInterval(()=>{ imgs[i].classList.remove('on'); i=(i+1)%imgs.length; imgs[i].classList.add('on'); },3200+n*260)); });
@@ -2087,8 +2091,8 @@ function buildInfoTrack(cards){
   tlRail.innerHTML='';
   cards.forEach(c=>{ const slides=(c.imgs||[]).map((src,k)=>`<img class="tl-slide${k===0?' on':''}" src="${src}" alt="">`).join('');
     const ph = slides ? `<div class="ph">${slides}</div>` : '';
-    const el=tlCardEl(`<div class="tl-head tl-head-info"><h3>${c.title}</h3></div><div class="tl-text"><span class="rm-txt">${c.text}</span><span class="rm-ell">…</span>&nbsp;<button class="rm-more"></button></div>${ph}`);
-    el.querySelector('.tl-text')._full=c.text; tlRail.appendChild(el); });
+    const el=tlCardEl(`<div class="tl-head tl-head-info"><h3>${c.title}</h3></div><div class="tl-text"><span class="rm-txt">${svcBold(c)}</span><span class="rm-ell">…</span>&nbsp;<button class="rm-more"></button></div>${ph}`);
+    svcSetFull(el.querySelector('.tl-text'),c); tlRail.appendChild(el); });
   document.querySelectorAll('#tlRail .ph').forEach((ph,n)=>{ const imgs=[...ph.querySelectorAll('.tl-slide')];
     if(imgs.length<2) return; let i=0;
     slideTimers.push(setInterval(()=>{ imgs[i].classList.remove('on'); i=(i+1)%imgs.length; imgs[i].classList.add('on'); },3200+n*260)); });
@@ -2099,12 +2103,20 @@ function buildInfoTrack(cards){
    scrolling sideways moves between tracks; the pills mirror the position and click-scroll. */
 const svcMq=matchMedia('(min-width:1024px)');
 const svcBtns=[...document.querySelectorAll('#svcToggle button')];
+/* a track may ask for one sentence in bold (client, 2026-08-04). The clamped mobile view measures with
+   textContent, so the plain string stays in _full and the marked-up one is kept alongside in _html. */
+/* never leave a single word alone on the last line (client, 2026-08-04): glue the final two words
+   with a non-breaking space, so they wrap together. Applied per paragraph (texts may hold <br><br>). */
+function noOrphan(s){ return s.split('<br><br>').map(function(p){
+  return p.replace(/\s+(\S+)(\s*)$/,' $1$2'); }).join('<br><br>'); }
+function svcBold(c){ const t=noOrphan(c.text); return c.bold ? t.split(c.bold).join('<b>'+c.bold+'</b>') : t; }
+function svcSetFull(box,c){ box._full=c.text; box._html=svcBold(c); }   /* _full stays plain: the clamp measures with textContent */
 function svcCardHTML(c, info){
   const slides=(c.imgs||[]).map((src,k)=>`<img class="tl-slide${k===0?' on':''}" src="${src}" alt="">`).join('');
   const head = info ? `<div class="tl-head tl-head-info"><h3>${c.title}</h3></div>`
                     : `<div class="tl-head"><div class="big">${c.no}</div><h3>${c.title}</h3></div>`;
   const ph = slides ? `<div class="ph">${slides}</div>` : '';
-  return `<div class="tl-card">${head}<div class="tl-text"><span class="rm-txt">${c.text}</span><span class="rm-ell">…</span>&nbsp;<button class="rm-more"></button></div>${ph}</div>`;
+  return `<div class="tl-card">${head}<div class="tl-text"><span class="rm-txt">${svcBold(c)}</span><span class="rm-ell">…</span>&nbsp;<button class="rm-more"></button></div>${ph}</div>`;
 }
 function wireSlideshows(){ document.querySelectorAll('#tlRail .ph').forEach((ph,n)=>{ const imgs=[...ph.querySelectorAll('.tl-slide')];
   if(imgs.length<2) return; let i=0;
@@ -2118,7 +2130,7 @@ let svcStage=0;   /* which of the 4 stages the main track is showing */
 function renderSvcPanel(card,info){
   const el=document.createElement('div'); el.className='tl-wide'+(info?'':' tl-stage');
   el.innerHTML=svcCardHTML(card,info);
-  el.querySelector('.tl-text')._full=card.text;
+  svcSetFull(el.querySelector('.tl-text'),card);
   return el;
 }
 function buildDesktopTabbed(key){
