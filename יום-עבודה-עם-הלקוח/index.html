@@ -2307,5 +2307,214 @@ const FAQ=[
   }); });
 })();
 </script>
+
+<!-- ============================================================
+     SCROLL-REVEAL — approved and ON by default (client, 2026-08-04).
+     ?anim=0 turns the whole thing off, so the previous look can be shown
+     side by side (or fallen back to) without a redeploy.
+     Studied from the TerraZone home page: IntersectionObserver adds a class,
+     CSS does the motion, per-element delay makes it a stagger.
+     ============================================================ -->
+<style>
+  /* 1 + 2 — base reveal and stagger. Opacity + vertical rise only: no scale, no
+     rotation, per the restrained language of this site. */
+  body.anim .rv{opacity:0;transform:translateY(24px);
+    transition:opacity .75s cubic-bezier(.22,.61,.36,1),transform .75s cubic-bezier(.22,.61,.36,1);
+    transition-delay:var(--d,0s)}
+  body.anim .rv.in{opacity:1;transform:none}
+  /* The roles cards already carry their own `transition` from an ID rule (#rolesRail .role-card),
+     which wins on specificity and wipes out the delay — so the row landed all at once. A keyframe
+     ANIMATION sidesteps that fight entirely, and `.done` hands the card back to its hover lift. */
+  body.anim .role-card[data-seq]{opacity:0}
+  body.anim .role-card[data-seq].in{animation:rvIn .7s cubic-bezier(.22,.61,.36,1) var(--d,0s) both}
+  body.anim .role-card[data-seq].done{animation:none;opacity:1}
+  @keyframes rvIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+  /* 4 — the service panel is rebuilt on every tab/stage change, so a plain
+     animation on it replays automatically and softens the swap */
+  body.anim .tl-wide,body.anim .tl-arrows{animation:svcIn .34s cubic-bezier(.22,.61,.36,1) both}
+  body.anim .tl-arrows{animation-delay:.06s}
+  @keyframes svcIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  /* 5 — hero text drifts up and fades as you scroll off it. `translate` (not
+     `transform`) so it composes with anything else on these elements. */
+  body.anim .hero .eyebrow,body.anim .hero h1,body.anim .hero p{
+    translate:0 calc(var(--hp,0) * -46px);opacity:calc(1 - var(--hp,0))}
+  body.anim .hero .scroll-hint{opacity:calc(1 - var(--hp,0) * 2)}
+  /* ---- MOBILE TUNING (research, 2026-08-04) ----
+     On a phone people scroll fast, so a slow reveal is simply scrolled past mid-animation:
+     shorter distance, shorter duration, tighter stagger. And the hero scroll-away is switched
+     OFF below 1024px — text moving at a different speed from the scroll is the one category
+     WebKit lists as a vestibular trigger, and it is the weakest of the five effects anyway. */
+  @media (max-width:1023px){
+    body.anim .rv{transform:translateY(16px);
+      transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1)}
+    body.anim .role-card[data-seq].in{animation-duration:.45s}
+    body.anim .tl-wide,body.anim .tl-arrows{animation-duration:.26s}
+    @keyframes rvIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+    /* hero stays completely still on mobile */
+    body.anim .hero .eyebrow,body.anim .hero h1,body.anim .hero p,
+    body.anim .hero .scroll-hint{translate:none;opacity:1}
+  }
+  /* accessibility: anyone who asked the OS to reduce motion gets none of it */
+  @media (prefers-reduced-motion:reduce){
+    body.anim .rv{opacity:1;transform:none;transition:none}
+    body.anim .tl-wide,body.anim .tl-arrows{animation:none}
+    body.anim .hero .eyebrow,body.anim .hero h1,body.anim .hero p,
+    body.anim .hero .scroll-hint{translate:none;opacity:1}
+  }
+</style>
+<script>
+(function(){
+  if(/[?&]anim=0\b/.test(location.search)) return;   /* kill switch */
+  document.body.classList.add('anim');
+  var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- 1 + 2: mark the targets, then let one observer do the work ---- */
+  var GROUPS = [
+    ['.sec-title', 0],                       /* section headings */
+    ['.about-text', 0], ['.about-cta', .10], /* blue statement band */
+    /* the roles cards are handled separately, further down: they fire one after another */
+    ['.site-foot', 0],
+    /* internal pages (they sit off-screen until opened, so the observer
+       only fires the moment the page slides in) */
+    ['.apv-eyebrow', 0], ['.apv-h1', .06], ['.apv-lead', .12],
+    ['.apv-statement p', 0], ['.apv-stats > div', .09], ['.apv-stats-note', .10],
+    ['.apv-cols > div', .10], ['.apv-photo', 0], ['.apv-cta-row', .08],
+    ['.faq-title', 0], ['.faq-list', .08], ['.faq-sub', 0]
+  ];
+  try{
+    GROUPS.forEach(function(g){
+      var els = document.querySelectorAll(g[0]);
+      [].forEach.call(els, function(el, i){
+        el.classList.add('rv');
+        if(g[1]) el.style.setProperty('--d', (i*g[1]).toFixed(2)+'s');
+      });
+    });
+  }catch(e){   /* if marking ever fails midway, un-hide everything rather than ship blank text */
+    [].forEach.call(document.querySelectorAll('.rv'), function(el){ el.classList.add('in'); });
+  }
+  /* An internal page (about / FAQ) is laid out in place on desktop and merely faded out,
+     so its elements DO intersect the viewport while the page is shut. Left alone they would
+     reveal in the background and then appear already-finished when the page opens. */
+  function inClosedPage(el){
+    var p = el.closest && el.closest('.about-page,.faq-page');
+    return !!p && !p.classList.contains('open');
+  }
+  /* ---- roles carousel: a real one-after-another sequence (client, 2026-08-04).
+     A CSS stagger cannot do this here — every card crosses the viewport edge at the same
+     moment, so the whole row would land together. A timed chain is what reads as a sequence. ---- */
+  var seqCards = [].slice.call(document.querySelectorAll('#rolesRail .role-card'));
+  seqCards.forEach(function(c){ c.classList.add('rv'); c.setAttribute('data-seq',''); });
+
+  var pending = [].slice.call(document.querySelectorAll('.rv'));
+  function revealAll(){ pending.forEach(function(el){ el.classList.add('in'); }); pending = []; }
+  function show(el){ el.classList.add('in'); var i = pending.indexOf(el); if(i > -1) pending.splice(i,1); }
+
+  /* replay each internal page's entrance every time it is opened */
+  [].forEach.call(document.querySelectorAll('.about-page,.faq-page'), function(page){
+    new MutationObserver(function(){
+      var open = page.classList.contains('open');
+      setTimeout(function(){
+        [].forEach.call(page.querySelectorAll('.rv'), function(el){
+          if(open) show(el); else el.classList.remove('in');
+        });
+      }, open ? 140 : 260);   /* in: just after the page starts sliding · out: after it has gone */
+    }).observe(page, {attributes:true, attributeFilter:['class']});
+  });
+
+  if(!('IntersectionObserver' in window)){ revealAll(); }   /* never leave content invisible */
+  else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(!en.isIntersecting || inClosedPage(en.target) || en.target.hasAttribute('data-seq')) return;
+        show(en.target); io.unobserve(en.target);
+      });
+    }, {threshold:.12, rootMargin:'0px 0px -40px 0px'});
+    pending.forEach(function(el){ io.observe(el); });
+    /* SAFETY NET: a background/throttled tab freezes IntersectionObserver, and a
+       .rv element that is never told to reveal stays at opacity 0 — invisible content.
+       This timer sweeps whatever is already on screen, and stops once nothing is left. */
+    var sweep = setInterval(function(){
+      if(!pending.length){ clearInterval(sweep); return; }
+      pending.slice().forEach(function(el){
+        if(inClosedPage(el) || el.hasAttribute('data-seq')) return;
+        var r = el.getBoundingClientRect();
+        if(r.bottom > 0 && r.top < innerHeight - 40){ show(el); io.unobserve(el); }
+      });
+    }, 450);
+  }
+
+  /* ---- the roles sequence: fires once the rail comes into view, 130ms apart ---- */
+  (function(){
+    var rail = document.getElementById('rolesRail');
+    if(!rail || !seqCards.length) return;
+    /* the choreography lives in CSS: one class on all the cards at the same moment, and each
+       card's own transition-delay spaces them out. JS timers were the wrong tool — a throttled
+       tab collapses staggered setTimeouts into a single tick and the whole row lands together. */
+    /* tighter cascade on a phone — a long stagger there means the visitor scrolls past cards
+       that are still animating (research, 2026-08-04) */
+    var STEP = matchMedia('(max-width:1023px)').matches ? 0.08 : 0.12, started = false;
+    function run(){
+      if(started) return; started = true;
+      seqCards.forEach(function(c, i){
+        c.style.setProperty('--d', (i*STEP).toFixed(2)+'s');
+        c.addEventListener('animationend', function(){ c.classList.add('done'); }, {once:true});
+        show(c);
+      });
+    }
+    if('IntersectionObserver' in window){
+      var rio = new IntersectionObserver(function(en){
+        if(en[0].isIntersecting){ rio.disconnect(); run(); }
+      }, {threshold:.05});
+      rio.observe(rail);
+    } else run();
+    /* same safety principle as above, and it must KEEP checking: a single delayed check
+       would miss the rail entirely if the visitor had not reached it yet */
+    var watch = setInterval(function(){
+      if(started){ clearInterval(watch); return; }
+      var r = rail.getBoundingClientRect();
+      if(r.bottom > 0 && r.top < innerHeight){ clearInterval(watch); run(); }
+    }, 400);
+  })();
+
+  /* ---- 3: count-up, but ONLY on real quantities. "1967" is a year, so a
+       number racing up from zero would read as a bug — it just fades in. ---- */
+  var nums = document.querySelectorAll('.apv-stats b');
+  [].forEach.call(nums, function(b){
+    var raw = (b.textContent||'').trim();
+    if(!/^\d+$/.test(raw) || raw.length > 3) return;      /* skips 1967 and "אלוף" */
+    var target = +raw, dur = 1100;
+    var cio = new IntersectionObserver(function(en){
+      if(!en[0].isIntersecting) return;
+      cio.disconnect();
+      if(still) return;
+      var t0 = performance.now();
+      (function frame(t){
+        var p = Math.min((t-t0)/dur, 1), e = 1-Math.pow(1-p,3);
+        b.textContent = Math.round(target*e);
+        if(p<1) requestAnimationFrame(frame); else b.textContent = raw;
+      })(t0);
+    }, {threshold:.6});
+    cio.observe(b);
+  });
+
+  /* ---- 5: hero scroll-away. The page scrolls inside #scroll, not the window. ---- */
+  var sc = document.getElementById('scroll'), hero = document.querySelector('.hero');
+  var heroFx = matchMedia('(min-width:1024px)').matches;   /* desktop only — see the mobile note in the CSS */
+  if(sc && hero && !still && heroFx){
+    var last = 0;
+    /* written straight from the scroll event (one CSS custom property, very cheap) rather
+       than via requestAnimationFrame — rAF is paused outright in a throttled tab */
+    var upd = function(){
+      var h = hero.offsetHeight || 1;
+      var p = Math.max(0, Math.min(1, sc.scrollTop / (h*0.85)));
+      document.body.style.setProperty('--hp', p.toFixed(3));
+    };
+    sc.addEventListener('scroll', function(){
+      var now = Date.now(); if(now - last < 16) return; last = now; upd();
+    }, {passive:true});
+    upd();
+  }
+})();
+</script>
 </body>
 </html>
