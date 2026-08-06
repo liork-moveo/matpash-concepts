@@ -96,9 +96,11 @@
     .tabs{background:rgba(236,239,242,0.96)}   /* graceful fallback where backdrop-filter is unsupported */
   }
   .tab{flex:0 0 auto;padding:7px 17px;font-size:14px;font-weight:700;letter-spacing:-0.28px;
-    color:#000;opacity:.5;position:relative;z-index:1;cursor:pointer;transition:opacity .35s;
+    /* all three tabs carry the primary blue at all times (client, 2026-08-04) — the same rule the
+       desktop section links follow. The active one is set apart by full opacity + the sliding pill. */
+    color:var(--accent);opacity:.62;position:relative;z-index:1;cursor:pointer;transition:opacity .35s;
     -webkit-tap-highlight-color:transparent}
-  .tab.on{opacity:1;color:var(--accent)}   /* active section = the primary blue (client, 2026-08-03); the glass pill still slides */
+  .tab.on{opacity:1}
   .tab-pill{position:absolute;top:0;left:0;border-radius:9999px;z-index:0;pointer-events:none;
     background:rgba(255,255,255,0.72);
     -webkit-backdrop-filter:blur(8px) saturate(160%);backdrop-filter:blur(8px) saturate(160%);
@@ -370,7 +372,7 @@
   .mpin-wrap{cursor:pointer;--c:#7CCB8D;--balloon:#F8F9FA;z-index:5}
   /* the black "use two fingers / ⌘+scroll" explainer must cover the pins, not sit under them
      (client day 2026-08-03). Mapbox v2.15 ships these blockers with NO z-index, so the pins
-     (z-index 5/6) floated above the dark veil. 50 puts the veil over pins + labels, under the drawer (90). */
+     (z-index 5/6) floated above the dark veil. 50 puts the veil over pins + labels, under the drawer (52). */
   #s-bases .mapboxgl-scroll-zoom-blocker,
   #s-bases .mapboxgl-touch-pan-blocker,
   #s-bases .mapboxgl-cooperative-gesture-screen{z-index:50}
@@ -392,17 +394,21 @@
     text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff,0 0 3px #fff}
   .city-label::before{content:"";flex:0 0 auto;width:5px;height:5px;border-radius:50%;
     background:#5b6577;box-shadow:0 0 0 1.5px #fff}
-  /* settlement labels (איו"ש) — a LOWER tier than bases/cities: smaller, regular weight, muted grey +
-     a tiny hollow marker (like POIs/"cafes" vs prominent city labels). clear visual hierarchy. */
+  /* settlement labels (איו"ש) — READABLE, matching the city labels (client, 2026-08-04: "there is a
+     locality marker but no names"). They were 11px / weight 400 / light grey, which on the beige map
+     left the dot visible and the name all but invisible on a phone. One notch below cities, no more. */
   .settle-label{display:flex;align-items:center;gap:4px;pointer-events:none;white-space:nowrap;
-    font-family:'Assistant',system-ui,sans-serif;font-weight:400;font-size:11px;color:#7a8699;
-    text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff}
+    font-family:'Assistant',system-ui,sans-serif;font-weight:600;font-size:12px;color:#2b3a52;
+    text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff,0 0 3px #fff}
   .settle-label::before{content:"";flex:0 0 auto;width:5px;height:5px;border-radius:50%;
-    background:#fff;box-shadow:0 0 0 1.4px #9aa3b2}
+    background:#8b95a5;box-shadow:0 0 0 1.5px #fff}
 
   /* base bottom sheet */
   /* drawer lives INSIDE the map box (absolute), so it's visually tied to the map and scrolls with it */
-  .base-sheet{--peek:40svh;position:absolute;left:0;right:0;bottom:0;transform:translateY(110%);width:100%;z-index:90;
+  /* z-index 52 — above the gesture veil (50) and the pins (5/6) but BELOW the sticky tabs (55) and the
+     nav bar (60), so the drawer always reads as part of the map section and can never paint over them
+     (client, 2026-08-06). It was 90, which put it on top of both. */
+  .base-sheet{--peek:40svh;position:absolute;left:0;right:0;bottom:0;transform:translateY(110%);width:100%;z-index:52;
     background:#F2F4F5;border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding:64px 22px 24px;
     transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s linear .52s;height:100%;overflow-y:auto;cursor:pointer;visibility:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
   /* drawer height = MAP height. The open height is UNIFORM across all bases and computed in JS
@@ -1286,9 +1292,9 @@ const bases=[
   desc:'<b>מיקום</b> – בסיס הקריה, תל אביב<br><b>אופי השירות</b> – בסיס פתוח (יומיות)'},
  {name:'מנהלת התיאום והקישור עזה – מחנה שדה תימן', label:'מת״ק עזה', sector:'גזרת רצועת עזה', lng:34.7115772, lat:31.2939922, color:'#FAD37F', anim:'../assets-client-day/sde_teyman.mp4',
   desc:'<b>מיקום</b> – מחנה שדה תימן, סמוך לעיר באר שבע<br><b>אופי השירות</b> – בסיס סגור'},
- {name:'מת״ק צפוני – מחנה אוגדה 210', label:'מת״ק צפוני', sector:'רמת הגולן', lng:35.7406377, lat:33.0610014, color:'#B49CCB', anim:'../assets-client-day/ayosh.mp4',
+ {name:'מת״ק צפוני – מחנה אוגדה 210', label:'מת״ק צפוני', sector:'רמת הגולן', lng:35.7406377, lat:33.0610014, color:'#B49CCB', anim:'../assets-client-day/bashan.mp4',
   desc:'<b>מיקום</b> – מחנה אוגדה 210, רמת הגולן<br><b>אופי השירות</b> – בסיס סגור'},
- {name:'בית הספר לתיאום וקישור – מחנה גדעונים', label:'מחנה גדעונים', sector:'בסיס ההכשרות', lng:34.8444866, lat:31.9696725, color:'#F4B183', anim:'../assets-client-day/sde_teyman.mp4',
+ {name:'בית הספר לתיאום וקישור – מחנה גדעונים', label:'מחנה גדעונים', sector:'בסיס ההכשרות', lng:34.8444866, lat:31.9696725, color:'#F4B183', anim:'../assets-client-day/school.mp4',
   desc:'<b>מיקום</b> – מחנה גדעונים, ראשון לציון<br><b>אופי השירות</b> – בסיס סגור'},
  /* --- המנהל האזרחי (יו"ש): מפקדה + 8 מת"קים — כולם ירוקים, פותחים את אותה מגירה --- */
  {name:'מפקדת המנהל האזרחי', label:'מפקדת המנהל האזרחי / מת״ק רמאללה', group:'wb', svc:'בסיס סגור', lng:35.2231995, lat:31.9242096, color:WB_GREEN},
@@ -1365,7 +1371,12 @@ roles.forEach((r,i)=>{
   rolesRail.appendChild(c);
 });
 /* trim each teaser to a single line (whole words) + "… קרא עוד"; the button always shows (it flips to the full text) */
-requestAnimationFrame(function(){ document.querySelectorAll('#rolesRail .rc-short').forEach(function(box){ clampWithMore(box, box._full||'', 1, true); }); });
+function clampRoleTeasers(){ document.querySelectorAll('#rolesRail .rc-short').forEach(function(box){ clampWithMore(box, box._full||'', 1, true); }); }
+requestAnimationFrame(clampRoleTeasers);
+/* same webfont trap as the tab pill: this truncates by MEASURING text, so a run against the
+   fallback font picks the wrong cut-off point and the teaser can wrap and get clipped once
+   Assistant swaps in. Re-clamp when the real font is ready. */
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(clampRoleTeasers);
 buildDots('rolesDots',roles.length,'rolesRail');
 /* ---------- fullscreen video modal (expand a role video to full screen, X to return) ---------- */
 function openVideoModal(src,time,srcVid){
@@ -1504,8 +1515,9 @@ const ISRAEL_POLY={type:'Polygon',coordinates:[[
    Geometry derived from Natural Earth 1:10m (public domain), merged + classified by topology. */
 const IL_BORDER_ADMIN_LAYERS=['admin-0-boundary','admin-0-boundary-disputed','admin-0-boundary-bg','admin-1-boundary','admin-1-boundary-bg'];
 const IL_BORDERS={"type":"FeatureCollection","features":[{"type":"Feature","properties":{"cls":"green"},"geometry":{"type":"LineString","coordinates":[[34.2484,31.2114],[34.3159,31.2569],[34.3509,31.2893],[34.3458,31.3577],[34.3673,31.3928],[34.4804,31.4856],[34.556,31.5398],[34.4812,31.5831]]}},{"type":"Feature","properties":{"cls":"solid"},"geometry":{"type":"LineString","coordinates":[[35.1052,33.089],[35.1853,33.084],[35.2837,33.1012],[35.3058,33.0894],[35.3319,33.0572],[35.4016,33.0679],[35.4494,33.0852],[35.4801,33.0874],[35.5123,33.1474],[35.52,33.2222],[35.5495,33.281],[35.6046,33.2444],[35.6201,33.2695],[35.6521,33.2767],[35.6985,33.3227],[35.7437,33.3312],[35.7858,33.3579],[35.8211,33.4067]]}},{"type":"Feature","properties":{"cls":"purple"},"geometry":{"type":"LineString","coordinates":[[35.8211,33.4067],[35.8099,33.36],[35.7638,33.3344],[35.8021,33.3125],[35.7686,33.2727],[35.8036,33.2485],[35.8077,33.2017],[35.8302,33.19],[35.8334,33.1611],[35.8115,33.1119],[35.8458,33.0854],[35.859,32.9902],[35.8881,32.9449],[35.8497,32.8958],[35.8342,32.8279],[35.7576,32.7443]]}},{"type":"Feature","properties":{"cls":"solid"},"geometry":{"type":"LineString","coordinates":[[35.7576,32.7443],[35.6852,32.7112],[35.636,32.6791],[35.6122,32.6815],[35.5627,32.6442],[35.5744,32.5728],[35.5614,32.5192],[35.58,32.4977],[35.5725,32.4642],[35.552,32.4362],[35.5496,32.3985],[35.561,32.3847]]}},{"type":"Feature","properties":{"cls":"solid"},"geometry":{"type":"LineString","coordinates":[[35.4581,31.4919],[35.4529,31.4008],[35.4165,31.3318],[35.4223,31.303],[35.3957,31.2577],[35.4107,31.2046],[35.4362,31.1595],[35.4385,31.1037],[35.3916,31.0239],[35.3853,30.9633],[35.3349,30.9126],[35.3222,30.89],[35.3108,30.8133],[35.2861,30.7923],[35.2638,30.7198],[35.2053,30.6171],[35.14,30.4302],[35.14,30.4062],[35.1593,30.3756],[35.16,30.3475],[35.1418,30.314],[35.1248,30.2161],[35.1453,30.1549],[35.1453,30.1234],[35.129,30.0897],[35.0863,30.034],[35.0541,29.9234],[35.049,29.8423],[35.0025,29.7331],[34.9898,29.652],[34.967,29.6081],[34.9556,29.559]]}},{"type":"Feature","properties":{"cls":"green"},"geometry":{"type":"LineString","coordinates":[[35.561,32.3847],[35.4567,32.4076],[35.4069,32.4148],[35.4018,32.471],[35.3929,32.4945],[35.3631,32.5101],[35.2704,32.5105],[35.2086,32.5426],[35.1908,32.5417],[35.1517,32.5079],[35.0644,32.4631],[35.0447,32.4341],[35.0216,32.3446],[35.0007,32.3357],[34.9899,32.2785],[35.0111,32.2571],[35.0003,32.232],[34.9614,32.2016],[34.9582,32.1865],[34.9869,32.124],[34.9842,32.0896],[35.0072,32.0208],[34.9867,31.9672],[35.039,31.9086],[35.0343,31.8611],[34.9985,31.8538],[35.0016,31.8285],[35.0275,31.8327],[35.056,31.8533],[35.0881,31.8481],[35.0976,31.8313],[35.1739,31.8076],[35.1836,31.8251],[35.2158,31.8201],[35.2275,31.8503],[35.25,31.8444],[35.2628,31.7486],[35.238,31.7093],[35.2053,31.7232],[35.1794,31.7201],[35.149,31.7373],[35.0592,31.6768],[34.9736,31.6304],[34.9373,31.582],[34.9268,31.4944],[34.8817,31.4299],[34.8672,31.3964],[34.8788,31.3628],[34.9274,31.3449],[35.0402,31.3632],[35.1649,31.3623],[35.2233,31.381],[35.3323,31.4588],[35.3901,31.4871],[35.4581,31.4919]]}},{"type":"Feature","properties":{"cls":"solid"},"geometry":{"type":"LineString","coordinates":[[34.8867,29.4901],[34.8482,29.5696],[34.8501,29.6388],[34.8244,29.7417],[34.7414,29.9402],[34.735,30.0067],[34.5995,30.3445],[34.5338,30.4002],[34.5247,30.4211],[34.5362,30.4822],[34.5104,30.5133],[34.5022,30.5717],[34.4804,30.6512],[34.3295,30.9945],[34.2484,31.2114]]}},{"type":"Feature","properties":{"cls":"neighbor"},"geometry":{"type":"LineString","coordinates":[[36.56869144385028,34.3],[36.5799,34.2869],[36.5628,34.2629],[36.574,34.2297],[36.6041,34.1991],[36.5527,34.141],[36.4884,34.0886],[36.4752,34.0535],[36.4451,34.0461],[36.4122,34.0536],[36.3911,34.0447],[36.3578,34.0096],[36.318,33.9805],[36.2672,33.9104],[36.3111,33.872],[36.3676,33.8575],[36.3696,33.837],[36.3383,33.8212],[36.3006,33.8287],[36.2492,33.8497],[36.2166,33.8478],[36.1657,33.8298],[36.1383,33.8506],[36.1024,33.8323],[36.0504,33.8164],[36.0271,33.7843],[35.994,33.7607],[35.947,33.7008],[35.9472,33.6731],[35.9216,33.6403],[36.0129,33.608],[36.0385,33.5863],[36.0198,33.5526],[35.9803,33.5339],[35.9332,33.5278],[35.9354,33.4943],[35.9195,33.4624],[35.8885,33.4404],[35.8211,33.4067]]}},{"type":"Feature","properties":{"cls":"neighbor"},"geometry":{"type":"LineString","coordinates":[[37.6,32.74704725787632],[37.4152,32.6471],[37.1332,32.4945],[36.9801,32.41],[36.8194,32.3168],[36.7925,32.3135],[36.7286,32.3278],[36.6896,32.3197],[36.6535,32.3429],[36.4802,32.3608],[36.464,32.3694],[36.4076,32.3742],[36.3731,32.3864],[36.2853,32.4569],[36.2208,32.4946],[36.1774,32.5273],[36.0699,32.5166],[36.006,32.6079],[36.0036,32.6551],[35.9554,32.6574],[35.8957,32.7133],[35.7882,32.7344],[35.7576,32.7443]]}},{"type":"Feature","properties":{"cls":"neighbor"},"geometry":{"type":"MultiLineString","coordinates":[[[34.9494,29.3517],[35.4736,29.2721],[36.0164,29.19],[36.0695,29.2],[36.4771,29.4946],[36.7049,29.8312],[36.7562,29.8655],[37.2185,29.9491],[37.4702,29.9946],[37.4917,30.0112],[37.6,30.23993445378151]],[[37.6,30.885720590816025],[37.48,31.0073],[37.2198,31.2491],[36.9595,31.491],[37.455,31.6177],[37.6,31.65480595358224]]]}},{"type":"Feature","properties":{"cls":"solid"},"geometry":{"type":"LineString","coordinates":[[35.4581,31.4919],[35.4642,31.5686],[35.4801,31.6411],[35.5276,31.7351],[35.5594,31.7653],[35.5383,31.8193],[35.5491,31.8392],[35.5247,31.9192],[35.5406,31.932],[35.5355,31.9882],[35.5247,32.0117],[35.5228,32.0578],[35.5451,32.0868],[35.5352,32.1108],[35.5594,32.1551],[35.5552,32.1744],[35.5725,32.2376],[35.5565,32.3282],[35.561,32.3847]]}},{"type":"Feature","properties":{"cls":"solid"},"geometry":{"type":"LineString","coordinates":[[34.2003,31.3143],[34.2246,31.2757],[34.2484,31.2114]]}}]};
-/* curated major cities — geographic context only (not every town). Replaces Mapbox's own settlement
-   labels (hidden in localizeHe) so the set stays clean and controlled. rank = placement priority. */
+/* curated major cities — the place names for the WIDE view only (below LABEL_HANDOFF), where Mapbox's
+   own tiles carry practically no locality. From the handoff zoom up, Mapbox names every locality and
+   these step aside, so a name is never written twice. rank = placement priority. */
 const IL_CITIES={type:'FeatureCollection',features:[
  {type:'Feature',properties:{name:'ירושלים',rank:1},geometry:{type:'Point',coordinates:[35.2137,31.7683]}},
  {type:'Feature',properties:{name:'תל אביב-יפו',rank:1},geometry:{type:'Point',coordinates:[34.7818,32.0853]}},
@@ -1542,6 +1554,110 @@ const WB_SETTLEMENTS=[
  {name:'קרית ארבע',lng:35.1120,lat:31.5326},
  {name:'מעלה אפרים',lng:35.4000,lat:32.0700},
 ];
+/* PLACE NAMES ON THE LOCALITIES (client, 2026-08-06: "I want the localities to be seen").
+   Harvested straight out of Mapbox's own vector tiles (mapbox-streets-v8, place_label, z12 around every
+   base) and baked in here, because Mapbox's own label layers never draw on this page while DOM markers
+   demonstrably do. One label system, all Hebrew, nothing written twice. Filtered to class=settlement
+   with symbolrank<=16 within 7.5km of a base, minus farms and numbered hilltops. */
+const LOCALITIES=[
+ {n:'ירושלים',lng:35.2258,lat:31.7789},
+ {n:'תל אביב-יפו',lng:34.7819,lat:32.0853},
+ {n:'חולון',lng:34.7804,lat:32.0193},
+ {n:'ראשון לציון',lng:34.8101,lat:31.9636},
+ {n:'בני ברק',lng:34.8324,lat:32.0874},
+ {n:'בת ים',lng:34.7505,lat:32.0155},
+ {n:'לוד',lng:34.8885,lat:31.9489},
+ {n:'רמלה',lng:34.8623,lat:31.928},
+ {n:'רמת גן',lng:34.8247,lat:32.0687},
+ {n:'אור יהודה',lng:34.863,lat:32.027},
+ {n:'ביתר עילית',lng:35.1137,lat:31.6989},
+ {n:'גבעתיים',lng:34.8113,lat:32.073},
+ {n:'נס ציונה',lng:34.7991,lat:31.9296},
+ {n:'קריית אונו',lng:34.8594,lat:32.0592},
+ {n:'אפרת',lng:35.1509,lat:31.6536},
+ {n:'באר יעקב',lng:34.8399,lat:31.9444},
+ {n:'בית דגן',lng:34.8302,lat:32.0019},
+ {n:'ג\'לג\'וליה',lng:34.9536,lat:32.1523},
+ {n:'גבעות',lng:35.1011,lat:31.679},
+ {n:'גבעת שמואל',lng:34.8525,lat:32.0769},
+ {n:'טירה',lng:34.9545,lat:32.2347},
+ {n:'כפר רפאל',lng:34.748,lat:31.2588},
+ {n:'מישור אדומים',lng:35.3293,lat:31.8038},
+ {n:'מעלה אדומים',lng:35.2988,lat:31.7706},
+ {n:'נופי פרת',lng:35.3208,lat:31.8238},
+ {n:'אומן',lng:35.2422,lat:32.5641},
+ {n:'אורנית',lng:34.992,lat:32.1309},
+ {n:'אזור',lng:34.8026,lat:32.0282},
+ {n:'אחיסמך',lng:34.908,lat:31.9356},
+ {n:'אחיעזר',lng:34.8717,lat:31.9811},
+ {n:'אייל',lng:34.979,lat:32.2114},
+ {n:'איתמר',lng:35.3084,lat:32.1745},
+ {n:'אלון שבות',lng:35.1268,lat:31.6549},
+ {n:'אלעזר',lng:35.1415,lat:31.6607},
+ {n:'אלפי מנשה',lng:35.0159,lat:32.1731},
+ {n:'בית אל',lng:35.2224,lat:31.9421},
+ {n:'בית חגי',lng:35.0804,lat:31.4934},
+ {n:'בת עין',lng:35.1032,lat:31.6573},
+ {n:'גבע בנימין',lng:35.274,lat:31.8503},
+ {n:'גבעת עוז',lng:35.1986,lat:32.5559},
+ {n:'גדיש',lng:35.2449,lat:32.5589},
+ {n:'גינתון',lng:34.9139,lat:31.9623},
+ {n:'גנות',lng:34.8267,lat:32.019},
+ {n:'הר ברכה',lng:35.2651,lat:32.1924},
+ {n:'ורד יריחו',lng:35.4324,lat:31.8262},
+ {n:'זיתן',lng:34.8914,lat:31.9754},
+ {n:'חצרים',lng:34.7151,lat:31.2404},
+ {n:'יגל',lng:34.8806,lat:31.987},
+ {n:'יצהר',lng:35.2338,lat:32.1686},
+ {n:'ירחיב',lng:34.9683,lat:32.1531},
+ {n:'ישרש',lng:34.8499,lat:31.9158},
+ {n:'כוכב יעקב',lng:35.2453,lat:31.8814},
+ {n:'כפר אדומים',lng:35.3352,lat:31.8253},
+ {n:'כפר חב"ד',lng:34.8474,lat:31.9886},
+ {n:'כפר טרומן',lng:34.9217,lat:31.9806},
+ {n:'כפר עציון',lng:35.115,lat:31.6487},
+ {n:'כפר תפוח',lng:35.2501,lat:32.1191},
+ {n:'כרמי צור',lng:35.1009,lat:31.6092},
+ {n:'מגדל עוז',lng:35.1426,lat:31.6398},
+ {n:'מגידו',lng:35.1807,lat:32.5787},
+ {n:'מי עמי',lng:35.1465,lat:32.5047},
+ {n:'מלאה',lng:35.236,lat:32.5635},
+ {n:'מעלה חבר',lng:35.1652,lat:31.4858},
+ {n:'מצפה יריחו',lng:35.3943,lat:31.8155},
+ {n:'משמר השבעה',lng:34.8234,lat:32.0092},
+ {n:'מתן',lng:34.9743,lat:32.1561},
+ {n:'נוה ימין',lng:34.9388,lat:32.1719},
+ {n:'נווה דניאל',lng:35.1428,lat:31.6762},
+ {n:'נטעים',lng:34.7745,lat:31.9444},
+ {n:'ניר אליהו',lng:34.9484,lat:32.1974},
+ {n:'ניר יפה',lng:35.2453,lat:32.5696},
+ {n:'ניר צבי',lng:34.861,lat:31.9514},
+ {n:'נירית',lng:34.9844,lat:32.1466},
+ {n:'נצר סרני',lng:34.824,lat:31.9231},
+ {n:'סלעית',lng:35.0508,lat:32.2428},
+ {n:'עלמון',lng:35.2965,lat:31.8316},
+ {n:'עפרה',lng:35.2605,lat:31.9535},
+ {n:'פסגות',lng:35.2241,lat:31.8987},
+ {n:'צופים',lng:35.0097,lat:32.1982},
+ {n:'צופית',lng:34.9231,lat:32.1918},
+ {n:'צור יצחק',lng:34.9984,lat:32.2412},
+ {n:'צפריה',lng:34.8551,lat:32.0053},
+ {n:'קדמת צבי',lng:35.697,lat:33.0297},
+ {n:'קרית ארבע',lng:35.1192,lat:31.5278},
+ {n:'ראש צורים',lng:35.1254,lat:31.6676},
+ {n:'רם און',lng:35.259,lat:32.5272},
+ {n:'רמת הכובש',lng:34.9393,lat:32.2153},
+ {n:'שדי חמד',lng:34.9435,lat:32.1598},
+ {n:'אורטל',lng:35.7594,lat:33.0852},
+ {n:'בית הערבה',lng:35.4774,lat:31.8087},
+ {n:'חורשים',lng:34.9707,lat:32.1372},
+ {n:'כוכב יאיר צור יגאל',lng:34.9939,lat:32.2202},
+ {n:'עין זיוון',lng:35.7962,lat:33.0963},
+ {n:'צור נתן',lng:35.0139,lat:32.2407},
+ {n:'קריית לוזה',lng:35.2687,lat:32.2041},
+ {n:'אלמוג',lng:35.4616,lat:31.79},
+ {n:'שעל',lng:35.7187,lat:33.1166}
+];
 /* Hebrew-only place names, restricted to the Israel polygon (drops all neighboring-country labels);
    hide country/state/continent labels entirely. */
 function localizeHe(map){
@@ -1555,8 +1671,27 @@ function localizeHe(map){
     if(/country|state|continent/i.test(l.id)){ try{map.setLayoutProperty(l.id,'visibility','none');}catch(e){} return; }
     /* hide the white road-number / exit shields + motorway-junction boxes */
     if(/shield|junction|motorway-junction/i.test(l.id)){ try{map.setLayoutProperty(l.id,'visibility','none');}catch(e){} return; }
-    /* hide Mapbox's own settlement labels — we render a curated major-cities layer instead (IL_CITIES) */
-    if(/^settlement/.test(l.id)){ try{map.setLayoutProperty(l.id,'visibility','none');}catch(e){} return; }
+    /* Mapbox's own locality labels carry the place names once you zoom in (client, 2026-08-04: "put the
+       name of the locality ON the locality, like Google Maps"). Two gates in Mapbox's own style keep
+       most localities unnamed, so both are opened here:
+         · filter  — "filterrank<=3" plus a zoom/symbolrank step that drops small localities entirely
+         · maxzoom — the layer is clipped at z15, i.e. exactly our maxZoom
+       and the layer is then confined to the Israel polygon, so Jordanian/Lebanese/Egyptian towns stay
+       unnamed like the rest of the map. Visibility itself is handed off by zoom in updateMbPlaceVis(). */
+    if(/^settlement/.test(l.id)){
+      try{ map.setLayoutProperty(l.id,'text-field',heName);   /* local name = Hebrew inside Israel */
+           if(l.layout && l.layout['icon-image']!==undefined) map.setPaintProperty(l.id,'icon-opacity',0);
+           map.setLayerZoomRange(l.id, l.id==='settlement-label'?0:10, 24);   /* BOTH layers stop at z15 in Mapbox's style — which is exactly our maxZoom, so pinching all the way in wiped every place name */
+           if(l.id==='settlement-label'){
+             map.setFilter(l.id,['all',['==',['get','class'],'settlement'],['within',ISRAEL_POLY]]);
+           }else{
+             const exs=map.getFilter(l.id);
+             map.setFilter(l.id, exs?['all',exs,['within',ISRAEL_POLY]]:['within',ISRAEL_POLY]);
+           }
+      }catch(e){}
+      updateMbPlaceVis();
+      return;
+    }
     /* strip Mapbox's own marker glyphs (city / POI / natural / transit "dots") — keep the text labels */
     if(l.id!=='base-pins' && l.layout && l.layout['icon-image']!==undefined){
       try{ map.setPaintProperty(l.id,'icon-opacity',0); }catch(e){}
@@ -1599,6 +1734,10 @@ function applyBorders(map){
    font, so it renders reliably even in webviews where the map's own glyphs are blocked. */
 let cityMarkers=[];
 function addCities(map){
+  /* These are the ONLY place names on the wide country view: Mapbox's vector tiles carry almost no
+     locality at z<9.5 (a static render of the default style at the opening view shows Tel Aviv and
+     little else), so with Mapbox alone the map came up nameless. Above the handoff zoom these hide
+     and Mapbox takes over — one label system visible at a time, never two. */
   if(cityMarkers.length || typeof mapboxgl==='undefined') return;
   IL_CITIES.features.forEach(function(f){
     const el=document.createElement('div');
@@ -1610,18 +1749,31 @@ function addCities(map){
 }
 /* city names are geographic CONTEXT — hidden on the zoomed-out country view, revealed once you zoom in */
 const LABEL_ZOOM=8.8;   /* boundary: below = "zoomed out" (central cities, NO base names); at/above = "zoomed in" (full base names). lowered so names appear earlier */
-function updateCityVis(){ if(!map2) return;   /* central/major cities stay visible at EVERY zoom (geographic context) */
-  cityMarkers.forEach(function(m){ m.getElement().style.display = ''; }); }
+/* handoff between OUR two label sets: the wide country view shows the 13 major cities only (97 locality
+   names there would be a grey smudge), and from this zoom up the localities take over. 10.8 sits just
+   below the zoom a pin tap flies to (11 / 12.2), so tapping a base always lands in the locality view. */
+const LABEL_HANDOFF=10.8;
+function mbPlaceOn(){ return !!map2 && map2.getZoom()>=LABEL_HANDOFF; }
+/* Mapbox's own place labels stay off at every zoom — we draw the names ourselves */
+function updateMbPlaceVis(){ if(!map2 || !map2.getLayer) return;
+  ['settlement-label','settlement-subdivision-label'].forEach(function(id){
+    if(map2.getLayer(id)){ try{ map2.setLayoutProperty(id,'visibility','none'); }catch(e){} } }); }
+/* our curated city names: the wide view only — the locality names take over from LABEL_HANDOFF up */
+function updateCityVis(){ if(!map2) return; const show=!mbPlaceOn();
+  cityMarkers.forEach(function(m){ m.getElement().style.display = show ? '' : 'none'; }); }
 /* Jewish-settlement context labels (איו"ש) — appear only when zoomed in (e.g. after tapping a WB base) */
 let settleMarkers=[];
 function addSettlements(map){
+  /* The locality names, drawn by us (see LOCALITIES). Mapbox's own label layers are hidden — they never
+     painted on this page no matter which of their gates we opened, while these DOM markers are the same
+     mechanism as the city labels, which do paint. One system, all Hebrew, no duplicates. */
   if(settleMarkers.length || typeof mapboxgl==='undefined') return;
-  WB_SETTLEMENTS.forEach(function(s){
-    const el=document.createElement('div'); el.className='settle-label'; el.textContent=s.name;
+  LOCALITIES.forEach(function(s){
+    const el=document.createElement('div'); el.className='settle-label'; el.textContent=s.n;
     settleMarkers.push(new mapboxgl.Marker({element:el,anchor:'right'}).setLngLat([s.lng,s.lat]).addTo(map));
   });
 }
-function updateSettleVis(){ if(!map2) return; const show=map2.getZoom()>=LABEL_ZOOM;   /* WB settlements appear when ZOOMED IN */
+function updateSettleVis(){ if(!map2) return; const show=mbPlaceOn();   /* the 4 gap-fillers appear together with Mapbox's own names */
   settleMarkers.forEach(function(m){ m.getElement().style.display = show ? '' : 'none'; }); }
 function pinEl(color){
   const el=document.createElement('div');el.className='mpin';el.style.setProperty('--c',color);
@@ -1639,7 +1791,7 @@ function baseMarkerEl(b){
   wrap.style.setProperty('--c', b.color);
   wrap.innerHTML='<div class="mpin"><svg viewBox="0 0 77 86" xmlns="http://www.w3.org/2000/svg">'+
     '<path class="balloon" d="'+BALLOON_D+'"/><circle class="dot" cx="38" cy="38" r="20"/></svg></div>'+
-    (b.nolbl?'':'<div class="mpin-lbl">'+(b.label||b.name)+'</div>');   /* nolbl: pin without its own label (shares a neighbour's merged label) */
+    (b.nolbl?'':'<div class="mpin-lbl">'+(b.label||b.name)+'</div>');   /* nolbl: shares a neighbour's merged label */
   return wrap;
 }
 function addBasePins(map){
@@ -1710,7 +1862,7 @@ function initMap2(){
   addBasePins(map2);
   addCities(map2);
   addSettlements(map2);
-  map2.on('zoom',function(){ updateCityVis(); updateSettleVis(); updateBaseLabels(); }); updateCityVis(); updateSettleVis(); updateBaseLabels();
+  map2.on('zoom',function(){ updateMbPlaceVis(); updateCityVis(); updateSettleVis(); updateBaseLabels(); }); updateMbPlaceVis(); updateCityVis(); updateSettleVis(); updateBaseLabels();
   /* DOM pin markers handle their own click (→ open); a click on the empty map closes the drawer */
   map2.on('click',function(){ closeBase(); });
   map2.on('styledata',()=>{localizeHe(map2);applyBorders(map2);});
@@ -1748,6 +1900,27 @@ function computeOpenPx(){
   });
   nm.textContent=keep.n; desc.innerHTML=keep.d; tabs.innerHTML=keep.t; tabs.style.display=keep.ts;
   return max+50;
+}
+/* How high the drawer may rise. Two ceilings, whichever is lower:
+   1. the whole illustration + a small gap is visible (the original "full" cap), and
+   2. the drawer's top edge stays BELOW the sticky nav and the sticky tabs (client, 2026-08-06: the
+      drawer must stay inside the map section, it was climbing over the nav bar and the tabs). The map
+      box is only ~100lvh−230px tall, so once the page is scrolled its top slides under both sticky
+      bars — hence the ceiling is measured live, in viewport coordinates, not from a fixed number. */
+function capFullPx(sh){
+  if(!sh) return;
+  var rd=sh.querySelector('.render'); if(!rd) return;
+  var wanted=rd.offsetTop+rd.offsetHeight+28;
+  var m=document.getElementById('mapC2');
+  var ceiling=sh.offsetHeight;
+  if(m){
+    var mapTop=m.getBoundingClientRect().top, guardY=0;
+    var hd=document.querySelector('header'); if(hd) guardY=hd.getBoundingClientRect().bottom;
+    var tb=document.getElementById('tabs');
+    if(tb && tb.offsetParent!==null) guardY=Math.max(guardY, tb.getBoundingClientRect().bottom);
+    ceiling=sh.offsetHeight-Math.max(0, guardY+10-mapTop);
+  }
+  sh.style.setProperty('--full-px', Math.max(140, Math.min(sh.offsetHeight, wanted, ceiling))+'px');
 }
 function peekPx(){ var m=document.getElementById('mapC2'); var mapH=m?m.offsetHeight:700;
   if(!OPEN_PX_CACHE) OPEN_PX_CACHE=computeOpenPx();
@@ -1821,8 +1994,7 @@ function openBase(i){const b=bases[i];
   sh.style.transition=''; sh.style.transform='';   /* clear the forced-closed transform so the .open class can drive it open */
   peekPx();                                        /* refresh --open-px BEFORE the .open transform kicks in */
   /* cap for the FULL state: the drawer may rise only until the whole illustration + a small gap shows */
-  setTimeout(function(){ var rd=sh.querySelector('.render');
-    if(rd) sh.style.setProperty('--full-px', Math.min(sh.offsetHeight, rd.offsetTop+rd.offsetHeight+28)+'px'); },0);
+  setTimeout(function(){ capFullPx(sh); },0);
   const desc=document.getElementById('bsDesc'), tabs=document.getElementById('bsTabs');
   const v=document.getElementById('bsVid');
   if(b.group){                                   /* grouped drawer: primary title → tabs (base names) → character */
@@ -1885,6 +2057,7 @@ function resetMapView(){ closeBase(); }
     if(e.target.closest('.wb-tabs')) return;        /* let the tab row scroll horizontally on its own */
     dragging=true; moved=0; grabY=e.clientY; grabX=e.clientX;
     lastY=e.clientY; lastT=now(); vy=0;
+    capFullPx(sh);                                  /* the nav/tabs ceiling is measured live — the page may have scrolled since opening */
     /* ONE continuous gesture: sheet offset minus inner scroll (drag past the top keeps going as content scroll) */
     base=Math.max(0,curTy())-sh.scrollTop;
     sh.style.transition='none';
@@ -1901,28 +2074,34 @@ function resetMapView(){ closeBase(); }
     var fo=fullOff();
     var maxScroll=Math.max(0,sh.scrollHeight-sh.clientHeight);
     if(p<fo-maxScroll) p=fo-maxScroll;               /* HARD stop at the end of the content (Google-style) */
-    sh.style.transform='translateY('+Math.max(fo,p)+'px)';   /* VERTICAL ONLY — never above the cap */
+    /* stop the finger at the parked strip (+40px of rubber band) so the sheet never looks
+       like it is being dragged away entirely — it cannot close by dragging (client, 2026-08-04) */
+    sh.style.transform='translateY('+Math.min(minOff()+40, Math.max(fo,p))+'px)';   /* VERTICAL ONLY */
     sh.scrollTop=Math.max(0,fo-p);                   /* past the cap the same drag scrolls the content */
   });
   /* park low instead of closing (client day 2026-08-03) — the map stays usable, X still closes */
   function dockMin(){ sh.classList.remove('full'); sh.classList.add('min'); sh.scrollTop=0; sh.style.transform=''; }
+  /* the LOWEST the sheet may rest: the parked strip (handle + base name still readable) */
+  function minOff(){ var v=parseFloat(getComputedStyle(sh).getPropertyValue('--min-px'));
+    return Math.max(0, sh.offsetHeight - (v||102)); }
   function end(){
     if(!dragging) return; dragging=false;
     sh.style.transition='';
-    var p=base+moved;
-    var fo=fullOff();
-    var off=Math.max(fo,p);
-    var peekOff=Math.max(0,sh.offsetHeight-peek()); /* translateY of the initial peek position */
-    var flickUp=vy<-0.5, flickDown=vy>0.5;           /* >500px/s counts as a flick */
+    var fo=fullOff(), mo=minOff();
+    /* FREE POSITIONING (client, 2026-08-04): the sheet rests exactly where it was let go, anywhere
+       between the top cap and the parked strip. No snapping back to the peek, no snapping down to
+       the strip, and never an automatic close — only the X closes it. */
+    var off=Math.min(mo, Math.max(fo, base+moved));
+    /* only a decidedly fast upward flick (>1200px/s) still jumps to the cap. The old 500px/s
+       threshold fired on ordinary slow drags, which fought the "stop wherever I let go" rule. */
+    var flickUp=vy<-1.2;
     if(sh.scrollTop>0){ sh.style.transform=''; sh.classList.remove('min'); sh.classList.add('full'); return; }     /* content is scrolled → stay at the cap */
-    if(Math.abs(moved)<6){                            /* tap (checked BEFORE the park branch — a tap on the parked strip reopens) */
+    if(Math.abs(moved)<6){                            /* a tap, not a drag */
       if(sh.classList.contains('min')){ sh.classList.remove('min'); sh.style.transform=''; return; }   /* parked → back to the peek */
       sh.style.transform=''; sh.classList.add('full'); return; }                       /* peek → expand (to the cap) */
-    if(flickDown || off>peekOff+70){ dockMin(); return; }                         /* dropped well below the peek → PARK low, don't close */
-    if(flickUp || off<fo+24){ sh.style.transform=''; sh.classList.remove('min'); sh.classList.add('full'); return; }  /* flick up / reached the cap */
+    if(flickUp){ sh.style.transform=''; sh.classList.remove('min'); sh.classList.add('full'); return; }
     sh.classList.remove('full','min');
-    if(off>=peekOff){ sh.style.transform=''; }       /* a bit below the peek → settle back at the peek */
-    else sh.style.transform='translateY('+off+'px)'; /* FREE position — the sheet stays exactly where the user left it */
+    sh.style.transform='translateY('+off+'px)';
   }
   sh.addEventListener('pointerup',end);
   sh.addEventListener('pointercancel',end);
@@ -1967,8 +2146,23 @@ function positionPill(noAnim){
   pill.style.transform='translate('+on.offsetLeft+'px,'+on.offsetTop+'px)';
   if(noAnim){ void pill.offsetWidth; pill.style.transition=''; }
 }
+/* The pill has to be RE-measured whenever the tabs change size, not just once at boot.
+   Bug found on the client's phone (2026-08-04): the Assistant webfont loads with display=swap,
+   so the first paint uses the fallback font, the tabs get wider when the real font lands, and a
+   pill measured before that stays too wide — spilling out past the capsule. Slow (4G) connections
+   make it near-certain. A ResizeObserver fixes the whole family of causes at once, and the
+   direct call means we do not depend on requestAnimationFrame having run at all. */
+positionPill(true);
 requestAnimationFrame(function(){ positionPill(true); });
 window.addEventListener('resize', function(){ positionPill(true); });
+window.addEventListener('load', function(){ positionPill(true); });
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ positionPill(true); });
+if('ResizeObserver' in window){
+  var pillRO = new ResizeObserver(function(){ positionPill(true); });
+  var tabsEl = document.getElementById('tabs');
+  if(tabsEl){ pillRO.observe(tabsEl);
+    [].forEach.call(tabsEl.querySelectorAll('.tab'), function(t){ pillRO.observe(t); }); }
+}
 /* while a tab-click smooth-scrolls, suppress the scroll-spy so the pill glides STRAIGHT to the
    target instead of snapping to every section it passes (kills the mid-jump between far tabs). */
 let spyLock=false, spyTimer=null;
@@ -2165,6 +2359,8 @@ svcBtns.forEach(b=>{
     if(trackCards[key]) buildInfoTrack(trackCards[key]); else buildMainTrack(); };
 });
 if(svcMq.matches) buildDesktopTabbed(svcActiveKey()); else buildMainTrack();
+/* the mobile service cards clamp to 3 lines by measurement — re-run once the webfont lands */
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ setupReadMore(); });
 svcMq.addEventListener('change',e=>{ if(e.matches) buildDesktopTabbed(svcActiveKey()); else buildMainTrack(); });
 tlRail.addEventListener('scroll',()=>{ if(stp.style.display==='none'||!tlRail.children.length) return;
   const w=tlRail.children[0].offsetWidth+14; updateStepper(Math.round(Math.abs(tlRail.scrollLeft)/w));});
@@ -2211,15 +2407,26 @@ function updateStepper(i){[...stp.children].forEach((el,idx)=>el.classList.toggl
   /* body.ipage while an internal page is open — neutralises the nav's section marking (client, 2026-08-02) */
   function syncIpage(){ var open=(ap&&ap.classList.contains('open'))||(fp&&fp.classList.contains('open'));
     document.body.classList.toggle('ipage',!!open); }
-  function openAbout(){ if(ap){ ap.classList.add('open'); document.body.style.overflow='hidden'; syncIpage(); } }
-  function closeAbout(){ if(ap){ ap.classList.remove('open'); document.body.style.overflow=''; syncIpage(); } }
+  /* EVERY page starts at its own top, and leaving one lands you at the top of the home page —
+     the standard "a new page begins at the top" behaviour (client, 2026-08-04). */
+  function toPageTop(page){
+    if(!page) return;
+    page.scrollTop=0;
+    [].forEach.call(page.querySelectorAll('.ap-body,.ap-v2,.faq-body,.apv-wrap'), function(el){ el.scrollTop=0; });
+  }
+  function homeToTop(){
+    var s=document.getElementById('scroll');
+    if(s) s.scrollTop=0;   /* instant, while the page is still sliding away — no visible scrolling */
+  }
+  function openAbout(){ if(ap){ toPageTop(ap); ap.classList.add('open'); document.body.style.overflow='hidden'; syncIpage(); } }
+  function closeAbout(){ if(ap){ ap.classList.remove('open'); document.body.style.overflow=''; syncIpage(); homeToTop(); } }
   window.openAboutPage=openAbout;   /* used by the "עוד עלינו" CTA in the short about section */
-  window.openFaqPage=function(){ if(fp){ fp.classList.add('open'); document.body.style.overflow='hidden'; syncIpage(); } };   /* used by the desktop header nav */
+  window.openFaqPage=function(){ openFaq(); };   /* used by the desktop header nav */
   if(apx) apx.onclick=closeAbout;
   /* FAQ internal page */
   var fp=document.getElementById('faqPage'), fpx=document.getElementById('faqClose');
-  function openFaq(){ if(fp){ fp.classList.add('open'); document.body.style.overflow='hidden'; syncIpage(); } }
-  function closeFaq(){ if(fp){ fp.classList.remove('open'); document.body.style.overflow=''; syncIpage(); } }
+  function openFaq(){ if(fp){ toPageTop(fp); fp.classList.add('open'); document.body.style.overflow='hidden'; syncIpage(); } }
+  function closeFaq(){ if(fp){ fp.classList.remove('open'); document.body.style.overflow=''; syncIpage(); homeToTop(); } }
   if(fpx) fpx.onclick=closeFaq;
   window.closeInternalPages=function(){ closeAbout(); closeFaq(); };   /* desktop nav: section links leave the internal pages */
   m.querySelectorAll('.sm-list a').forEach(function(a){ a.addEventListener('click',function(){
@@ -2231,13 +2438,17 @@ function updateStepper(i){[...stp.children].forEach((el,idx)=>el.classList.toggl
     setTimeout(close,80); }); });
   document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ close(); closeAbout(); closeFaq(); } });
 })();
-/* FAQ content — PLACEHOLDER (accurate summaries from the content file) until the final Q&A copy arrives */
+/* FAQ content — final copy supplied by the client (2026-08-04); this list is the whole page */
 const FAQ=[
- {q:'מה זה מתפ״ש?', a:'מתאם פעולות הממשלה בשטחים (מתפ״ש) היא יחידה ייחודית בצה״ל, האחראית על תיאום ויישום המדיניות האזרחית של מדינת ישראל ביהודה ושומרון, ברצועת עזה ובמרחבים נוספים בצפון.'},
- {q:'אילו תפקידים יש ביחידה?', a:'השירות ביחידה כולל מגוון תחומים: תיאום אזרחי, תיאום ביטחוני, תשתיות, קשרי חוץ, מידע ומחקר, דוברות והסברה, מבצעים ופיקוד והדרכה.'},
- {q:'איך נראה מסלול הגיוס?', a:'שיבוץ למתפ״ש ← טירונות ← קורס תיאום וקישור ← שיבוץ לתפקיד. בנוסף קיימים מסלולים ייעודיים (מסלול עמ״ית, מסלול ייעודי לקצונה) ואפשרות לצאת לקצונה במהלך השירות.'},
- {q:'היכן ממוקמים הבסיסים?', a:'בסיסי היחידה פרוסים ביהודה ושומרון, בגבול רצועת עזה, בגזרה הצפונית, בבסיס ההכשרות במחנה גדעונים ובמטה היחידה בקריה.'},
- {q:'האם ניתן לצאת לקצונה?', a:'כן. קיימת אפשרות לצאת לקצונה במהלך השירות, וכן מסלול ייעודי לקצונה למועמדים שאותרו כבעלי פוטנציאל פיקודי גבוה כבר לפני גיוסם.'},
+ {q:'מה צריך להביא ליום הגיוס?', a:'נדרש להביא ציוד לשבועיים: חולצות לבנות וירוקות, בגדי ספורט, נעלי ספורט, כפכפים, מצעים, כרית ושמיכה, ציוד רחצה והיגיינה, גרביים ותחתונים, תרופות אישיות.'},
+ {q:'מה משך ההכשרה מיום הגיוס ועד לשיבוץ בתפקיד?', a:'ההכשרה כוללת טירונות 02 מורחב במשך כשלושה שבועות ולאחריה קורס תיאום וקישור במשך כשבעה שבועות. בסיום ההכשרה תשובצו באחד מתחומי הפעילות של היחידה.'},
+ {q:'מה אפשרויות השיבוץ למש״ק תיאום וקישור?', a:'בסיום הקורס ניתן להשתבץ במגוון תחומי פעילות ובהם תיאום אזרחי, תשתיות, קשרי חוץ, מידע ומחקר, מבצעים, דוברות והסברה, פיקוד והדרכה ועוד. השיבוץ נקבע בהתאם לכישורים שלכם, להישגים בקורס, לחוות דעת המפקדים ולצרכי היחידה.'},
+ {q:'האם כל החיילים עוברים את אותה ההכשרה?', a:'כלל מש״קי התיאום והקישור עוברים טירונות וקורס בסיסי משותף. לאחר מכן כל חייל משתבץ בתחום פעילות בהתאם לשיבוץ שנקבע עבורו. מלש״בים ששובצו טרם הגיוס כמש״קי עמית עוברים הכשרה חופפת למש״קי התיאום והקישור, ובנוסף אליה לומדים ערבית ברמה מתקדמת. מלש״בים ששובצו למסלול ייעודי לקצונה עוברים הכשרה נפרדת בהתאם למסלול.'},
+ {q:'האם צריך לדעת ערבית לפני הגיוס?', a:'לא. אין צורך בידע מוקדם בערבית. במהלך ההכשרה תלמדו ערבית מדוברת בסיסית, ובחלק מהתפקידים ידע קודם בערבית מהווה יתרון.'},
+ {q:'איך נקבע השיבוץ לאחר הקורס?', a:'במהלך הקורס תעברו היכרות עם תחומי הפעילות השונים של היחידה. השיבוץ נקבע בהתאם לכישורים שלכם, להישגים בקורס, לחוות דעת המפקדים ולצרכי היחידה. העדפותיכם יילקחו בחשבון ככל שניתן.'},
+ {q:'היכן ממוקמים בסיסי היחידה?', a:'בסיסי מתפ״ש פרוסים ביהודה ושומרון, בגבול רצועת עזה, בגזרה הצפונית, במחנה גדעונים ובמטה היחידה בקריה. פירוט מלא של הבסיסים מופיע במפת הבסיסים באתר.'},
+ {q:'האם התפקידים במתפ״ש הם במתכונת בסיס סגור או פתוח (יומיות)?', a:'מרבית אפשרויות השיבוץ במתפ״ש הן בבסיסים סגורים. חלק קטן מהחיילים והחיילות משתבצים בקריה במתכונת יומיות, בהתאם לתפקיד ולצרכי היחידה.'},
+ {q:'האם יש אפשרות לצאת לקצונה?', a:'כן. ניתן לצאת לקצונה במהלך השירות לאחר סדרת מיונים. בנוסף, קיים מסלול ייעודי לקצונה למועמדים שאותרו ומוינו עוד לפני גיוסם, וקיבלו שיבוץ למסלול זה.'},
 ];
 (function(){ var list=document.getElementById('faqList'); if(!list) return;
   FAQ.forEach(function(f,i){ var it=document.createElement('div'); it.className='faq-item'+(i===0?' open':'');   /* first question opens by default (client, 2026-08-02) */
