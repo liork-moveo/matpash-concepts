@@ -2249,7 +2249,15 @@ const scroller=document.getElementById('scroll');
   scroller.addEventListener('scroll',upd,{passive:true}); upd();
 })();
 const tabs=[...document.querySelectorAll('.tab')];
-function setActiveTab(id){ tabs.forEach(t=>t.classList.toggle('on', t.dataset.target===id)); positionPill();
+/* When the viewport centre is on the hero or the blue band, `id` matches no tab. The rightmost tab
+   (first in the DOM, RTL) is the default in that case — client, 2026-08-09. Leaving NO tab marked was
+   the real cause of the pill bug on a first phone visit: positionPill() bails out when nothing carries
+   `.on`, so every re-measure hook (fonts.ready, ResizeObserver, load, resize) silently did nothing and
+   the pill kept its boot-time, fallback-font geometry — spilling out of the capsule. */
+function setActiveTab(id){
+  const hit = tabs.some(t=>t.dataset.target===id);
+  tabs.forEach(t=>t.classList.toggle('on', hit ? t.dataset.target===id : t===tabs[0]));
+  positionPill();
   /* desktop header nav mirrors the scroll-spy (no-op on mobile — the nav is display:none there) */
   document.querySelectorAll('#hNav a[data-tab]').forEach(function(a){
     var tb=document.querySelector('.tab[data-tab="'+a.getAttribute('data-tab')+'"]');
@@ -2258,7 +2266,10 @@ function setActiveTab(id){ tabs.forEach(t=>t.classList.toggle('on', t.dataset.ta
 }
 /* slide the translucent pill behind the active tab (iOS segmented-control motion) */
 function positionPill(noAnim){
-  var on=document.querySelector('#tabs .tab.on'), pill=document.getElementById('tabPill');
+  /* fall back to the rightmost tab so the pill can ALWAYS be measured — never return without
+     positioning it, or the re-measure hooks below become dead code (see setActiveTab). */
+  var on=document.querySelector('#tabs .tab.on')||document.querySelector('#tabs .tab'),
+      pill=document.getElementById('tabPill');
   if(!on||!pill) return;
   if(noAnim){ pill.style.transition='none'; }
   pill.style.width=on.offsetWidth+'px';
@@ -2306,8 +2317,8 @@ const spy=new IntersectionObserver((entries)=>{
   entries.forEach(en=>{ if(en.isIntersecting) setActiveTab(en.target.id); });
 },{root:scroller, rootMargin:'-50% 0px -49% 0px', threshold:0});
 ['s-roles','s-bases','s-service'].forEach(id=>{ const el=document.getElementById(id); if(el) spy.observe(el); });
-/* also watch the hero + about band: when THEY own the viewport centre no section is active,
-   so their empty id clears every tab/nav mark (fixes "תפקידים stays underlined back at the hero") */
+/* also watch the hero + about band: when THEY own the viewport centre no section is active, so their
+   empty id sends setActiveTab a non-matching id — which now falls back to the rightmost tab */
 [document.querySelector('.hero'), document.getElementById('s-empty')].forEach(el=>{ if(el) spy.observe(el); });
 /* preload + resize the map as the bases section comes near */
 new IntersectionObserver((e)=>{ if(e.some(x=>x.isIntersecting)) ensureMap(); },
