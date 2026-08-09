@@ -292,25 +292,26 @@
   /* image fills the remaining space → same size when text is 5 lines; SHRINKS when "קרא עוד" opens the full text */
   .tl-card .ph{flex:1 1 auto;min-height:48px;margin-top:12px;border-radius:11px;overflow:hidden;position:relative}
   .tl-card .ph img{width:100%;height:100%;object-fit:cover}
-  /* Where each service photo is cropped. The card's photo box is ~1.45:1 but ten of these are
-     phone portraits (down to 9:16), so a dead-centre crop threw away most of the frame and left
-     the soldiers out of shot (client, 2026-08-09). Positions come from face detection, and from
-     a saliency pass on the photos with no people in them (kit, Tanach, gear). */
-  .tl-slide[src$="svc-ktzuna-01.jpg"]{object-position:55% 50%}   /* 16 face(s) */
-  .tl-slide[src$="svc-kurs-03.jpg"]{object-position:50% 69%}   /* 2 face(s) */
-  .tl-slide[src$="svc-kurs-04.jpg"]{object-position:50% 57%}   /* 3 face(s) */
-  .tl-slide[src$="svc-kurs-06.jpg"]{object-position:50% 54%}   /* 7 face(s) */
-  .tl-slide[src$="svc-shibutz-04.jpg"]{object-position:50% 30%}   /* 2 face(s) */
-  .tl-slide[src$="svc-tafkid-02.jpg"]{object-position:50% 54%}   /* 2 face(s) */
-  .tl-slide[src$="svc-tafkid-07.jpg"]{object-position:41% 50%}   /* 12 face(s) */
-  .tl-slide[src$="svc-tafkid-09.jpg"]{object-position:50% 54%}   /* 6 face(s) */
-  .tl-slide[src$="svc-tironut-03.jpg"]{object-position:50% 63%}   /* object (saliency) */
-  .tl-slide[src$="svc-tironut-07.jpg"]{object-position:50% 60%}   /* object (saliency) */
-  .tl-slide[src$="svc-tironut-08.jpg"]{object-position:50% 33%}   /* object (saliency) */
-  .tl-slide[src$="svc-tironut-09.jpg"]{object-position:50% 74%}   /* object (saliency) */
-  .tl-slide[src$="svc-tironut-10.jpg"]{object-position:50% 74%}   /* 5 face(s) */
-  .tl-slide[src$="svc-tironut-11.jpg"]{object-position:50% 54%}   /* object (saliency) */
-  .tl-slide[src$="svc-tironut-12.jpg"]{object-position:50% 55%}   /* 2 face(s) */
+  /* Where each service photo is cropped. The photo box is ~1.45:1 but ten of these are phone
+     portraits (down to 9:16), so a centred crop threw away most of the height and left the
+     soldiers out of frame (client, 2026-08-09). Positions come from face detection, and from a
+     saliency pass on the photos with no people in them. Photos that lose under 6% to the crop
+     are left centred — there the percentage swings wildly while the image barely moves. */
+  .tl-slide[src$="svc-ktzuna-01.jpg"]{object-position:100% 50%}   /* 16 face(s) · 9% of the frame is cropped */
+  .tl-slide[src$="svc-kurs-03.jpg"]{object-position:50% 65%}   /* chosen by eye - the full circle of seated soldiers fills the frame */
+  .tl-slide[src$="svc-kurs-04.jpg"]{object-position:50% 100%}   /* 3 face(s) · 14% of the frame is cropped */
+  .tl-slide[src$="svc-kurs-06.jpg"]{object-position:50% 100%}   /* 7 face(s) · 8% of the frame is cropped */
+  .tl-slide[src$="svc-shibutz-04.jpg"]{object-position:50% 0%}   /* client choice · 54% of the frame is cropped */
+  .tl-slide[src$="svc-tafkid-02.jpg"]{object-position:50% 79%}   /* 2 face(s) · 14% of the frame is cropped */
+  .tl-slide[src$="svc-tafkid-07.jpg"]{object-position:5% 50%}   /* 12 face(s) · 22% of the frame is cropped */
+  .tl-slide[src$="svc-tafkid-09.jpg"]{object-position:50% 100%}   /* 6 face(s) · 8% of the frame is cropped */
+  .tl-slide[src$="svc-tironut-02.jpg"]{object-position:50% 54%}   /* object (saliency) · 48% of the frame is cropped */
+  .tl-slide[src$="svc-tironut-07.jpg"]{object-position:50% 72%}   /* object (saliency) · 48% of the frame is cropped */
+  .tl-slide[src$="svc-tironut-08.jpg"]{object-position:50% 75%}   /* client choice · 48% of the frame is cropped */
+  .tl-slide[src$="svc-tironut-09.jpg"]{object-position:50% 65%}   /* chosen by eye - the Tanach table AND the view behind it */
+  .tl-slide[src$="svc-tironut-10.jpg"]{object-position:50% 88%}   /* 5 face(s) · 61% of the frame is cropped */
+  .tl-slide[src$="svc-tironut-11.jpg"]{object-position:50% 100%}   /* object (saliency) · 8% of the frame is cropped */
+  .tl-slide[src$="svc-tironut-12.jpg"]{object-position:50% 59%}   /* 2 face(s) · 48% of the frame is cropped */
   .tl-card .ph .tl-slide{position:absolute;inset:0;opacity:0;transition:opacity .9s ease}
   .tl-card .ph .tl-slide.on{opacity:1}
   /* stepper: connecting line + dots; first step shows the envelope circle, active step highlights in accent */
