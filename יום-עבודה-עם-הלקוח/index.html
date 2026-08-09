@@ -305,13 +305,12 @@
   .tl-slide[src$="svc-tafkid-02.jpg"]{object-position:50% 79%}   /* 2 face(s) · 14% of the frame is cropped */
   .tl-slide[src$="svc-tafkid-07.jpg"]{object-position:100% 50%}   /* the soldier stands 69% across and the crop only moves 22%, so 100% is the most centred this frame allows (89% -> 60%) */
   .tl-slide[src$="svc-tafkid-09.jpg"]{object-position:50% 100%}   /* 6 face(s) · 8% of the frame is cropped */
-  .tl-slide[src$="svc-tironut-02.jpg"]{object-position:50% 54%}   /* object (saliency) · 48% of the frame is cropped */
-  .tl-slide[src$="svc-tironut-07.jpg"]{object-position:50% 72%}   /* object (saliency) · 48% of the frame is cropped */
-  .tl-slide[src$="svc-tironut-08.jpg"]{object-position:50% 75%}   /* client choice · 48% of the frame is cropped */
-  .tl-slide[src$="svc-tironut-09.jpg"]{object-position:50% 65%}   /* chosen by eye - the Tanach table AND the view behind it */
-  .tl-slide[src$="svc-tironut-10.jpg"]{object-position:50% 70%}   /* centres the seated group: the 15 faces sit 62% down, and 70% puts that band in the middle of the window */
-  .tl-slide[src$="svc-tironut-11.jpg"]{object-position:50% 100%}   /* object (saliency) · 8% of the frame is cropped */
-  .tl-slide[src$="svc-tironut-12.jpg"]{object-position:50% 59%}   /* 2 face(s) · 48% of the frame is cropped */
+  .tl-slide[src$="svc-tironut-06.jpg"]{object-position:50% 72%}   /* the sunset formation — the closer of the two near-identical frames (the other was removed) */
+  .tl-slide[src$="svc-tironut-07.jpg"]{object-position:50% 75%}   /* the marching column with the flags — least sky, most bodies */
+  .tl-slide[src$="svc-tironut-08.jpg"]{object-position:50% 65%}   /* the Tanach table AND the view behind it, not just a close-up */
+  .tl-slide[src$="svc-tironut-09.jpg"]{object-position:50% 70%}   /* centres the seated group: the 15 faces sit 62% down */
+  .tl-slide[src$="svc-tironut-10.jpg"]{object-position:50% 100%}   /* subject centred */
+  .tl-slide[src$="svc-tironut-11.jpg"]{object-position:50% 59%}   /* subject centred */
   .tl-card .ph .tl-slide{position:absolute;inset:0;opacity:0;transition:opacity .9s ease}
   .tl-card .ph .tl-slide.on{opacity:1}
   /* stepper: connecting line + dots; first step shows the envelope circle, active step highlights in accent */
@@ -2357,7 +2356,7 @@ const STEP_ICONS=[ENV_ICON, TENT_ICON, BOOK_ICON, HAND_ICON];
 const SVC=(p,n)=>Array.from({length:n},(_,k)=>'../assets-client-day/svc/svc-'+p+'-'+String(k+1).padStart(2,'0')+'.jpg');
 const tlCards=[
  {no:'01',title:'שיבוץ למתפ״ש',text:'קבלת שיבוץ ליחידה ממיטב טרם הגיוס או שיבוץ על ידי קצין מיון במהלך שרשרת החיול',imgs:SVC('shibutz',8)},
- {no:'02',title:'טירונות (02 מורחב)',text:'טירונות 02 מורחב במשך כ-3 שבועות במחנה גדעונים. במהלך הטירונות תלמדו את ערכי צה״ל ומיומנויות צבאיות בסיסיות, ותעברו היכרות ראשונית עם היחידה. כחלק מטירונות 02 מורחב, תעברו סדנה של הכרת הנשק, ירי במטווחים, אימוני כושר גופני וקרב מגע, סדנת שטח הכוללת שדאות ולינה בשטח ותרגולים נוספים שיכינו אתכם למצבי חירום שונים',imgs:SVC('tironut',12)},
+ {no:'02',title:'טירונות (02 מורחב)',text:'טירונות 02 מורחב במשך כ-3 שבועות במחנה גדעונים. במהלך הטירונות תלמדו את ערכי צה״ל ומיומנויות צבאיות בסיסיות, ותעברו היכרות ראשונית עם היחידה. כחלק מטירונות 02 מורחב, תעברו סדנה של הכרת הנשק, ירי במטווחים, אימוני כושר גופני וקרב מגע, סדנת שטח הכוללת שדאות ולינה בשטח ותרגולים נוספים שיכינו אתכם למצבי חירום שונים',imgs:SVC('tironut',11)},
  {no:'03',title:'קורס תיאום וקישור',text:'הכשרה בת כ-7 שבועות במחנה גדעונים. במהלך הקורס תחשפו לפעילות היחידה ותלמדו על עשיית החיילים בתפקידים השונים. כחלק מהכשרה תלמדו על ההיסטוריה של הזירה הפלסטינית, תרכשו ידע בסיסי בשפה הערבית המדוברת ותתנסו במשימות מקצועיות אליהן תדרשו בתפקידכם. הקורס כולל סיורים בשטח ובבסיסי היחידה, הרצאות חוץ והעשרה, התנסויות מעשיות, אימונים גופניים, לינה בשטח ועוד',imgs:SVC('kurs',8)},
  {no:'04',title:'שיבוץ לתפקיד',text:'בסיום הקורס תקבלו שיבוץ לתפקיד באחד מתחומי הפעילות של היחידה ובהם תיאום אזרחי, תיאום ביטחוני, תשתיות, מידע ומחקר, קשרי חוץ ועוד. השיבוץ נקבע בהתאם לכישורים שלכם, ההישגים שלכם בקורס, חוות דעת של המפקדים וצרכי היחידה',imgs:SVC('tafkid',11)}
 ];
