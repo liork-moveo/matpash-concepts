@@ -1622,17 +1622,17 @@ function closeVideoModal(){
   if(!m) return; try{ v.pause(); if(bg) bg.pause(); }catch(e){}
   m.classList.remove('open'); document.body.style.overflow='';
 }
-var vmodalHideT=null;
+/* client, 12.8: "במובייל יש תקלה עדיין בכפתורים בוידיאו של התפקידים. הם נעלמים למרות שבקשנו שהם
+   ישארו כל הזמן שם."
+   Two independent mechanisms were hiding them, which is why fixing one earlier did not settle it:
+     1. a 3-second auto-hide timer that fired whenever the video was playing (copied from Netflix)
+     2. a tap-on-video toggle that hid them again on the next tap
+   Both are gone. The controls are now permanently visible for as long as the player is open — no
+   timer, no toggle, nothing to re-find. vmodalShowCtrl stays as the single "make sure they are on"
+   call so every existing call site keeps working. */
 function vmodalShowCtrl(){
   var m=document.getElementById('videoModal'), c=document.getElementById('vmodalCtrl');
-  if(!c) return; c.classList.remove('hide'); m.classList.remove('ctrlhide');
-  clearTimeout(vmodalHideT);
-  /* auto-hide only while playing — when paused the controls stay (Netflix behaviour) */
-  vmodalHideT=setTimeout(function(){ if(m.classList.contains('playing')){ c.classList.add('hide'); m.classList.add('ctrlhide'); } },3000);
-}
-function vmodalHideCtrl(){
-  var m=document.getElementById('videoModal'), c=document.getElementById('vmodalCtrl');
-  if(!c) return; clearTimeout(vmodalHideT); c.classList.add('hide'); m.classList.add('ctrlhide');
+  if(!c) return; c.classList.remove('hide'); if(m) m.classList.remove('ctrlhide');
 }
 (function(){
   var m=document.getElementById('videoModal'), v=document.getElementById('vmodalVid'), bg=document.getElementById('vmodalBg');
@@ -1647,11 +1647,12 @@ function vmodalHideCtrl(){
   v.addEventListener('pause',function(){ m.classList.remove('playing'); if(bg) bg.pause(); vmodalShowCtrl(); });
   v.addEventListener('seeked',function(){ if(bg){ try{ bg.currentTime=v.currentTime; }catch(e){} } });
   v.addEventListener('ended',function(){ m.classList.remove('playing'); vmodalShowCtrl(); });
-  /* Netflix: tap the RUNNING video toggles the controls in/out — playback never stops on a bare tap */
+  /* A tap on the video now PLAYS/PAUSES it. It used to toggle the controls out of sight, which is the
+     second reason they kept vanishing; with the controls permanently on there is nothing to toggle,
+     and pause/play is the behaviour the client already approved for the in-card player. */
   v.addEventListener('click',function(){
-    var c=document.getElementById('vmodalCtrl');
-    if(m.classList.contains('playing') && !c.classList.contains('hide')) vmodalHideCtrl();
-    else vmodalShowCtrl(); });
+    if(v.paused){ v.play().catch(function(){}); } else { v.pause(); }
+    vmodalShowCtrl(); });
   if(p) p.onclick=function(e){ e.stopPropagation(); if(v.paused){ v.play().catch(function(){}); } else { v.pause(); } vmodalShowCtrl(); };
   if(mu) mu.onclick=function(e){ e.stopPropagation(); v.muted=!v.muted; m.classList.toggle('muted',v.muted); vmodalShowCtrl(); };
   if(rw) rw.onclick=function(e){ e.stopPropagation(); try{ v.currentTime=Math.max(0,v.currentTime-10); }catch(err){} vmodalShowCtrl(); };
