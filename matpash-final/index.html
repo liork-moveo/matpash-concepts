@@ -1798,7 +1798,9 @@ const LOCALITIES=[
  {n:'באר שבע',lng:34.7913,lat:31.2518,big:1},
  {n:'תל אביב-יפו',lng:34.7819,lat:32.0853,big:1},
  {n:'ראשון לציון',lng:34.8101,lat:31.9636,big:1},
- {n:'רמת גן',lng:34.8247,lat:32.0687,big:1},
+ /* רמת גן dropped from the wide view (client, 12.8: "תמחק את רמת גן מהזום אאוט") — it sits right on
+    top of תל אביב-יפו at country scale, so the two names collided. It still appears zoomed in. */
+ {n:'רמת גן',lng:34.8247,lat:32.0687},
  {n:'גבעת אסף',lng:35.2479,lat:31.9114},
  {n:'אלון שבות',lng:35.1268,lat:31.6549},
  {n:'בית אל',lng:35.2224,lat:31.9421},
