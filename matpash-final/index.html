@@ -327,8 +327,14 @@
      between a composited and a non-composited layer. Chromium composites them in DOM order, which is
      why every one of these tested visible and reachable here.
      Promoting the controls too puts them back in the same layer tree, above the video. translateZ(0)
-     costs nothing visually and is the standard remedy. */
-  .rc-ctrl,.rc-expand,.rc-play,.vp-bar{transform:translateZ(0)}
+     costs nothing visually and is the standard remedy.
+     client, 13.8, later: "סכמנו שהטקסט תמיד נשאר בפריים. ברגע שלחצתי פליי הוא נעלם וגם לא חזר."
+     Same bug, and I had only inoculated the controls. `.rc-meta` — the title, the teaser and ״קרא עוד״ —
+     and the gradient behind them were left off this list, so the moment the clip started and the video
+     got its own layer, both were painted over. "לא חזר" fits exactly: the layer stays promoted for as
+     long as the element holds frames, so the text does not come back on pause either. Nothing was
+     fading them; they were underneath. Everything that has to sit above the video is promoted now. */
+  .rc-ctrl,.rc-expand,.rc-play,.vp-bar,.rc-meta,.rc-face .grad{transform:translateZ(0)}
   /* client, 13.8: "גם הגודל תתקן אם אנחנו לא לפי התקן של אפל" — so the buttons themselves are 44px,
      not 32px wearing an invisible 44px hit area. 44x44 is Apple's HIG minimum and also satisfies
      WCAG 2.2 §2.5.8 (Target Size, minimum 24x24 — we clear it with room to spare). */
