@@ -206,9 +206,9 @@
     margin-top:12px;direction:ltr;cursor:pointer;touch-action:none;z-index:3}
   .vp-bar i{position:absolute;top:0;bottom:0;left:0;width:0;background:#fff;border-radius:3px}
   /* fullscreen ("expand to story") button + modal */
-  .rc-expand{position:absolute;top:10px;right:10px;z-index:4;width:32px;height:32px;border-radius:50%;
+  .rc-expand{position:absolute;top:10px;right:10px;z-index:4;width:44px;height:44px;border-radius:50%;
     background:rgba(0,0,0,.42);border:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
-  .rc-expand svg{width:16px;height:16px}
+  .rc-expand svg{width:18px;height:18px}
   /* pause + mute mini-buttons — appear only while the card video is playing (client: "hard to stop") */
   /* client, 13.8: mute sits top-left and is ALWAYS on screen — it used to appear only while the video
      was running, which is what "הכפתורים נעלמים" was about. The pause button that shared this corner
@@ -221,9 +221,27 @@
      of how many seconds to wait disappears, and so does the hidden-but-clickable failure mode. */
   .role-card .rc-expand,.role-card .vp-bar{transition:opacity .3s}
   .role-card.playing .rc-ctrl{display:flex}
-  .rc-ctrl button{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.42);border:0;
+  /* client, 13.8: "לא מצליחה להגיע לכפתורים… קשה לעצור/להריץ קדימה" — and it was not a covering
+     problem. Measured: these discs are 32x32 and the progress bar is 3px tall. Apple's minimum touch
+     target is 44x44, so the mute and expand buttons were 27% under it and the bar was unhittable with a
+     finger. With a mouse every one of them tested reachable, which is why it looked fine here.
+     The FIX KEEPS THE LOOK: the disc stays 32px, and a transparent ::after pads the hit area out to 44.
+     Same trick the progress bar already used. */
+  /* client, 13.8: "הכפתורים עצמם… בכלל לא מוצגים… הסרטון פועל ואי אפשר להגיע אליהם בכלל" — on the
+     phone only. This is the iOS video-layer bug, not a z-index mistake: `.rc-face video` carries
+     transform:scale(1.04), which promotes the video to its own compositing layer, and iOS Safari paints
+     a promoted video layer ABOVE sibling DOM that has not been promoted — z-index does not arbitrate
+     between a composited and a non-composited layer. Chromium composites them in DOM order, which is
+     why every one of these tested visible and reachable here.
+     Promoting the controls too puts them back in the same layer tree, above the video. translateZ(0)
+     costs nothing visually and is the standard remedy. */
+  .rc-ctrl,.rc-expand,.rc-play,.vp-bar{transform:translateZ(0)}
+  /* client, 13.8: "גם הגודל תתקן אם אנחנו לא לפי התקן של אפל" — so the buttons themselves are 44px,
+     not 32px wearing an invisible 44px hit area. 44x44 is Apple's HIG minimum and also satisfies
+     WCAG 2.2 §2.5.8 (Target Size, minimum 24x24 — we clear it with room to spare). */
+  .rc-ctrl button{position:relative;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.42);border:0;
     display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
-  .rc-ctrl svg{width:15px;height:15px;fill:#fff}
+  .rc-ctrl svg{width:18px;height:18px;fill:#fff}
   .rc-ctrl .i-soff{display:none}
   .role-card.vmuted .rc-ctrl .i-soff{display:block}
   .role-card.vmuted .rc-ctrl .i-son{display:none}
@@ -239,7 +257,7 @@
   .vmodal.playing .vctrl{opacity:0;pointer-events:none}
   .vmodal.playing .vctrl button{pointer-events:none}
   /* mute — top LEFT, always on screen, same 40px disc as the close button opposite it */
-  .vm-mute{position:absolute;top:16px;left:16px;z-index:4;width:40px;height:40px;border-radius:50%;
+  .vm-mute{position:absolute;top:16px;left:16px;z-index:4;width:44px;height:44px;border-radius:50%;
     background:rgba(255,255,255,.18);border:0;display:flex;align-items:center;justify-content:center;
     cursor:pointer;-webkit-tap-highlight-color:transparent}
   .vm-mute svg{width:20px;height:20px;fill:#fff}
@@ -262,12 +280,16 @@
     background:linear-gradient(0deg,rgba(0,0,0,.55),transparent);transition:opacity .3s}
   .vm-bar{position:relative;flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.3);cursor:pointer;touch-action:none}
   .vm-bar i{position:absolute;top:0;bottom:0;left:0;width:0;background:var(--accent);border-radius:4px}
-  .vm-bar::after{content:"";position:absolute;inset:-12px 0}   /* fat touch target around the thin bar */
+  .vm-bar::after{content:"";position:absolute;top:-20px;bottom:-20px;left:0;right:0}   /* 4 + 40 = 44 */
+  /* the two fullscreen corner buttons are 40px of ink — padded out to 44 for a finger */
+  /* no ::after pad needed on these two any more — the discs themselves are 44px */
+  /* every overlay that sits over a <video> gets promoted, for the same iOS reason as the card controls */
+  .vm-mute,.vmodal-close,.vctrl,.vm-bottom{transform:translateZ(0)}
   .vm-time{color:#fff;font-size:13px;font-weight:600;min-width:44px;text-align:left;font-variant-numeric:tabular-nums}
   /* while the controls are hidden the X and the bottom strip hide with them (tap brings everything back) */
   .vmodal.ctrlhide .vm-bottom,.vmodal.ctrlhide .vmodal-close{opacity:0;pointer-events:none}
   .vmodal-close{transition:opacity .3s}
-  .vmodal-close{position:absolute;top:16px;right:16px;z-index:2;width:40px;height:40px;border-radius:50%;
+  .vmodal-close{position:absolute;top:16px;right:16px;z-index:2;width:44px;height:44px;border-radius:50%;
     background:rgba(255,255,255,.18);color:#fff;border:0;font-size:20px;cursor:pointer;
     display:flex;align-items:center;justify-content:center}
   /* full description reveal — a white overlay so the slider card keeps a fixed size */
@@ -442,7 +464,9 @@
   .vp-bar{position:relative;height:3px;border-radius:3px;background:rgba(255,255,255,.32);
     margin-top:10px;direction:ltr;cursor:pointer;touch-action:none}
   .vp-bar i{position:absolute;top:0;bottom:0;left:0;width:0;background:#fff;border-radius:3px}
-  .vp-bar::after{content:"";position:absolute;left:0;right:0;top:-12px;bottom:-12px}
+  /* the bar is 3px of ink; the hit area is padded to 44 so a finger can actually seek (client, 13.8:
+     "קשה… להריץ קדימה"). 3 + 20 + 21 = 44. */
+  .vp-bar::after{content:"";position:absolute;left:0;right:0;top:-20px;bottom:-21px}
   .role-video .rc-play{position:absolute;inset:0;margin:auto;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center}
   .role-video .rc-play svg{fill:var(--navy);margin-inline-start:3px}
   .nav-arrows{display:flex;justify-content:center;gap:2px;margin:18px auto 0;background:#fff;border-radius:30px;
