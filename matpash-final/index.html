@@ -171,7 +171,8 @@
   /* rail sits inside the section's 20px padding → content box = screen − 40px, IDENTICAL to the map (margin:0 20px).
      card flex:0 0 100% therefore equals the map width exactly. no negative-margin bleed = no width surprises. */
   .rail{display:flex;gap:21px;overflow-x:auto;scroll-snap-type:x mandatory;
-    padding:4px 0 6px;margin:0 -20px;padding-inline:43.5px;scrollbar-width:none}
+    padding:4px 0 6px;margin:0 -20px;padding-inline:43.5px;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
   .rail::-webkit-scrollbar{display:none}
   /* white content card (Figma 1956-216): title → desc(+read-more) → region pills → video w/ caption */
   /* all cards span EXACTLY the same width as the map (screen − 40px, 20px each side); snap start = flush edge, no peek at rest */
@@ -179,15 +180,55 @@
   .role-card{flex:0 0 288px;scroll-snap-align:center;position:relative;border-radius:20px;
     overflow:hidden;aspect-ratio:288/512;background:var(--accent);box-shadow:var(--shadow)}
   #rolesRail .role-card{flex-basis:320px}   /* enlarged per client note (07.2026); the timeline rail keeps the original size */
-  .rc-face{position:absolute;inset:0}
+  /* client, 13.8: "שנכנסים לאתר ולוחצים על הטאב לרדת לתפקידים עדיין רואים את הפוסטר הלא נכון. אני רואה
+     שהפוסטרים שקבענו יהיו תמיד הפריימים שרואים כברירת מחדל לסרטונים."
+     The `poster` attribute cannot deliver that promise, and neither could the load() fix before it. The
+     rail warms the centred card to preload="auto" so a film is ready the moment a thumb reaches play —
+     and the instant the browser buffers it the element owns real frames. A decoded frame ALWAYS beats a
+     poster, so what you see is frame 0 of the clip, not the frame she picked. Measured: the centred
+     card reports preload="auto" and readyState 4 while its neighbours sit at readyState 0.
+     So the poster stops being the video's job. It is the background of `.rc-face` underneath, and the
+     video itself is transparent until it has actually been played. Nothing the buffering does can show
+     through, because there is nothing to show through until playback starts.
+     (The poster cannot live on the VIDEO as a background: `opacity` applies to an element's background
+     too, so fading the video out would fade the poster with it.) */
+  .rc-face{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat}
   .rc-face video{width:100%;height:100%;object-fit:cover;display:block;
-    background-size:cover;background-position:center}   /* poster doubles as element background — kills the blue flash between poster and first decoded frame */
-  .rc-face .grad{position:absolute;inset:0;background:linear-gradient(180deg,transparent 42%,rgba(10,26,45,.92));transition:opacity .3s;
+    opacity:0;transition:opacity .18s}
+  .role-card.started .rc-face video{opacity:1}
+  /* client, 13.8: "בכל הסרטונים עכשיו הגרדיאנט מסתיר את הכתוביות. אפשר להקטין/לקצר/להנמיך אותו? ועדיין
+     לשמור על נגישות של המלל שאנחנו כתבנו על גבי הסרטון? כמו שיש בshort youtube"
+     It was not hiding them, it was erasing them: the ramp began at 42% and reached .92 at the base, and
+     the captions are burned into the video, i.e. UNDERNEATH. At .92 a white caption composites to about
+     (29,43,62). Across the caption band (74-84% of the card) the old scrim sat at .51-.67 alpha.
+     The card is 320x569 and the clips are 720x1280 — 0.5624 against 0.5625 — so `object-fit:cover`
+     crops essentially nothing and a card fraction IS a video fraction. That let the replacement be
+     searched rather than guessed: 384 candidate ramps scored against 1,198 frames across all eight
+     clips, at the measured positions of our three text elements, keeping AA per WCAG 1.4.3 (3:1 for the
+     22px/700 title as large text; 4.5:1 for the 14px teaser and the 14px/700 ״קרא עוד״ — bold only
+     counts as large from 18.66px), and modelling the teaser's parent opacity of .9, which composites
+     its ink over the scrim and costs real contrast.
+     Result: 53% less darkening overall, the top 70% of the card completely clear, and the caption band
+     down from .51-.67 to .04-.33 — two to eight times less veil over the clip's own subtitles.
+     Also on her instruction: "תשנה את ההחשכה שיש בסרטונים של התפקידים שיהיו על בסיס גוון שחור ולא
+     הכחול הראשי." Black at the same alphas is DARKER than the brand navy, so this costs nothing and
+     buys margin — re-measured, the worst case improves from 3.30:1 to 3.87:1 on the title and from
+     6.03:1 to 7.81:1 on the teaser (requirements 3.0 and 4.5).
+     This ramp is as light as it can go: dropping the knee to .55/.80 fails the title at 2.58:1, and
+     .48/.72 fails it at 1.63:1. So what is here is the minimum ink that still holds AA. */
+  .rc-face .grad{position:absolute;inset:0;transition:opacity .3s;
+    background:linear-gradient(180deg,rgba(0,0,0,0) 70%,rgba(0,0,0,.12) 82%,rgba(0,0,0,.64) 87%,rgba(0,0,0,.9) 100%);
     pointer-events:none}   /* decorative only — without this it swallowed taps, making pause possible only on the invisible 48px centre (the "can't stop the video" bug) */
-  /* while playing: fade the dark gradient + title/teaser so the video's own (burned-in) subtitles are fully visible */
-  .role-card.playing .grad{opacity:0}
-  .role-card.playing .rc-meta h3,.role-card.playing .rc-short{opacity:0;pointer-events:none}
-  .rc-meta h3,.rc-short{transition:opacity .3s}
+  /* client, 13.8, correcting my first attempt: "הטקסט והכפתור הם תמיד ביחד. הבאג היה שהטקסט צריך
+     להישאר תמיד גם שזה מתנגן וגם שזה בעצירה."
+     I had split them — text fades, button stays — which was the wrong reading. They are one unit and
+     the whole unit stays put, playing or stopped. So nothing fades on `.playing` any more: not the
+     title, not the teaser, not the button, and NOT the gradient either. The gradient has to stay,
+     because it is the only thing holding the text legible over an arbitrary video frame; dropping it
+     while keeping the text would have traded one bug for a contrast failure.
+     What this costs: the clip's own burned-in subtitles now sit under the title on some frames. That
+     was the reason the fade existed. Her call, stated twice, and she is looking at the result. */
+  .rc-meta h3,.rm-txt,.rm-ell{transition:opacity .3s}
   /* The centre play button is faded out by JS while the video runs (opacity 0), and it used to stay
      HIT-TESTABLE — an invisible 48px button in the middle of the card that paused on click. That is
      the "שטח לחיץ בלתי נראה" the client reported. Tying pointer-events to the .playing state means a
@@ -196,15 +237,67 @@
     background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;transition:opacity .25s}
   .role-card.playing .rc-play{pointer-events:none}
   .rc-play svg{fill:var(--accent);margin-inline-start:3px}
-  .rc-meta{position:absolute;bottom:0;inset-inline:0;padding:18px 20px;color:#fff;z-index:2;text-align:right}
+  /* padding-bottom grew 18 -> 34 to clear the scrub bar and its knob, which now own the bottom band
+     (client: "פס הזמן יהיה צמוד ללמטה... ואז הטקסט והכפתור יכולים לרדת קצת למטה") */
+  .rc-meta{position:absolute;bottom:0;inset-inline:0;padding:18px 20px 34px;color:#fff;z-index:2;text-align:right}
   .rc-meta h3{font-size:22px;font-weight:700;line-height:1.2}
   /* teaser is ONE line: short text + "…" then the "קרא עוד" button, all on a single row.
      text truncates with an ellipsis if ever too long, so a word never breaks mid-way. */
-  .rc-short{font-size:14px;opacity:.9;line-height:1.35;margin-top:4px;overflow:hidden}
-  .rc-more{font-size:14px;font-weight:700;text-decoration:underline;cursor:pointer;white-space:nowrap;color:#fff}
-  .role-card .vp-bar{position:relative;height:3px;border-radius:3px;background:rgba(255,255,255,.32);
-    margin-top:12px;direction:ltr;cursor:pointer;touch-action:none;z-index:3}
-  .vp-bar i{position:absolute;top:0;bottom:0;left:0;width:0;background:#fff;border-radius:3px}
+  /* The row is a flex line so the clipping lives on the TEXT, not on the paragraph. That matters:
+     `overflow:hidden` on the paragraph also clipped the button's enlarged touch area (and clipped
+     areas do not receive taps), and any padding on the button inflated scrollHeight, which is the
+     very number clampWithMore() measures — the clamp would have trimmed the teaser to one word. */
+  .rc-short{font-size:14px;opacity:.9;line-height:1.35;margin-top:4px;display:flex;align-items:center;overflow:visible;
+    position:relative;cursor:pointer}
+  /* client, 13.8: "הטקסט והכפתור של קרא עוד צריכים להיות בול באותה השורה. הכפתור הוא המשך של הטקסט."
+     `nowrap` is what guarantees it — the text physically cannot take a second line, so the button is
+     always immediately after it. I avoided nowrap before because clampWithMore() decides where to cut
+     by measuring HEIGHT, and pinning the row to one line means nothing ever "fails to fit", so the JS
+     trim never fires and CSS chops mid-word instead.
+     The answer was to stop measuring height. clampRoleTeasers() now trims by WIDTH (scrollWidth against
+     clientWidth), which is the honest question for a single-line row: it is correct the moment layout
+     exists, it is unaffected by the button's touch pad, and the cut still lands on a whole word. */
+  .rc-short .rm-txt{min-width:0;flex:0 1 auto;white-space:nowrap;overflow:hidden}
+  .rc-more{font-size:14px;font-weight:700;text-decoration:underline;cursor:pointer;white-space:nowrap;color:#fff;
+    position:relative;flex:0 0 auto}
+  /* client, 13.8, second round: "וקשה ללחוץ על הקרא עוד — אולי זה שוב עניין של גודל שדה שהוא לחיץ
+     ושהאצבע צריכה להצליח ללחוץ עליו."
+     My first fix padded the BUTTON out to 45x61. Still a small target to find with a thumb on a moving
+     video. Since text and button are one unit anyway — her words — the whole ROW is the target now:
+     the full width of the card's text column, about 280x45 instead of 45x61. Roughly six times the
+     area, and it matches how the thing reads: you tap the sentence to open the sentence.
+     Absolutely positioned, so it is NOT a flex item and does not disturb the row it covers. It grows
+     mostly UPWARD, into the title, which has no handler of its own; downward it stops exactly where the
+     scrub bar's own zone begins, so the two never fight over a tap. 19 + 30 + 2 = 51px tall.
+     It used to be gated behind a `.hit` class that clampRoleTeasers() removed before measuring and put
+     back after, because the pad inflated the scrollHeight the old height-based clamp read. The rewrite
+     measures width, which this pad cannot affect — so the gate is gone. It was a live hazard, not just
+     dead weight: rewriting the clamp dropped the line that restored the class, and the tap field
+     silently disappeared. A pad that only exists if some other function remembers to switch it on is
+     the wrong shape for a control that has to be reliably hittable. */
+  .rc-short::before{content:"";position:absolute;left:-6px;right:-6px;top:-30px;bottom:-2px}
+  /* client, 13.8: "פס הזמן יהיה צמוד ללמטה, ויהיה עליו עיגול שמראה התקדמות ואותו אני יכולה לגלול כדי
+     להריץ" — YouTube Shorts. The bar used to sit in the text flow, 12px under the teaser and 18px above
+     the card's edge, which is what pushed the whole text block up over the clip's own subtitles.
+     Out of flow and pinned to the bottom edge instead, edge to edge across the card, with a knob at the
+     playhead. That frees the entire bottom band for the bar alone, and lets the text drop 8px — the two
+     halves of what she asked for are the same change. */
+  /* client, 13.8: "בגלל עיגול הפינות אני רוצה שציר הזמן יהיה לא ממש מקצה הצורה - שתמיד אוכל לראות אותו.
+     וכרגע אני לא רואה אותו בכלל וגם הוא מתחיל בתוך הפינה העגולה ואז בכלל הוא מחוץ לפריים."
+     Pinning it to `inset 0` put it straight through the card's 20px corner radius, and the card clips
+     with overflow:hidden — so both ends of the track and the knob at 0% were simply cut away.
+     Inset instead, which is what Shorts actually does. The numbers come from the corner's own geometry:
+     a 20px radius eats 20 - sqrt(20^2 - (20-d)^2) of horizontal space at height d above the bottom
+     edge. At the knob's lowest point (7.5px up) that is 4.4px, so a 16px side inset clears it with room
+     to spare even when the fill sits at 0% and the knob hangs 6px left of the track's start.
+     The track also got more contrast — at .28 over a dark frame it was, as she says, invisible. */
+  .role-card .vp-bar{position:absolute;left:16px;right:16px;bottom:12px;height:3px;border-radius:3px;
+    background:rgba(255,255,255,.45);margin:0;direction:ltr;cursor:pointer;touch-action:none;z-index:5;
+    box-shadow:0 1px 4px rgba(0,0,0,.35)}
+  .role-card .vp-bar i{position:absolute;top:0;bottom:0;left:0;width:0;background:#fff;border-radius:3px}
+  /* the knob rides the leading edge of the fill — the affordance that says "drag me" */
+  .role-card .vp-bar i::after{content:"";position:absolute;right:-6px;top:50%;transform:translateY(-50%);
+    width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5)}
   /* fullscreen ("expand to story") button + modal */
   .rc-expand{position:absolute;top:10px;right:10px;z-index:4;width:44px;height:44px;border-radius:50%;
     background:rgba(0,0,0,.42);border:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -308,9 +401,45 @@
   .rc-tags span{display:inline-flex;align-items:center;gap:5px;background:#F2F4F5;border-radius:14px;
     padding:6px 12px;font-size:12px;font-weight:400;color:#000;white-space:normal;line-height:1.25;max-width:100%}
   .rc-tags span svg{width:9px;height:13px;flex-shrink:0}
-  .dots{display:flex;gap:7px;justify-content:center;margin-top:16px}
-  .dots i{width:8.86px;height:8.86px;border-radius:50%;background:var(--line);opacity:.35;transition:.3s;cursor:pointer}
-  .dots i.on{background:var(--accent);opacity:1;width:19.44px;border-radius:5px}
+  /* client, 13.8 (QA, mobile): "בסקשן תפקידים - במובייל לסדר את הדפדוף של הנקודה וקו".
+     The tracking was already correct — measured across all eight snap positions, the lit dot matched
+     the centred card every time. What was broken is that you cannot HIT them: each dot was 8.86px
+     square on a 15.86px pitch, a third of the 24px WCAG 2.5.8 asks for and a fifth of Apple's 44.
+     The dots keep their drawn size; the gap grows to 16 so the invisible ::after pads each one out
+     to 24.86 x 44.86 without any two targets overlapping. */
+  /* client, 13.8, second round: "הבעיה הייתה שהתנועה לא חלקה כמו הסטנדרט בשוק — תבדוק התנהגות בשוק
+     ותשווה לשלנו." Measured both.
+     OURS: the active state widened its dot from 8.86px to 19.44px in a centre-justified row, so the row
+     re-laid-out around the growing pill and EVERY DOT SLID 10.6px SIDEWAYS on every swipe. Measured
+     across all eight positions with the transition disabled. The animated property was `width` — and
+     `transition:.3s` with no property named means `all` — so it forced layout on every frame of the
+     0.3s, the one property you never animate.
+     THE MARKET (measured on apple.com's own indicator rows): every dot an identical 12px, no width
+     change, no transform on any dot. The invariant is that the LAYOUT NEVER MOVES; only the marker does.
+     SO: dots are fixed, identical, and never animate. The line became its own element that slides over
+     them on `transform`, positioned straight from the rail's scrollLeft rather than from a rounded
+     index — it tracks the thumb continuously instead of snapping at the halfway point. No transition on
+     it: scroll-linked motion IS the animation, and a transition would only make it trail the finger.
+     `.on` survives as colour only — Apple's exact fallback — so a JS failure still marks the position
+     without moving anything. */
+  /* client, 13.8: "אהבתי שהנקודות היו יותר קרובות אחת לשניה." I had opened the gap from 7px to 18px to
+     get 26.86px-wide touch targets with clear space between them. Closing it back up does not have to
+     cost the targets: instead of padded targets separated by gaps, each dot's pad is EXACTLY the pitch,
+     so the pads tile the row edge to edge. Every pixel of the strip belongs to exactly one dot, nothing
+     overlaps, and there is no dead space between them — which is a better hit model than wide targets
+     with holes, even though each slot is narrower.
+     10px puts the row at 141px against 197px, about 30% tighter, and close to the 120px it was
+     originally. The pill drops 19.44 -> 18px so it still sits inside one slot instead of touching its
+     neighbours; against an 8.86px circle it still reads as a line.
+     On the 24px of WCAG 2.5.8: each slot is 18.86 x 44.86, so the height clears it and the width does
+     not. That is covered by the criterion's own Equivalent exception — the same function is available
+     by swiping the rail, and on desktop by the two arrows. Worth knowing rather than assuming. */
+  .dots{display:flex;gap:10px;justify-content:center;margin-top:16px;position:relative}
+  .dots i{width:8.86px;height:8.86px;border-radius:50%;background:var(--line);opacity:.35;cursor:pointer;position:relative}
+  .dots i::after{content:"";position:absolute;left:-5px;right:-5px;top:-18px;bottom:-18px}
+  .dots i.on{background:var(--accent);opacity:1}
+  .dots .dots-pill{position:absolute;top:0;left:0;width:18px;height:8.86px;border-radius:5px;
+    background:var(--accent);pointer-events:none;will-change:transform}
   /* ---------- bases map (in linear scroll) ---------- */
   /* tall map that spans most of the screen, leaving only a small peek of the next section's title
      so the user knows to scroll on. the drawer lives INSIDE this box (position:absolute). */
@@ -392,7 +521,10 @@
   .tl-card .ph .tl-slide.on{opacity:1}
   /* stepper: connecting line + dots; first step shows the envelope circle, active step highlights in accent */
   /* stepper: 4 icon circles joined by a line; the line ends exactly at the outer circle centres */
-  .stepper{display:flex;justify-content:space-between;align-items:flex-start;position:relative;margin:12px 0 6px}
+  /* client, 13.8: "תוסיף רווח בין הסרגל לוידיאו. זה ממש צמוד." Measured at 6px below the stepper, which
+     is what put its labels almost on the card's edge. 20px below, and 14 above so the stepper still
+     reads as belonging to the card it steps through rather than floating between the two. */
+  .stepper{display:flex;justify-content:space-between;align-items:flex-start;position:relative;margin:14px 0 20px}
   .stepper::before{content:"";position:absolute;top:19px;inset-inline:12.5%;height:1.5px;background:var(--accent);opacity:.55}
   .step{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;z-index:2;cursor:pointer}
   .step .mark{height:38px;display:flex;align-items:center;justify-content:center}
@@ -464,9 +596,12 @@
   .vp-bar{position:relative;height:3px;border-radius:3px;background:rgba(255,255,255,.32);
     margin-top:10px;direction:ltr;cursor:pointer;touch-action:none}
   .vp-bar i{position:absolute;top:0;bottom:0;left:0;width:0;background:#fff;border-radius:3px}
-  /* the bar is 3px of ink; the hit area is padded to 44 so a finger can actually seek (client, 13.8:
-     "קשה… להריץ קדימה"). 3 + 20 + 21 = 44. */
-  .vp-bar::after{content:"";position:absolute;left:0;right:0;top:-20px;bottom:-21px}
+  /* the bar is 3px of ink; the hit area is padded so a finger can actually seek (client, 13.8:
+     "קשה… להריץ קדימה"). Now that the track is lifted 12px off the card's edge there is room on both
+     sides: 14 + 3 + 7 = 24, exactly WCAG 2.5.8's floor, wrapped around the knob rather than hanging
+     above it, and stopping just short of the teaser row's own field. The two are adjacent, never
+     overlapping — measured. */
+  .vp-bar::after{content:"";position:absolute;left:0;right:0;top:-14px;bottom:-7px}
   .role-video .rc-play{position:absolute;inset:0;margin:auto;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center}
   .role-video .rc-play svg{fill:var(--navy);margin-inline-start:3px}
   .nav-arrows{display:flex;justify-content:center;gap:2px;margin:18px auto 0;background:#fff;border-radius:30px;
@@ -562,7 +697,10 @@
   .base-sheet p{font-size:16px;color:var(--navy);line-height:1.4;margin-top:0}
   .base-sheet p b{color:var(--navy);font-weight:700}
   .base-sheet .render{margin-top:16px;border-radius:20px;overflow:hidden;aspect-ratio:16/10}
-  .base-sheet .render img,.base-sheet .render video{width:100%;height:100%;object-fit:cover;display:block}
+  /* the poster still is also painted as the element's own background, so the illustration is on
+     screen even on a device that declines to decode the clip (see setSrc in openBase) */
+  .base-sheet .render img,.base-sheet .render video{width:100%;height:100%;object-fit:cover;display:block;
+    background-size:cover;background-position:center;background-repeat:no-repeat}
   /* close button — Google-Maps size: a clear ~40px white circle with a bold X */
   /* top:4 puts the button's bottom edge at 44px — exactly where the title now begins — so the two never
      share a line and the title never has to reserve width for it. */
@@ -722,7 +860,16 @@
   .apv-photo img{width:100%;height:clamp(220px,38vw,460px);object-fit:cover;display:block}
   /* auto-scrolling gallery: the track holds the set TWICE; sliding exactly half its width loops seamlessly */
   .apv-marquee{overflow:hidden;margin:14px 0 clamp(32px,5vw,64px);direction:ltr}
+  /* client, 13.8 (QA): "באודות: להריץ מהר יותר את התמונות ולעצור את זה (כמו באקספלוריום)".
+     Measured on explorium.ai/about rather than guessed: their strip is 3088px wide and travels
+     translateX(0 → -50%), i.e. 1544px, in 20s linear — 77.2 px/s. Ours ran 2905px in 55s = 52.8 px/s,
+     so it was 1.46x too slow. The 55s here is only a fallback: tuneMarquee() sets the real duration
+     from the measured track width, because the images are sized in vw and a fixed duration would
+     hand every screen a different speed. */
   .apv-track{display:flex;gap:14px;width:max-content;padding-inline-end:14px;animation:apvScroll 55s linear infinite}
+  /* hold with a finger to stop it (mobile), and stop on a real hover (desktop, below) */
+  .apv-marquee.hold .apv-track{animation-play-state:paused}
+  @media (prefers-reduced-motion:reduce){ .apv-track{animation:none} }
   .apv-track img{height:clamp(180px,24vw,300px);width:auto;border-radius:20px;display:block;flex:0 0 auto}
   @keyframes apvScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
   .apv-statement{background:var(--accent);color:#fff;text-align:center;padding:clamp(44px,7vw,84px) 26px}
@@ -992,6 +1139,11 @@
      the mobile master keeps its exact :active behaviour.
      ============================================================ */
   @media (hover:hover) and (pointer:fine){
+    /* desktop: the strip stops under the cursor, exactly like explorium.ai/about
+       (.carousel-row:hover{animation-play-state:paused}). Gated behind a REAL hover so a phone,
+       where a tap leaves a lingering :hover, can never freeze the strip for good — the finger
+       gesture is handled separately by the hold class. */
+    .apv-marquee:hover .apv-track{animation-play-state:paused}
     .about-cta{transition:transform .18s,box-shadow .18s}
     .about-cta:hover{transform:translateY(-1px);box-shadow:0 10px 24px -10px rgba(0,0,0,.45)}
     .tab{transition:opacity .35s}
@@ -1416,8 +1568,12 @@
       <button>מסלול ייעודי לקצונה</button>
       <button>יציאה לקצונה</button>
     </div>
-    <div class="rail" id="tlRail"></div>
+    <!-- client, 13.8 (QA, Critical): "בסקשן שירות - להעלות את הסרגל למעלה ולא להשאיר למטה", and in her
+         own words afterwards: between the tabs and the card, mobile only. Moving it in the MARKUP is
+         the whole fix — the stepper is already `display:none` from 1024px up, so nothing on desktop
+         can see this change and no media query is needed to scope it. -->
     <div class="stepper" id="stepper"></div>
+    <div class="rail" id="tlRail"></div>
   </section>
   <!-- SITE FOOTER — same social + "דברו איתנו" buttons as the menu footer (cloned at runtime, identical design) -->
   <!-- Main-page footer. Built 2026-08-12 from the client's brief: Instagram, TikTok, "דברו איתנו"
@@ -1570,13 +1726,17 @@ const TAG_META={
  'גדעונים':{label:'מחנה גדעונים', color:'#F4B183'}
 };
 function pinSvg(col){return '<svg viewBox="0 0 12 16" style="fill:'+col+'"><path d="M6 0C2.69 0 0 2.69 0 6c0 4.2 6 10 6 10s6-5.8 6-10c0-3.31-2.69-6-6-6zm0 8.2A2.2 2.2 0 1 1 6 3.8a2.2 2.2 0 0 1 0 4.4z"/></svg>';}
+/* The eight posters were replaced in place, keeping their filenames, so any browser that had already
+   seen the old ones keeps serving them from cache — which is the other half of "עדיין רואים את הפוסטר
+   הלא נכון". Bump this whenever a poster file is re-cut. */
+const POSTER_V='p2';
 roles.forEach((r,i)=>{
   const c=document.createElement('div');c.className='role-card';
   const tagsHtml=r.tags.map(t=>{const m=TAG_META[t]||{label:t,color:'#266594'};return `<span>${pinSvg(m.color)}${m.label}</span>`;}).join('');
   const teaser=(r.B||r.cap).replace(/[.\s]+$/,'');
   c.innerHTML=`
-     <div class="rc-face">
-       <video class="rc-vid" src="${r.video}" poster="${r.poster}" preload="none" playsinline style="background-image:url('${r.poster}')"></video>
+     <div class="rc-face" style="background-image:url('${r.poster}?${POSTER_V}')">
+       <video class="rc-vid" src="${r.video}" poster="${r.poster}?${POSTER_V}" preload="none" playsinline></video>
        <div class="grad"></div>
        <button class="rc-expand" aria-label="מסך מלא"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H4v4M16 3h4v4M8 21H4v-4M16 21h4v-4"/></svg></button>
        <div class="rc-ctrl">
@@ -1604,15 +1764,21 @@ roles.forEach((r,i)=>{
   const vid=c.querySelector('.rc-vid'), play=c.querySelector('.rc-play');
   vid.addEventListener('play',()=>document.querySelectorAll('.rc-vid').forEach(o=>{if(o!==vid)o.pause();}));
   /* fade the gradient + title while playing so burned-in subtitles stay readable */
-  vid.addEventListener('play',()=>{ c.classList.add('playing'); });
+  /* `started` is what reveals the video over its poster. It is set on the first play and cleared only
+     by a reset, so PAUSING mid-clip still shows the frame you paused on — it is only "back to the
+     start" that goes back to the poster she chose. */
+  vid.addEventListener('play',()=>{ c.classList.add('playing','started'); });
   vid.addEventListener('pause',()=>{ c.classList.remove('playing'); });
-  vid.addEventListener('ended',()=>{ c.classList.remove('playing'); });
+  vid.addEventListener('ended',()=>{ c.classList.remove('playing'); restRoleVideo(vid); });
   /* No onTapPlaying callback: a tap on the running video now PAUSES it (client, 2026-08-12 —
      "לא מופיע סימון לעצור אם לוחצים על המסך"). Pausing brings the big centre triangle back, which is
      the on-screen sign that it stopped. The old callback toggled the control strip instead, so a tap
      produced no visible change at all on a card whose controls were already showing. */
   wireVideo(vid, play, c.querySelector('.vp-bar'));
-  c.querySelector('.rc-expand').onclick=e=>{e.stopPropagation(); openVideoModal(r.video, vid.currentTime, vid);};
+  /* client, 13.8 (QA): "הסרטון במסך מלא מתחיל מהאמצע שלו". Fullscreen carried the card's playhead over
+     unconditionally, so a clip you had watched part of once re-opened somewhere in the middle. It now
+     continues only when it is a live hand-off from a RUNNING card; a resting card opens at the start. */
+  c.querySelector('.rc-expand').onclick=e=>{e.stopPropagation(); openVideoModal(r.video, vid.paused?0:vid.currentTime, vid);};
   /* .rc-pausebtn no longer exists — see the markup note. Nothing replaces the handler: wireVideo already
      toggles on a tap anywhere over the video, and the centre button is that same tap. */
   /* showCtrl() used to be called here and was never defined anywhere in this file, so every mute click
@@ -1625,21 +1791,100 @@ roles.forEach((r,i)=>{
   /* one card at a time (client, 2026-08-12): "רק כרטיסיה אחת ברגע נתון". Playing was already
      exclusive (see the 'play' listener above); flipping was not, so several cards could sit
      open on their text at once. Opening one now closes the rest. */
-  c.querySelector('.rc-more').onclick=e=>{e.stopPropagation(); if(!vid.paused){ vid.pause(); }
+  /* the handler is on the whole teaser ROW, not just the button — see the .rc-short.hit::before note.
+     Taps on the sentence, on the "…", or on ״קרא עוד״ all land here. */
+  c.querySelector('.rc-short').onclick=e=>{e.stopPropagation(); if(!vid.paused){ vid.pause(); }
     document.querySelectorAll('#rolesRail .role-card.flipped').forEach(o=>o.classList.remove('flipped'));
     c.classList.add('flipped');};
   c.querySelector('.rc-close').onclick=e=>{e.stopPropagation();c.classList.remove('flipped');};
   c.querySelector('.rc-short')._full=teaser;
   rolesRail.appendChild(c);
 });
-/* trim each teaser to a single line (whole words) + "… קרא עוד"; the button always shows (it flips to the full text) */
-function clampRoleTeasers(){ document.querySelectorAll('#rolesRail .rc-short').forEach(function(box){ clampWithMore(box, box._full||'', 1, true); }); }
+/* Trim each teaser so the row is ONE line: "…text… קרא עוד", with the button as a continuation of the
+   sentence (client, 13.8: "הכפתור הוא המשך של הטקסט").
+
+   This replaces clampWithMore() for these rows. That helper answers "does the content still fit inside
+   N line-heights", which needed the row to be free to wrap and made the measurement fragile in three
+   separate ways: the button's touch pad hung below the row and inflated scrollHeight, the pad had to be
+   removed and restored around every call, and the whole thing only produced the right answer if it ran
+   after both the final width AND the final webfont — a single rAF was not enough, and teasers were
+   caught on two lines.
+
+   Width is the honest question for a one-line row. `.rm-txt` is nowrap with overflow:hidden, so
+   scrollWidth is the text's true width and clientWidth is the space the flex row leaves it after the
+   button takes its share. Binary-search the word count against that. Correct as soon as layout exists,
+   immune to the touch pad, and the cut still lands on a whole word. */
+function clampRoleTeasers(){
+  document.querySelectorAll('#rolesRail .rc-short').forEach(function(box){
+    var txt=box.querySelector('.rm-txt'), ell=box.querySelector('.rm-ell');
+    if(!txt) return;
+    var full=box._full||'';
+    if(ell) ell.style.display='none';
+    txt.textContent=full;
+    if(!txt.clientWidth) return;                       /* not laid out yet — a later call will catch it */
+    if(txt.scrollWidth<=txt.clientWidth+0.5) return;   /* the whole teaser fits; no ellipsis needed */
+    if(ell) ell.style.display='';
+    var words=full.split(/\s+/), lo=1, hi=words.length, best=1;
+    while(lo<=hi){
+      var mid=(lo+hi)>>1;
+      txt.textContent=words.slice(0,mid).join(' ');
+      if(txt.scrollWidth<=txt.clientWidth+0.5){ best=mid; lo=mid+1; } else { hi=mid-1; }
+    }
+    txt.textContent=words.slice(0,best).join(' ');
+  });
+}
 requestAnimationFrame(clampRoleTeasers);
 /* same webfont trap as the tab pill: this truncates by MEASURING text, so a run against the
    fallback font picks the wrong cut-off point and the teaser can wrap and get clipped once
    Assistant swaps in. Re-clamp when the real font is ready. */
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(clampRoleTeasers);
-buildDots('rolesDots',roles.length,'rolesRail');
+/* ...and do not let a single scheduler decide whether the teasers are readable. Caught in testing:
+   with only the rAF + fonts hooks, a load can leave some teasers on two lines and others on one —
+   the trim is a MEASUREMENT, so it is only correct if it runs after the row has its final width and
+   final font. A ResizeObserver on the rail covers every way that width can change (orientation, the
+   desktop breakpoint, a scrollbar appearing) including the ones that fire no resize event at all,
+   and window load covers a late layout shift. Re-running is idempotent — it re-trims from `_full`
+   each time — so the only cost of an extra call is one measurement. */
+window.addEventListener('load', clampRoleTeasers);
+if(window.ResizeObserver){
+  var _rt=null, _ro=new ResizeObserver(function(){ clearTimeout(_rt); _rt=setTimeout(clampRoleTeasers,60); });
+  try{ _ro.observe(document.getElementById('rolesRail')); }catch(e){}
+}
+/* client, 13.8 (QA, Critical, mobile): "סרטונים: צריך לאפס את הסרטון כל פעם שזזים וגם את הכרטיסיה".
+   Moving on used to leave the card behind exactly as you left it — mid-clip, controls up, or flipped
+   onto its text. Every card except the one you just landed on now goes back to its resting state:
+   video paused at 0, progress bar empty, centre triangle back, text side closed. The card you are
+   looking at is deliberately untouched, so this never interrupts what you are actually watching. */
+/* client, 13.8: "שים לב שתמיד שהוידיאו של התפקידים מתאפס או נעצר וחוזר להתחלה התמונה שלו צריכה להיות
+   הפוסטר שהחלטנו. כרגע זה חוזר להיות הפריים הראשון - לא טוב."
+   Exactly right, and `currentTime=0` cannot fix it: a `poster` is only shown while the element has no
+   decoded frame at all. The moment the clip has played once, the element owns real pixels and rewinding
+   just paints frame 0 of the video — which is not the frame she chose. load() is what puts the element
+   back into the no-frame state, so the poster returns. */
+function restRoleVideo(v){
+  if(!v) return;
+  try{ if(!v.paused) v.pause(); }catch(e){}
+  try{ v.currentTime=0; }catch(e){}
+  /* dropping `started` hides the video again so the chosen poster underneath is what shows. load()
+     stays as well: it releases the decoded buffer, so a card left behind is not holding a whole film
+     in memory — eight of these are 84MB together. */
+  var card=v.closest&&v.closest('.role-card'); if(card) card.classList.remove('started','playing');
+  try{ v.load(); }catch(e){}
+}
+function resetRoleCards(exceptIdx){
+  [].forEach.call(document.querySelectorAll('#rolesRail .role-card'), function(c,i){
+    if(i===exceptIdx) return;
+    c.classList.remove('flipped','playing','showctrl','started');
+    restRoleVideo(c.querySelector('.rc-vid'));
+    var f=c.querySelector('.vp-bar i'); if(f) f.style.width='0%';
+    var p=c.querySelector('.rc-play'); if(p) p.style.opacity='1';
+  });
+}
+var lastRoleIdx=0;
+buildDots('rolesDots',roles.length,'rolesRail',null,function(idx){
+  if(idx===lastRoleIdx) return;      /* only on an actual change of card, not on every scroll frame */
+  lastRoleIdx=idx; resetRoleCards(idx);
+});
 /* Client, 12.8: "הם חייבים להיטען. מה הפיתרון?"
    The eight role films are 7–12MB each, 84MB together. Loading them with the page would make the
    site unusable on mobile data — so preload stays "none" at load time. But she is right that a video
@@ -1684,21 +1929,48 @@ buildDots('rolesDots',roles.length,'rolesRail');
 })();
 
 /* ---------- fullscreen video modal (expand a role video to full screen, X to return) ---------- */
+/* QA 12793240081 (Critical): "לא עבד הסרטון בתצוגה מלאה (בטלפון של ליאור)" — on re-asking it was a BLACK
+   SCREEN, on EVERY role. That rules out any single file and points at the player. The cause is how many
+   videos this page asks a phone to decode in the same moment:
+       1. the hero film — still playing and looping behind the page
+       2. the blurred backdrop #vmodalBg — the SAME clip, decoded a second time
+       3. the role video itself
+   iOS Safari restricts simultaneous inline playback hard. It does not throw; it simply declines to decode
+   one of them, and what you get is a black rectangle.
+   So on a phone the decorative backdrop is skipped (the modal's own ground is already #000, which is what
+   a fullscreen player should look like anyway), and the hero is paused for the duration. Three concurrent
+   decoders down to one. */
+var vmodalSmall=function(){ return !!(window.matchMedia && window.matchMedia('(max-width:1023px)').matches); };
+var heroPausedByModal=false;
 function openVideoModal(src,time,srcVid){
   var m=document.getElementById('videoModal'), v=document.getElementById('vmodalVid'), bg=document.getElementById('vmodalBg');
   if(!m||!v) return;
   try{ if(srcVid && !srcVid.paused) srcVid.pause(); }catch(e){}
-  if(v.getAttribute('src')!==src){ v.src=src; if(bg) bg.src=src; }
+  var small=vmodalSmall();
+  var hv=document.querySelector('.hero .hero-bg');
+  heroPausedByModal = !!(hv && !hv.paused);
+  if(hv){ try{ hv.pause(); }catch(e){} }
+  if(v.getAttribute('src')!==src){ v.src=src; if(bg && !small) bg.src=src; }
+  if(bg){
+    bg.style.display = small ? 'none' : '';
+    if(small){ try{ bg.pause(); bg.removeAttribute('src'); bg.load(); }catch(e){} }
+  }
   m.classList.add('open'); document.body.style.overflow='hidden';
-  try{ v.currentTime=time||0; if(bg) bg.currentTime=time||0; }catch(e){}
+  try{ v.currentTime=time||0; if(bg && !small) bg.currentTime=time||0; }catch(e){}
   v.play().catch(function(){});
-  if(bg) bg.play().catch(function(){});
+  if(bg && !small) bg.play().catch(function(){});
   vmodalShowCtrl();
 }
 function closeVideoModal(){
   var m=document.getElementById('videoModal'), v=document.getElementById('vmodalVid'), bg=document.getElementById('vmodalBg');
   if(!m) return; try{ v.pause(); if(bg) bg.pause(); }catch(e){}
   m.classList.remove('open'); document.body.style.overflow='';
+  /* give the hero its decoder back, but only if WE were the ones who took it away */
+  if(heroPausedByModal){
+    var hv=document.querySelector('.hero .hero-bg');
+    if(hv){ try{ hv.play().catch(function(){}); }catch(e){} }
+    heroPausedByModal=false;
+  }
 }
 /* client, 12.8: "במובייל יש תקלה עדיין בכפתורים בוידיאו של התפקידים. הם נעלמים למרות שבקשנו שהם
    ישארו כל הזמן שם."
@@ -1761,11 +2033,48 @@ function railPitch(r){ const k=r.children; if(!k.length) return 1;
 function buildDots(dotsId,n,railId,onClick,onScroll){
   const d=document.getElementById(dotsId);d.innerHTML='';
   for(let i=0;i<n;i++){const b=document.createElement('i');if(i===0)b.className='on';
+    /* scrollIntoView instead of a computed scrollLeft: the rail is RTL and snap-mandatory, where the
+       resting offset is a NEGATIVE number that also carries the rail's own 16px lead-in — so
+       `left:-(i*pitch)` aimed 16px short of every card and left the browser to snap it back.
+       Asking for the card itself is exact, and direction-agnostic. block:'nearest' keeps the page
+       from scrolling vertically underneath. */
     b.onclick=()=>{if(onClick)onClick(i);
-      if(railId){const r=document.getElementById(railId);r.scrollTo({left:-(i*railPitch(r)),behavior:'smooth'});}};
+      if(railId){const r=document.getElementById(railId), card=r.children[i];
+        if(card) card.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+        else r.scrollTo({left:-(i*railPitch(r)),behavior:'smooth'});}};
     d.appendChild(b);}
-  if(railId){const r=document.getElementById(railId);
-    r.addEventListener('scroll',()=>{const idx=Math.round(Math.abs(r.scrollLeft)/railPitch(r));markDots(dotsId,idx);if(onScroll)onScroll(idx);});}
+  /* the sliding line (see the .dots-pill note in the CSS). It is the marker; the dots never move. */
+  const pill=document.createElement('b'); pill.className='dots-pill'; d.appendChild(pill);
+  const rail = railId ? document.getElementById(railId) : null;
+  if(!rail) return;
+  /* Dot centres are measured ONCE and cached, which is only possible because they are now fixed —
+     that is the whole point of the redesign. So a scroll frame is one read (scrollLeft) and one write
+     (a transform), with no layout in between. The old handler read railPitch() — two offsetLeft
+     lookups — and wrote a class on every frame. */
+  let centres=null, pillW=0, lastIdx=-1;
+  function measure(){
+    const rowL=d.getBoundingClientRect().left;
+    centres=[].filter.call(d.children,k=>k.tagName==='I')
+      .map(k=>{const r=k.getBoundingClientRect(); return r.left+r.width/2-rowL;});
+    pillW=pill.offsetWidth||19.44;
+  }
+  function place(){
+    if(!centres||!centres.length) measure();
+    const pitch=railPitch(rail);
+    /* fractional card position: 2.5 means exactly between cards 2 and 3, and the line sits there too */
+    const p=Math.max(0, Math.min(centres.length-1, Math.abs(rail.scrollLeft)/pitch));
+    const i=Math.floor(p), j=Math.min(centres.length-1,i+1), f=p-i;
+    const cx=centres[i]+(centres[j]-centres[i])*f;
+    pill.style.transform='translateX('+(cx-pillW/2).toFixed(2)+'px)';
+    const idx=Math.round(p);
+    if(idx!==lastIdx){ lastIdx=idx; markDots(dotsId,idx); if(onScroll)onScroll(idx); }
+  }
+  rail.addEventListener('scroll',place,{passive:true});
+  measure(); place();
+  window.addEventListener('resize',function(){ measure(); place(); });
+  /* the row is laid out with a webfont-independent geometry, but the RAIL's pitch is not — re-measure
+     once the fonts have settled, same trap that moved the teaser clamp and the tab pill before */
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ measure(); place(); });
 }
 function markDots(id,idx){[...document.getElementById(id).children].forEach((x,i)=>x.classList.toggle('on',i===idx));}
 
@@ -2304,6 +2613,7 @@ function wbSelect(idx){
   scrollWbActive();
   selectPin(idx); flyToBase(b);
 }
+var heroPausedByBase=false;   /* set only when opening a drawer actually took the hero's decoder away */
 function openBase(i){const b=bases[i];
   const sh=document.getElementById('baseSheet');
   sh.style.transition=''; sh.style.transform='';   /* clear the forced-closed transform so the .open class can drive it open */
@@ -2312,17 +2622,42 @@ function openBase(i){const b=bases[i];
   setTimeout(function(){ capFullPx(sh); },0);
   const desc=document.getElementById('bsDesc'), tabs=document.getElementById('bsTabs');
   const v=document.getElementById('bsVid');
+  /* client, 13.8 (QA, Critical, iPhone): "מפה - האילוסטרציה של גדעונים לא מופיעה".
+     The five clips are byte-for-byte the same recipe — same codec, profile, level, pixel format,
+     1200x750, 24fps, 145 frames, moov before mdat — and every one of them decodes here, so nothing
+     is wrong with school.mp4. What differs is the STATE the shared element is in by the time that
+     base is opened: one <video> serves all five, and every drawer swaps its `src` in place.
+     Two things now make an empty box impossible:
+       1. setSrc() assigns the poster as a CSS background BEFORE the swap and calls load() after it.
+          The still is painted by the element itself, so the illustration is on screen whether or not
+          the clip ever decodes — the same cure already used for the role cards' blue flash.
+       2. On phones the hero is paused while a drawer is open. iOS caps how many inline videos may
+          decode at once and simply declines one of them without raising an error; the hero loops
+          behind the whole page, so it is always one of the competitors. Same root cause as the
+          fullscreen black screen fixed earlier today. */
+  function setSrc(el, src){
+    if(el.getAttribute('src')===src) return;
+    var poster=src.replace(/\.mp4$/,'.jpg');
+    el.poster=poster;
+    el.style.backgroundImage="url('"+poster+"')";
+    el.src=src;
+    try{ el.load(); }catch(e){}
+  }
   if(b.group){                                   /* grouped drawer: primary title → tabs (base names) → character */
     const g=BASE_GROUPS[b.group];
     document.getElementById('bsName').textContent = 'בסיסי המנהל האזרחי באיו״ש';   /* primary (constant, final copy) */
     tabs.style.display=''; renderWbTabs(b.group,i);
     desc.style.display=''; desc.innerHTML=wbDesc(b);
-    if(v.getAttribute('src')!==g.anim){ v.src=g.anim; }
+    setSrc(v, g.anim);
   } else {                                        /* standalone drawer (unchanged behaviour) */
     tabs.style.display='none'; tabs.innerHTML='';
     document.getElementById('bsName').textContent=b.name;
     desc.style.display=''; desc.innerHTML=b.desc;
-    if(v.getAttribute('src')!==b.anim){ v.src=b.anim; }
+    setSrc(v, b.anim);
+  }
+  if(window.matchMedia && window.matchMedia('(max-width:1023px)').matches){
+    var hv0=document.querySelector('.hero .hero-bg');
+    if(hv0 && !hv0.paused){ heroPausedByBase=true; try{ hv0.pause(); }catch(e){} }
   }
   v.play().catch(()=>{});
   sh.classList.remove('full','min');
@@ -2336,6 +2671,11 @@ function closeBase(){var sh=document.getElementById('baseSheet');
   /* FORCE fully hidden, overriding any leftover drag transform — on the breakpoint's own axis (desktop panel slides sideways) */
   sh.style.transform=(window.matchMedia&&window.matchMedia('(min-width:1024px)').matches)?'translateX(110%)':'translateY(110%)';
   try{document.getElementById('bsVid').pause();}catch(e){}
+  if(heroPausedByBase){                            /* give the hero its decoder back — only if WE took it */
+    var hvb=document.querySelector('.hero .hero-bg');
+    if(hvb){ try{ hvb.play().catch(function(){}); }catch(e){} }
+    heroPausedByBase=false;
+  }
   clearPin();
   /* pull the map back out to the whole-country view so every pin is pickable again.
      setPadding (immediate) — an easeTo(duration:0) here gets cancelled by the fitBounds that follows,
@@ -2857,9 +3197,8 @@ function logoLanded(nav){
      Only the horizontal rails are reset here; the vertical page scroll stays with toPageTop/homeToTop. */
   function resetSections(){
     document.querySelectorAll('#rolesRail .role-card').forEach(function(c){
-      c.classList.remove('flipped','showctrl','playing');
-      var v=c.querySelector('video');
-      if(v){ if(!v.paused) v.pause(); v.currentTime=0; }
+      c.classList.remove('flipped','showctrl','playing','started');
+      restRoleVideo(c.querySelector('video'));   /* back to the chosen poster, not to frame 0 */
     });
     document.querySelectorAll('.faq-item.open,.acc-row.open').forEach(function(r){ r.classList.remove('open'); });
     /* client, 13.8: "בשאלות תשובות — שברירת המחדל תהיה שתמיד השאלה הראשונה פתוחה."
@@ -3235,6 +3574,39 @@ const FAQ=[
     }, {passive:true});
     upd();
   }
+})();
+
+/* ---- about strip: explorium's pace, and it stops when you ask it to (client, 13.8 QA) ----
+   The duration is COMPUTED, never written down. Each photo is `height:clamp(180px,24vw,300px)` with
+   width:auto, so the track is a different length on every screen and on every set of aspect ratios —
+   a hard-coded 55s therefore ran at 52.8 px/s at 768px wide and at something else everywhere else.
+   Deriving the duration from the measured width pins the SPEED instead, which is the thing the eye
+   actually reads. 77 px/s is explorium.ai/about measured, not estimated: 1544px per 20s cycle. */
+(function(){
+  var APV_SPEED = 77;                       /* px per second */
+  var track = document.querySelector('.apv-track');
+  var marquee = document.querySelector('.apv-marquee');
+  if(!track || !marquee) return;
+  function tune(){
+    var half = track.getBoundingClientRect().width / 2;
+    if(!half) return;                       /* images not laid out yet — a later call will catch it */
+    track.style.animationDuration = (half / APV_SPEED).toFixed(2) + 's';
+  }
+  tune();
+  window.addEventListener('load', tune);    /* widths are only final once the photos have decoded */
+  [].forEach.call(track.querySelectorAll('img'), function(im){
+    if(!im.complete) im.addEventListener('load', tune, {once:true});
+  });
+  var rt; window.addEventListener('resize', function(){ clearTimeout(rt); rt=setTimeout(tune,150); });
+
+  /* touch-and-hold to stop it (client: "נגיעה ואחזקה עם האצבע במובייל"). pointerdown/up rather than
+     touchstart, and nothing is preventDefault-ed, so holding still lets the page scroll under the
+     finger — and the scroll that follows fires pointercancel, which releases the strip. */
+  var hold = function(on){ marquee.classList.toggle('hold', on); };
+  marquee.addEventListener('pointerdown', function(e){ if(e.pointerType!=='mouse') hold(true); }, {passive:true});
+  ['pointerup','pointercancel','pointerleave'].forEach(function(ev){
+    marquee.addEventListener(ev, function(){ hold(false); }, {passive:true});
+  });
 })();
 </script>
 </body>
