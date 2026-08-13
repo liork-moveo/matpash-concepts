@@ -153,8 +153,15 @@
   /* clear separation between sections (~48–64px is the mobile norm for major breaks) */
   /* Lemonade-style alternating bands: equal generous vertical padding, each section its own bg colour.
      roles = gray, map = white, service = gray → clean colour change at every boundary. */
-  .sec{padding:52px 20px;scroll-margin-top:126px}   /* clears header (57) + tabs bar (~46) + gaps */
-  .sec.nopad{padding:0;scroll-margin-top:126px}
+  /* client, 13.8: "במובייל שקופצים לסקשנים יש רווח מאוד גדול בין הכותרת לטאבים. תמצמם את זה."
+     126px was set to clear the pinned bars, but the bars only occupy 110 (header pins at 0 and is 57
+     tall; the tab row pins at 67 and is 43) — so it left 16px of air ON TOP of the section's own 52px
+     padding, putting the title ~78-101px under the bars. The landing target is the bars' height plus
+     the gap we actually want, minus the padding the section already contributes:
+     110 + 24 - 52 = 82. Desktop keeps its own tuned values further down (-10 / 16) — the tab row is
+     display:none there, so the arithmetic is different and must stay separate. */
+  .sec{padding:52px 20px;scroll-margin-top:82px}
+  .sec.nopad{padding:0;scroll-margin-top:82px}
   #s-roles{background:#F2F4F5}
   #s-service{background:#F2F4F5}
   .sec-title{font-size:28px;font-weight:700;text-align:center;color:var(--navy);margin:0 0 var(--sec-gap);line-height:1.05}
