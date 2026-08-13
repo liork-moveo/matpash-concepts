@@ -210,7 +210,10 @@
     background:rgba(0,0,0,.42);border:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
   .rc-expand svg{width:16px;height:16px}
   /* pause + mute mini-buttons — appear only while the card video is playing (client: "hard to stop") */
-  .rc-ctrl{position:absolute;top:10px;left:10px;z-index:4;display:none;gap:8px}
+  /* client, 13.8: mute sits top-left and is ALWAYS on screen — it used to appear only while the video
+     was running, which is what "הכפתורים נעלמים" was about. The pause button that shared this corner
+     is gone: stopping is now the centre button's job, and a tap anywhere on the video does it too. */
+  .rc-ctrl{position:absolute;top:10px;left:10px;z-index:4;display:flex;gap:8px}
   /* Controls stay visible for the WHOLE time the video plays (client, 2026-08-12: "שהכפתורים יהיו
      גלויים כל הזמן... יותר כמו יוטיוב/טיקטוק" — explicitly not Netflix). The previous behaviour hid
      every control 450ms after play and returned them for 3s on a tap, which is what made the mute
@@ -230,7 +233,19 @@
   .vmodal video.bgfill{position:absolute;inset:-40px;width:calc(100% + 80px);height:calc(100% + 80px);object-fit:cover;filter:blur(26px) brightness(.55);z-index:0}
   .vmodal video#vmodalVid{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;background:transparent}
   /* YouTube-style centre controls: play/pause + mute, fade out during playback, tap video to bring back */
-  .vctrl{position:absolute;inset:0;margin:auto;z-index:3;width:max-content;height:64px;display:flex;gap:18px;align-items:center;opacity:1;transition:opacity .3s;pointer-events:none}
+  /* client, 13.8: the fullscreen player mirrors the card exactly — mute top-left, X top-right, a single
+     play/pause in the centre that DISAPPEARS while playing so it never covers the picture. */
+  .vctrl{position:absolute;inset:0;margin:auto;z-index:3;width:max-content;height:64px;display:flex;gap:18px;align-items:center;opacity:1;transition:opacity .25s;pointer-events:none}
+  .vmodal.playing .vctrl{opacity:0;pointer-events:none}
+  .vmodal.playing .vctrl button{pointer-events:none}
+  /* mute — top LEFT, always on screen, same 40px disc as the close button opposite it */
+  .vm-mute{position:absolute;top:16px;left:16px;z-index:4;width:40px;height:40px;border-radius:50%;
+    background:rgba(255,255,255,.18);border:0;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .vm-mute svg{width:20px;height:20px;fill:#fff}
+  .vm-mute .i-soff{display:none}
+  .vmodal.muted .vm-mute .i-soff{display:block}
+  .vmodal.muted .vm-mute .i-son{display:none}
   .vctrl.hide{opacity:0}
   .vctrl button{pointer-events:auto;width:64px;height:64px;border-radius:50%;border:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;cursor:pointer}
   .vctrl.hide button{pointer-events:none}
@@ -1267,12 +1282,17 @@
     <button class="vmodal-close" id="vmodalClose" aria-label="סגירה">✕</button>
     <video id="vmodalBg" class="bgfill" playsinline muted loop aria-hidden="true"></video>
     <video id="vmodalVid" playsinline></video>
+    <!-- client, 13.8: the fullscreen player takes EXACTLY the card player's arrangement — mute top-left,
+         X top-right (where the card has expand), play/pause in the centre. The old centre cluster
+         (rewind / play / forward / mute, always on screen) is gone: "הכפתורים כרגע במרכז וכל הזמן
+         מופיעים - לא טוב". Rewind and forward were removed with it — the progress bar at the bottom
+         already covers seeking, and the card player never had them, so keeping them would break the
+         "בול אותה העמדה" rule. -->
     <div class="vctrl" id="vmodalCtrl" style="direction:ltr">
-      <button id="vmodalRew" aria-label="10 שניות אחורה"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 4 12l7 7"/><path d="M20 5l-7 7 7 7"/></svg></button>
       <button id="vmodalPlay" aria-label="ניגון / השהיה"><svg viewBox="0 0 24 24"><path class="i-play" d="M8 5v14l11-7z"/><g class="i-pause"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></g></svg></button>
-      <button id="vmodalFwd" aria-label="10 שניות קדימה"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M4 5l7 7-7 7"/></svg></button>
-      <button id="vmodalMute" aria-label="השתקה"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><g class="i-son"><path d="M16.5 8.5a4.5 4.5 0 010 7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M19 6a8 8 0 010 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></g><line class="i-soff" x1="17" y1="9" x2="22" y2="15" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></button>
     </div>
+    <!-- mute moves OUT of the centre cluster to its own top-left corner, mirroring the card player -->
+    <button class="vm-mute" id="vmodalMute" aria-label="השתקה"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><g class="i-son"><path d="M16.5 8.5a4.5 4.5 0 010 7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M19 6a8 8 0 010 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></g><line class="i-soff" x1="17" y1="9" x2="22" y2="15" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></button>
     <div class="vm-bottom" id="vmodalBottom">
       <div class="vm-bar" id="vmodalBar"><i></i></div>
       <span class="vm-time" id="vmodalTime">0:00</span>
@@ -1536,7 +1556,8 @@ roles.forEach((r,i)=>{
        <div class="grad"></div>
        <button class="rc-expand" aria-label="מסך מלא"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H4v4M16 3h4v4M8 21H4v-4M16 21h4v-4"/></svg></button>
        <div class="rc-ctrl">
-         <button class="rc-pausebtn" aria-label="עצירה"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+<!-- the pause button was removed from this corner (client, 13.8): stopping belongs to the centre
+              button and to a tap anywhere on the video. Only mute lives up here now. -->
          <!-- QA 9.8: "האייקון של ההשתק נראה קצת מוזר - לא כמו בד״כ". Two things were off against the
               convention everyone already knows: sound-on had a single arc where the standard has two,
               and the muted state put a short diagonal BESIDE the speaker instead of a slash ACROSS the
@@ -1568,7 +1589,8 @@ roles.forEach((r,i)=>{
      produced no visible change at all on a card whose controls were already showing. */
   wireVideo(vid, play, c.querySelector('.vp-bar'));
   c.querySelector('.rc-expand').onclick=e=>{e.stopPropagation(); openVideoModal(r.video, vid.currentTime, vid);};
-  c.querySelector('.rc-pausebtn').onclick=e=>{e.stopPropagation(); vid.pause();};
+  /* .rc-pausebtn no longer exists — see the markup note. Nothing replaces the handler: wireVideo already
+     toggles on a tap anywhere over the video, and the centre button is that same tap. */
   /* showCtrl() used to be called here and was never defined anywhere in this file, so every mute click
      threw ReferenceError. The mute still worked — the throw came after the toggle — but it was a live
      error on a button the client already reported as unreliable. Nothing needs to replace it: the
@@ -2083,7 +2105,10 @@ function initMap2(){
   addSettlements(map2);
   map2.on('zoom',function(){ updateMbPlaceVis(); updateCityVis(); updateSettleVis(); updateBaseLabels(); }); updateMbPlaceVis(); updateCityVis(); updateSettleVis(); updateBaseLabels();
   /* DOM pin markers handle their own click (→ open); a click on the empty map closes the drawer */
-  map2.on('click',function(){ closeBase(); });
+  /* client, 13.8: "תתקן שנגיעה במפה לא סוגרת את המגירה, רק בעזרת האיקס אפשר לסגור."
+     A tap on the map used to close the drawer, which fought panning and zooming — every stray touch on
+     the canvas dismissed the base you were reading. Closing is now the X's job only, which also matches
+     the drag rule already in place (dragging parks the drawer low, it never closes it). */
   map2.on('styledata',()=>{localizeHe(map2);applyBorders(map2);});
   map2.on('load',()=>{localizeHe(map2);applyBorders(map2);});
   map2.on('idle',()=>{localizeHe(map2);applyBorders(map2);});
@@ -2813,6 +2838,12 @@ function logoLanded(nav){
       if(v){ if(!v.paused) v.pause(); v.currentTime=0; }
     });
     document.querySelectorAll('.faq-item.open,.acc-row.open').forEach(function(r){ r.classList.remove('open'); });
+    /* client, 13.8: "בשאלות תשובות — שברירת המחדל תהיה שתמיד השאלה הראשונה פתוחה."
+       The list is BUILT with the first item open, but this reset closed everything including it — so the
+       default survived the first visit and was lost on every page transition after. Restoring it here
+       makes "open" the actual default state rather than just the initial one. */
+    var firstFaq=document.querySelector('#faqList .faq-item');
+    if(firstFaq) firstFaq.classList.add('open');
     /* the carousels go back to their first card. resetService() rebuilds the service track from
        scratch (stage 0, first tab) so its rail resets with it; the roles rail is a plain scroller. */
     var rr=document.getElementById('rolesRail'); if(rr) rr.scrollLeft=0;
