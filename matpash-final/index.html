@@ -479,7 +479,12 @@
      nav bar (60), so the drawer always reads as part of the map section and can never paint over them
      (client, 2026-08-06). It was 90, which put it on top of both. */
   .base-sheet{--peek:40svh;position:absolute;left:0;right:0;bottom:0;transform:translateY(110%);width:100%;z-index:52;
-    background:#F2F4F5;border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding:64px 22px 24px;
+    /* client, 12.8: "הרווח בין הכותרת והטקסט לחלק העליון של המגירה עכשיו גדול מדי… איך זה בגוגל
+       מפות?" Google's place sheet puts the grabber at ~8px and the name about 20px under it, with the
+       round close button on the NAME'S OWN ROW rather than stacked above it. 64px of top padding was
+       pushing everything below the X instead of beside it; 44px lands the title just under the grabber,
+       and the h3's float spacer (below) keeps its first lines clear of the button. */
+    background:#F2F4F5;border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding:44px 22px 24px;
     transition:transform .52s cubic-bezier(.32,.72,0,1),visibility 0s linear .52s;height:100%;overflow-y:auto;cursor:pointer;visibility:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
   /* drawer height = MAP height. The open height is UNIFORM across all bases and computed in JS
      (--open-px = tallest title+desc block + 50px of illustration) so the render's top edge always peeks —
@@ -496,13 +501,26 @@
   /* --peek is svh-based (≈1/3 of the screen) so the map stays ~2/3 visible on every device */
   /* fixed 44px top zone holds the handle + close, so content never sits under the X */
   .handle{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:44px;height:5px;border-radius:3px;background:#d8dbde;margin:0}
-  .base-sheet h3{font-size:22px;font-weight:700;color:var(--navy);line-height:1.2;margin-bottom:16px;padding-inline-end:44px}   /* wrapped title lines keep clear of the X */
+  /* client, 12.8: "למה 210 ירד שורה? יש לו מקום בשמאל — עד לרוחב של מרובע האנימציה."
+     She was right, and it was measurable: padding-inline-end:44px narrowed EVERY line of the title to
+     make room for the close button — but the button is only 40px tall, so on a two-line title the
+     second line had nothing to avoid and lost 44px for no reason. A floated spacer sized to the button
+     indents only the lines it actually collides with, so the last line runs the full width of the
+     animation box and "210" stays put. */
+  /* No spacer, no side padding: the title gets the FULL width of the animation box below it. Measured
+     on the longest case — "מת״ק צפוני – מחנה אוגדה 210" needs 263px and the box is 291px, so it fits on
+     one line with 28px spare. Even a minimal 32px reserve (the X's real intrusion) left 253px and broke
+     it. The X is lifted out of the title's row instead (see .base-close), which is what Google Maps
+     does: grabber and close button share the top strip, the name starts underneath both. */
+  .base-sheet h3{font-size:22px;font-weight:700;color:var(--navy);line-height:1.2;margin-bottom:16px}
   .base-sheet p{font-size:16px;color:var(--navy);line-height:1.4;margin-top:0}
   .base-sheet p b{color:var(--navy);font-weight:700}
   .base-sheet .render{margin-top:16px;border-radius:20px;overflow:hidden;aspect-ratio:16/10}
   .base-sheet .render img,.base-sheet .render video{width:100%;height:100%;object-fit:cover;display:block}
   /* close button — Google-Maps size: a clear ~40px white circle with a bold X */
-  .base-close{position:absolute;top:10px;left:14px;width:40px;height:40px;border-radius:50%;background:#fff;
+  /* top:4 puts the button's bottom edge at 44px — exactly where the title now begins — so the two never
+     share a line and the title never has to reserve width for it. */
+  .base-close{position:absolute;top:4px;left:14px;width:40px;height:40px;border-radius:50%;background:#fff;
     box-shadow:0 1px 5px rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;
     font-size:22px;line-height:1;color:var(--navy);z-index:6;cursor:pointer}
 
@@ -897,6 +915,13 @@
     .base-sheet.open{transform:translateX(0)}
     .base-sheet.open.full{transform:translateX(0)}
     .base-sheet .handle{display:none}
+    /* client, 12.8: "תוריד את האנימציה למטה שלא יצמד לטקסט. שיהיה ברווח מלמטה כמו הרווח של הטקסט
+       מלמעלה. ככה בכל האנימציות בגרסת הדסקטופ."
+       Measured: the panel's top padding puts 64px above the title, while the animation sat only 16px
+       under the text — which is what read as glued. Matching the two gaps, so the render breathes the
+       same amount below the copy as the copy does below the panel edge. Desktop only, as asked; the
+       phone drawer keeps its tighter 16px because vertical room there is scarce. */
+    .base-sheet .render{margin-top:64px}
     /* the open panel must not cover the zoom buttons / attribution — they slide left with it
        (.sheet-open is toggled by openBase/closeBase; transform because Mapbox re-resolves `right` itself) */
     #s-bases .mapboxgl-ctrl-bottom-right{transition:transform .52s cubic-bezier(.32,.72,0,1)}
