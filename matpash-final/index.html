@@ -2148,7 +2148,18 @@ function goToSection(id){
      but stickyCeiling() reads CSS top + element height, which do not depend on the overlay at all —
      so the wait bought nothing and added a dependency that cannot be verified in this environment
      (rAF never fires in the automation browser, so the whole handler silently did nothing). */
-  s.scrollTo({top:Math.max(0, t.offsetTop-stickyCeiling()), behavior:'smooth'});
+  /* QA 12755618965, re-tested 13.8 and STILL failing on Desktop 1440. Lior: "לא משנה מאיפה מגיעים
+     לסקשנים הם צריכים להתמקם כמו שהגדרנו במסך הראשי."
+     The cause was two different mechanisms for one job. A tab click uses scrollIntoView, which honours
+     each section's tuned `scroll-margin-top` (-10px on roles/service, 16px on bases). This link computed
+     `offsetTop - stickyCeiling()` and ignored those values entirely. Measured at 1440 the two landings
+     were 102px / 77px / 102px apart — that gap IS "מוזרה ולא מיושרת". At 375 they differ by 3px, which
+     is why it looked fine on the phone and I missed it.
+     Now this link goes through the SAME call as a tab, so there is one definition of where a section
+     rests and both routes cannot drift again. setActiveTab keeps the nav marking in step, exactly as a
+     tab click would. */
+  if(typeof setActiveTab==='function') try{ setActiveTab(id); }catch(e){}
+  t.scrollIntoView({behavior:'smooth', block:'start'});
   return false;
 }
 function capFullPx(sh){
@@ -2687,11 +2698,37 @@ function logoLanded(nav){
 (function(){
   var link=document.getElementById('navLogoLink');
   if(!link) return;
+  /* Shay, 13.8: "צריך לדאוג שמכל מקום באתר לא משנה מה כשלוחצים על הלוגו מגיעים להירו."
+     So this closes EVERY overlay that can be open, not just the internal pages — the side menu was the
+     one it could not reach and the one in his repro. Order matters: tear the overlays down first, then
+     move, because scrolling a container while a fixed overlay holds body{overflow:hidden} does nothing.
+     The jump is instant rather than smooth: a smooth scrollTo on this transformed overflow container is
+     unreliable in iOS Safari, and the whole point of the fix is that it works every time. */
   link.addEventListener('click',function(e){
     e.preventDefault();
-    if(window.closeInternalPages) window.closeInternalPages();
+    if(window.closeSideMenu) try{ window.closeSideMenu(); }catch(err){}
+    if(window.closeInternalPages) try{ window.closeInternalPages(); }catch(err){}
+    if(typeof closeVideoModal==='function') try{ closeVideoModal(); }catch(err){}
+    if(typeof closeBase==='function') try{ closeBase(); }catch(err){}
+    document.body.style.overflow='';           /* whatever set it, the home jump clears it */
     var sc=document.getElementById('scroll');
-    if(sc) sc.scrollTo({top:0, behavior:'smooth'});
+    if(sc){
+      /* Lior, 13.8: "לפעמים זה לא מקפיץ, לפעמים זה עושה חור לבן באמצע האתר." Two separate faults,
+         and both are about a scroll that is already moving:
+         1. NOT JUMPING — a tab click runs scrollIntoView({behavior:'smooth'}), which animates on the
+            compositor. Writing scrollTop while that animation is in flight does not stop it: the
+            animation keeps stepping and overwrites us. Hence "sometimes". Cancelling it first, by
+            issuing an instant scroll to where we already are, then jumping.
+         2. THE WHITE HOLE — an instant jump on a transformed overflow container can leave iOS Safari
+            with bands it never repainted, which is exactly a white gap mid-page. Landing on 1 and then
+            0 runs the scroll machinery twice, which forces the invalidation, and 1px is invisible.
+         The two re-assertions cover an animation frame that still lands after us. */
+      try{ sc.scrollTo({top:sc.scrollTop, behavior:'instant'}); }catch(err){}
+      sc.scrollTop=1; sc.scrollTop=0;
+      setTimeout(function(){ if(sc.scrollTop!==0) sc.scrollTop=0; }, 0);
+      setTimeout(function(){ if(sc.scrollTop!==0) sc.scrollTop=0; }, 140);
+    }
+    if(window.scrollTo) try{ window.scrollTo(0,0); }catch(err){}
   });
 })();
 
@@ -2731,6 +2768,13 @@ function logoLanded(nav){
   function open(){ resetSections(); m.classList.add('open'); document.body.style.overflow='hidden'; }
   function close(){ m.classList.remove('open'); document.body.style.overflow=''; }
   b.onclick=open; if(x) x.onclick=close;
+  /* QA 12756281371 (Critical) + 12756372823, re-tested 13.8 and still failing. Shay's repro pinned it:
+     "הבאג קורה רק כאשר יורדים למטה לוחצים על ״התפריט בחירה״ ואז לוחצים על הלוגו".
+     close() lived only inside this IIFE, so the logo handler literally could not reach it — it closed
+     the internal pages, found none, and tried to scroll a container that was still covered by the open
+     menu with body overflow:hidden. Nothing moved, and the menu overlay is what reads as a white screen.
+     Exposed here so the logo can close the menu too. */
+  window.closeSideMenu=close;
   /* about internal page */
   var ap=document.getElementById('aboutPage'), apx=document.getElementById('apClose');
   /* body.ipage while an internal page is open — neutralises the nav's section marking (client, 2026-08-02) */
@@ -2916,8 +2960,17 @@ const FAQ=[
      OFF below 1024px — text moving at a different speed from the scroll is the one category
      WebKit lists as a vestibular trigger, and it is the weakest of the five effects anyway. */
   @media (max-width:1023px){
+    /* QA 12756298248 + 12756354095, both iPhone-only, both re-tested 13.8 and still failing. This one
+       line was the cause of both, and it is a shorthand trap: `transition` is a SHORTHAND, so declaring
+       it here reset transition-delay back to 0s and wiped the `transition-delay:var(--d,0s)` set in the
+       base rule. Every staggered reveal on the phone therefore fired at once — the heading, the copy and
+       the photo strip all in the same frame — which is why "התמונות עולות לפני הטקסט" and why the FAQ
+       title seemed to lag: nothing was sequenced, so paint order alone decided what appeared first, and
+       images win that race. Desktop kept its stagger, which is why this never showed there.
+       Re-stating the delay after the shorthand restores the sequence on mobile. */
     body.anim .rv{transform:translateY(16px);
-      transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1)}
+      transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1);
+      transition-delay:var(--d,0s)}
     body.anim .role-card[data-seq].in{animation-duration:.45s}
     @keyframes rvIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
     /* hero stays completely still on mobile */
@@ -2945,7 +2998,17 @@ const FAQ=[
     ['.site-foot', 0],
     /* internal pages (they sit off-screen until opened, so the observer
        only fires the moment the page slides in) */
+    /* QA 12756298248 (High, iPhone 16 Pro), re-tested 13.8 and still failing:
+       "כשנכנסים דרך ההמבורגר ל״מי אנחנו״ התמונות עולות לפני הטקסט".
+       The cause was an omission, not a timing value. `.apv-marquee` — the photo strip that sits between
+       the lead and the statement — was never in this list, so it carried no .rv class and no transition
+       at all: every neighbour faded in over half a second while the images were simply THERE from frame
+       one. On a phone, where paint is slower and the fade is more visible, that reads exactly as the
+       pictures arriving first. Adding it here puts the strip on the same reveal as the copy around it,
+       one step behind the lead so the words still lead — see IMAGE_DELAY below for why the second
+       number in these tuples could not do that on its own. */
     ['.apv-eyebrow', 0], ['.apv-h1', .06], ['.apv-lead', .12],
+    ['.apv-marquee', 0],
     ['.apv-statement p', 0], ['.apv-stats > div', .09], ['.apv-stats-note', .10],
     ['.apv-cols > div', .10], ['.apv-photo', 0], ['.apv-cta-row', .08],
     ['.faq-title', 0], ['.faq-list', .08], ['.faq-sub', 0]
@@ -2957,6 +3020,15 @@ const FAQ=[
         el.classList.add('rv');
         if(g[1]) el.style.setProperty('--d', (i*g[1]).toFixed(2)+'s');
       });
+    });
+    /* The number in each tuple is a per-item STAGGER inside a matched set (i * step), so a selector
+       that matches ONE element always resolves to i=0 → 0s. That is why the two photo blocks could not
+       be pushed back by simply giving them a bigger step — each is one of a kind. They get an absolute
+       delay here instead, landing just past the lead's 0.12s so the words arrive first and the pictures
+       follow. (QA 12756298248 — "התמונות עולות לפני הטקסט".) */
+    [['.apv-marquee','0.20s'],['.apv-photo','0.16s']].forEach(function(p){
+      [].forEach.call(document.querySelectorAll(p[0]), function(el){
+        el.style.setProperty('--d', p[1]); });
     });
   }catch(e){   /* if marking ever fails midway, un-hide everything rather than ship blank text */
     [].forEach.call(document.querySelectorAll('.rv'), function(el){ el.classList.add('in'); });
